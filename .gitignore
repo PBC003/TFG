@@ -1,0 +1,15 @@
+# OS / editor junk
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+
+# Node / JS
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.*

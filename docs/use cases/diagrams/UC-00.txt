@@ -1,0 +1,31 @@
+flowchart LR
+  %% Diagrama general de Casos de Uso (boceto) - Plataforma de cuestionarios (TFG)
+
+  %% Actores
+  A[Alumno]
+  P[Profesor]
+  AD[Admin]
+
+  %% Sistema
+  subgraph SYS["Plataforma de cuestionarios (TFG)"]
+    UC01((Iniciar sesión))
+    UC04((Gestionar preguntas))
+    UC06((Crear / publicar cuestionario))
+    UC10((Realizar cuestionario))
+    UC11((Ver resultados<br/>feedback))
+    UC12((Ver estadísticas))
+    UC03((Gestionar usuarios))
+  end
+
+  %% Relaciones actor -> casos de uso
+  A --- UC01
+  A --- UC10
+  A --- UC11
+
+  P --- UC01
+  P --- UC04
+  P --- UC06
+  P --- UC12
+
+  AD --- UC01
+  AD --- UC03

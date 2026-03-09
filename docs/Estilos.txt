@@ -1,0 +1,31 @@
+Título MVP: título principal del documento (portada/primera línea).
+
+Metadatos MVP: autor, versión, fecha, estado del documento.
+
+Título 1 (H1): secciones principales (Contexto, Objetivo, Alcance…).
+
+Título 2 (H2): subsecciones dentro de una H1 (Roles, Funcionalidades…).
+
+Título 3 (H3): subsubsecciones (Alumno, Profesor, Admin…).
+
+Cuerpo: texto normal del documento.
+
+Cuerpo pequeño: notas cortas, aclaraciones, metadatos secundarios.
+
+Lista (viñetas): listas sin orden (características, puntos incluidos…).
+
+Lista (numerada): pasos/secuencias/procedimientos.
+
+Lista (checklist): criterios/pendientes tipo “por hacer / por validar”.
+
+Bloque Nota: comentarios y aclaraciones (“Nota: …”, “Pendiente: …”).
+
+Bloque Riesgo: riesgos o avisos importantes que quieres destacar.
+
+Bloque Código: fragmentos de código, pseudo-código o comandos.
+
+Pie de figura: texto bajo imágenes/gráficos/tablas (“Figura 1: …”).
+
+Tabla Cabecera: fila de encabezados de una tabla.
+
+Tabla Texto: contenido normal dentro de tablas.
