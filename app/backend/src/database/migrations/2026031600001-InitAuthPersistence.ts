@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import {
   MigrationInterface,
   QueryRunner,
@@ -188,8 +187,14 @@ export class InitAuthPersistence2026031600001 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropForeignKey('auth_sessions', 'FK_AUTH_SESSIONS_USER_ID');
-    await queryRunner.dropIndex('auth_sessions', 'IDX_AUTH_SESSIONS_EXPIRES_AT');
+    await queryRunner.dropForeignKey(
+      'auth_sessions',
+      'FK_AUTH_SESSIONS_USER_ID',
+    );
+    await queryRunner.dropIndex(
+      'auth_sessions',
+      'IDX_AUTH_SESSIONS_EXPIRES_AT',
+    );
     await queryRunner.dropIndex('auth_sessions', 'IDX_AUTH_SESSIONS_USER_ID');
     await queryRunner.dropTable('auth_sessions');
     await queryRunner.dropIndex('users', 'IDX_USERS_DELETED_AT');
