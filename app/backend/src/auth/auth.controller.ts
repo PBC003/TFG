@@ -21,6 +21,9 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { Role } from '../users/enums/role.enum';
+import { Roles } from './decorators/roles.decorator';
+import { RolesGuard } from './guards/roles.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -122,5 +125,18 @@ export class AuthController {
       this.authService.getRefreshCookieName(),
       this.authService.getRefreshCookieClearOptions(),
     );
+  }
+
+  @Get('admin-check')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  adminCheck(@Req() request: Request & { user: PublicUser }): {
+    ok: true;
+    user: PublicUser;
+  } {
+    return {
+      ok: true,
+      user: request.user,
+    };
   }
 }

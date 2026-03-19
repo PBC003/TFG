@@ -1,0 +1,262 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { EntityManager, Not, QueryFailedError, Repository } from 'typeorm';
+import {
+  extractUoFromEmail,
+  isValidInstitutionalEmail,
+  normalizeInstitutionalEmail,
+} from '../common/utils/email.util';
+import { AuthSession } from '../auth/entities/auth-session.entity';
+import { hashSecret } from '../auth/utils/password.util';
+import { User } from './entities/user.entity';
+import { Role } from './enums/role.enum';
+import { UpdateUserDto } from './dto/update-user.dto';
+
+export type AdminUserItem = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  uo: string;
+  role: Role;
+  isActive: boolean;
+  lastLoginAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+@Injectable()
+export class UsersService {
+  constructor(
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+    @InjectRepository(AuthSession)
+    private readonly authSessionsRepository: Repository<AuthSession>,
+  ) {}
+
+  async listUsers(): Promise<AdminUserItem[]> {
+    const users = await this.usersRepository.find({
+      order: { id: 'ASC' },
+    });
+
+    return users.map((user) => this.toAdminUserItem(user));
+  }
+
+  async findUserById(id: number): Promise<AdminUserItem> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.toAdminUserItem(user);
+  }
+
+  async updateUser(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<AdminUserItem> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    let hasChanges = false;
+
+    if (updateUserDto.firstName !== undefined) {
+      const firstName = updateUserDto.firstName.trim();
+
+      if (firstName.length < 2 || firstName.length > 30) {
+        throw new BadRequestException(
+          'firstName must be between 2 and 30 characters',
+        );
+      }
+
+      user.firstName = firstName;
+      hasChanges = true;
+    }
+
+    if (updateUserDto.lastName !== undefined) {
+      const lastName = updateUserDto.lastName.trim();
+
+      if (lastName.length < 2 || lastName.length > 50) {
+        throw new BadRequestException(
+          'lastName must be between 2 and 50 characters',
+        );
+      }
+
+      user.lastName = lastName;
+      hasChanges = true;
+    }
+
+    if (updateUserDto.email !== undefined) {
+      const normalizedEmail = normalizeInstitutionalEmail(updateUserDto.email);
+
+      if (!isValidInstitutionalEmail(normalizedEmail)) {
+        throw new BadRequestException('Invalid UniOvi institutional email');
+      }
+
+      const uo = extractUoFromEmail(normalizedEmail);
+
+      const conflictingUser = await this.usersRepository.findOne({
+        where: [
+          { email: normalizedEmail, id: Not(id) },
+          { uo, id: Not(id) },
+        ],
+        withDeleted: true,
+      });
+
+      if (conflictingUser) {
+        throw new ConflictException('A user with that email already exists');
+      }
+
+      user.email = normalizedEmail;
+      user.uo = uo;
+      hasChanges = true;
+    }
+
+    if (!hasChanges) {
+      throw new BadRequestException('At least one field must be provided');
+    }
+
+    try {
+      const savedUser = await this.usersRepository.save(user);
+      return this.toAdminUserItem(savedUser);
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error as QueryFailedError & { driverError?: { code?: string } })
+          .driverError?.code === 'ER_DUP_ENTRY'
+      ) {
+        throw new ConflictException('A user with that email already exists');
+      }
+
+      throw new InternalServerErrorException('Failed to update user');
+    }
+  }
+
+  async updateUserRole(id: number, role: Role): Promise<AdminUserItem> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.role = role;
+
+    const savedUser = await this.usersRepository.save(user);
+    return this.toAdminUserItem(savedUser);
+  }
+
+  async updateUserStatus(
+    id: number,
+    isActive: boolean,
+  ): Promise<AdminUserItem> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.isActive = isActive;
+
+    const savedUser = await this.usersRepository.save(user);
+    return this.toAdminUserItem(savedUser);
+  }
+
+  async updateUserPassword(id: number, newPassword: string): Promise<void> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.passwordHash = await hashSecret(newPassword);
+    await this.usersRepository.save(user);
+
+    await this.revokeActiveSessionsForUser(
+      this.authSessionsRepository,
+      user.id,
+    );
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    await this.usersRepository.manager.transaction(
+      async (manager: EntityManager) => {
+        const usersRepository = manager.getRepository(User);
+        const authSessionsRepository = manager.getRepository(AuthSession);
+
+        const user = await usersRepository.findOne({
+          where: { id },
+        });
+
+        if (!user) {
+          throw new NotFoundException('User not found');
+        }
+
+        user.isActive = false;
+        await usersRepository.save(user);
+
+        await this.revokeActiveSessionsForUser(authSessionsRepository, user.id);
+
+        await usersRepository.softDelete(user.id);
+      },
+    );
+  }
+
+  private async revokeActiveSessionsForUser(
+    authSessionsRepository: Repository<AuthSession>,
+    userId: number,
+  ): Promise<void> {
+    const activeSessions = await authSessionsRepository
+      .createQueryBuilder('session')
+      .leftJoin('session.user', 'user')
+      .where('user.id = :userId', { userId })
+      .andWhere('session.revokedAt IS NULL')
+      .getMany();
+
+    if (activeSessions.length === 0) {
+      return;
+    }
+
+    const revokedAt = new Date();
+
+    for (const session of activeSessions) {
+      session.revokedAt = revokedAt;
+    }
+
+    await authSessionsRepository.save(activeSessions);
+  }
+
+  private toAdminUserItem(user: User): AdminUserItem {
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      uo: user.uo,
+      role: user.role,
+      isActive: user.isActive,
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+}
