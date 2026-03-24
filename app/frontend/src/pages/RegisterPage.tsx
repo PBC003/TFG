@@ -8,26 +8,24 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ROUTES } from "../constants/routes";
 import { useAuth } from "../hooks/useAuth";
-import { ApiError } from "../services/http/api-client";
 import { getErrorMessage } from "../utils/error-code";
-import { validatePassword, validateUniOviEmail } from "../utils/validation";
+import {
+  validateFirstName,
+  validateLastName,
+  validatePassword,
+  validateUniOviEmail,
+} from "../utils/validation";
 
-interface LocationState {
-  from?: {
-    pathname?: string;
-  };
-  successMessage?: string;
-}
-
-export default function LoginPage() {
+export default function RegisterPage() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const { t } = useTranslation();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -36,12 +34,10 @@ export default function LoginPage() {
   );
   const [submitting, setSubmitting] = useState(false);
 
-  const locationState = (location.state as LocationState | null) ?? null;
-  const target = locationState?.from?.pathname ?? ROUTES.home;
-  const successMessage = locationState?.successMessage ?? null;
-
   const validate = () => {
     const nextErrors = {
+      firstName: validateFirstName(firstName),
+      lastName: validateLastName(lastName),
       email: validateUniOviEmail(email),
       password: validatePassword(password),
     };
@@ -59,45 +55,52 @@ export default function LoginPage() {
     setErrorMessage(null);
 
     try {
-      await auth.login({
+      await auth.register({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         email: email.trim(),
         password,
       });
-      navigate(target, { replace: true });
+      navigate(ROUTES.login, {
+        replace: true,
+        state: { successMessage: t("auth.registerSuccess") },
+      });
     } catch (error) {
-      if (
-        error instanceof ApiError &&
-        (error.status === 401 ||
-          error.code === "common.unauthorized" ||
-          error.code === "auth.unauthorized")
-      ) {
-        setErrorMessage(t("errors.codes.auth.invalid_credentials"));
-      } else {
-        setErrorMessage(getErrorMessage(t, error));
-      }
+      setErrorMessage(getErrorMessage(t, error));
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Card sx={{ maxWidth: 560, mx: "auto" }}>
+    <Card sx={{ maxWidth: 640, mx: "auto" }}>
       <CardContent sx={{ p: { xs: 3, md: 4 } }}>
         <Stack spacing={2.5}>
           <Stack spacing={1}>
             <Typography variant="h4" fontWeight={700}>
-              {t("auth.loginTitle")}
+              {t("auth.registerTitle")}
             </Typography>
             <Typography color="text.secondary">
-              {t("auth.loginSubtitle")}
+              {t("auth.registerSubtitle")}
             </Typography>
           </Stack>
 
-          {successMessage ? (
-            <Alert severity="success">{successMessage}</Alert>
-          ) : null}
           {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
 
+          <TextField
+            label={t("auth.firstName")}
+            value={firstName}
+            onChange={(event) => setFirstName(event.target.value)}
+            error={Boolean(fieldErrors.firstName)}
+            helperText={fieldErrors.firstName ? t(fieldErrors.firstName) : " "}
+          />
+          <TextField
+            label={t("auth.lastName")}
+            value={lastName}
+            onChange={(event) => setLastName(event.target.value)}
+            error={Boolean(fieldErrors.lastName)}
+            helperText={fieldErrors.lastName ? t(fieldErrors.lastName) : " "}
+          />
           <TextField
             label={t("auth.email")}
             value={email}
@@ -120,10 +123,10 @@ export default function LoginPage() {
               onClick={() => void handleSubmit()}
               disabled={submitting}
             >
-              {t("auth.submitLogin")}
+              {t("auth.submitRegister")}
             </Button>
-            <Button component={RouterLink} to={ROUTES.register} variant="text">
-              {t("nav.register")}
+            <Button component={RouterLink} to={ROUTES.login} variant="text">
+              {t("nav.login")}
             </Button>
           </Stack>
         </Stack>

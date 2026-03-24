@@ -1,0 +1,240 @@
+export const es = {
+  common: {
+    appName: 'CalcQuiz',
+    appTagline: 'Cuestionarios de cálculo con una base sólida y profesional.',
+    loading: 'Cargando…',
+    retry: 'Recargar',
+    save: 'Guardar',
+    cancel: 'Cancelar',
+    close: 'Cerrar',
+    edit: 'Editar',
+    delete: 'Eliminar',
+    create: 'Crear',
+    confirm: 'Confirmar',
+    search: 'Buscar',
+    actions: 'Acciones',
+    status: 'Estado',
+    role: 'Rol',
+    language: 'Idioma',
+    yes: 'Sí',
+    no: 'No',
+    active: 'Activo',
+    inactive: 'Inactivo',
+    all: 'Todos',
+    none: 'Ninguno',
+    refresh: 'Recargar',
+    resetPassword: 'Restablecer contraseña',
+    deactivate: 'Desactivar',
+    activate: 'Activar',
+    dangerZone: 'Acciones sensibles',
+  },
+  nav: {
+    home: 'Inicio',
+    about: 'Acerca de',
+    profile: 'Perfil',
+    admin: 'Administración',
+    login: 'Iniciar sesión',
+    register: 'Registrarse',
+    logout: 'Cerrar sesión',
+  },
+  footer: {
+    projectLine: 'TFG · Universidad de Oviedo',
+    repository: 'Repositorio de Github',
+    university: 'Universidad de Oviedo',
+  },
+  home: {
+    publicBadge: 'Acceso público',
+    publicTitle: 'CalcQuiz',
+    publicSubtitle:
+      'CalcQuiz presenta una plataforma de cuestionarios de cálculo, con acceso institucional y una gestión profesional.',
+    publicSupportText:
+      'Para poder acceder a la aplicación es necesario iniciar sesión con una cuenta institucional de la Universidad de Oviedo.',
+    authenticatedBadge: 'Espacio autenticado',
+    authenticatedTitle: 'Ya estás dentro de la base de trabajo de CalcQuiz',
+    authenticatedSubtitle:
+      'Tu sesión está activa y la aplicación ya expone el núcleo técnico sobre el que se construirá el resto del proyecto.',
+    authenticatedSupportText:
+      'Desde aquí puedes revisar tu cuenta, acceder a las áreas principales y seguir validando el comportamiento general de la aplicación.',
+    authenticatedWelcome: 'Bienvenido, {{name}}.',
+    ctaLogin: 'Iniciar sesión',
+    ctaRegister: 'Crear cuenta',
+    ctaProfile: 'Abrir perfil',
+    ctaAdmin: 'Ir a administración',
+    authenticatedOverviewTitle: 'Resumen de sesión',
+    authenticatedOverviewBody:
+      'Consulta rápidamente el estado de tu cuenta y mantén a mano los accesos principales de la aplicación.',
+    quickActionsTitle: 'Accesos rápidos',
+    quickActionsBody:
+      'Desde aquí puedes entrar al perfil, ir a administración si corresponde o revisar la información general del proyecto.',
+    publicFeaturePracticeTitle: 'Enfoque en cuestionarios de cálculo',
+    publicFeaturePracticeBody:
+      'La interfaz está pensada para facilitar la experiencia de realizacion y creacion de cuestionarios de cálculo.',
+    publicFeatureAccessTitle: 'Acceso institucional',
+    publicFeatureAccessBody:
+      'El inicio de sesión y el registro se apoyan en correo institucional para mantener un acceso coherente dentro del entorno académico.',
+    publicFeatureProfileTitle: 'Cuenta personal y navegación simple',
+    publicFeatureProfileBody:
+      'Cada usuario dispone de un espacio personal con datos de cuenta, control de acceso y una navegación bilingüe integrada.',
+    accountBlockTitle: 'Estado de cuenta',
+    accountBlockValue: 'Sesión activa y datos disponibles',
+    foundationBlockTitle: 'Estado del proyecto',
+    foundationBlockValue: 'Base funcional lista para ampliación',
+  },
+  about: {
+    title: 'Acerca del proyecto',
+    body:
+      'Este prototipo forma parte de un TFG orientado a una plataforma web para crear y resolver cuestionarios con soporte posterior para notación matemática y analítica básica.',
+    hero: {
+      title: "Acerca de CalcQuiz",
+      description:
+        "CalcQuiz es el proyecto base del TFG orientado a la gestión y realización de cuestionarios académicos, con foco específico en el contexto de cálculo y en el uso universitario.",
+    },
+    cards: {
+      what: {
+        title: "Qué es",
+        description:
+          "Una aplicación web capaz de gestionar cuestionarios académicos y analizar los resultados.",
+      },
+      goal: {
+        title: "Intención del proyecto",
+        description:
+          "Facilitar una plataforma sobre la que profesorado y alumnado puedan trabajar con cuestionarios en un entorno estructurado y controlado.",
+      },
+      status: {
+        title: "Estado actual",
+        description:
+          "La base actual cubre autenticación, perfil, control por roles y una administración mínima de usuarios sobre la que seguir iterando.",
+      },
+    },
+    tech: {
+      title: "Tecnologías y enfoque",
+      p1: "CalcQuiz se ha desarrollado como una aplicación web moderna, modular y mantenible, pensada para servir como base sólida de una futura plataforma de cuestionarios de cálculo. En el frontend se ha utilizado React con TypeScript y Vite, lo que permite construir una interfaz dinámica, tipada y organizada en componentes reutilizables. Además, el diseño se apoya en Material UI, lo que facilita mantener una apariencia consistente, accesible y profesional en toda la aplicación.",
+      p2: "En el backend se ha trabajado con NestJS y TypeScript, siguiendo una arquitectura estructurada que favorece la separación de responsabilidades, la escalabilidad y el mantenimiento del código. El enfoque del proyecto ha priorizado primero la construcción de una base técnica robusta, centrada en autenticación, persistencia de sesión, gestión de perfil y control de acceso por roles, antes de abordar futuras ampliaciones funcionales.",
+    },
+    backHome: "Volver al inicio",
+  },
+  auth: {
+    loginTitle: 'Iniciar sesión',
+    loginSubtitle: 'Acceso con correo institucional de la Universidad de Oviedo.',
+    registerTitle: 'Registro de estudiante',
+    registerSubtitle: 'El registro público crea cuentas con rol STUDENT.',
+    email: 'Correo institucional',
+    password: 'Contraseña',
+    currentPassword: 'Contraseña actual',
+    newPassword: 'Nueva contraseña',
+    firstName: 'Nombre',
+    lastName: 'Apellidos',
+    submitLogin: 'Entrar',
+    submitRegister: 'Crear cuenta',
+    changePasswordTitle: 'Cambiar contraseña',
+    changePasswordDescription:
+      'Por seguridad, al cambiar la contraseña se revocarán las sesiones activas y tendrás que volver a iniciar sesión.',
+    submitPasswordChange: 'Actualizar contraseña',
+    logoutSuccess: 'Sesión cerrada.',
+    registerSuccess: 'Cuenta creada. Ya puedes iniciar sesión.',
+    passwordChanged: 'Contraseña actualizada. Inicia sesión de nuevo.',
+    unauthorizedTitle: 'Acceso no autorizado',
+    unauthorizedBody: 'No tienes permisos suficientes para acceder a esta página.',
+    sessionLoading: 'Comprobando sesión…',
+  },
+  profile: {
+    title: 'Perfil',
+    subtitle: 'Datos actuales de la cuenta autenticada.',
+    accountData: 'Datos de la cuenta',
+    accountDataDescription: 'Información básica y metadatos principales del usuario autenticado.',
+    securityHint:
+      'Al actualizar la contraseña se invalidarán las sesiones activas y tendrás que volver a identificarte con la nueva credencial.',
+    accountState: 'Estado de la cuenta',
+    createdAt: 'Fecha de alta',
+    updatedAt: 'Última actualización',
+  },
+  roles: {
+    ADMIN: 'Administrador',
+    TEACHER: 'Profesor',
+    STUDENT: 'Estudiante',
+  },
+  admin: {
+    title: 'Panel de administración',
+    subtitle:
+      'Gestión básica de usuarios del sistema. La búsqueda, paginación y carga incremental siguen pendientes como deuda técnica conocida.',
+    totalUsers: 'Usuarios visibles',
+    searchPlaceholder: 'Buscar por nombre, apellidos, correo o UO',
+    stateFilter: 'Filtrar por estado',
+    empty: 'No hay usuarios que cumplan el filtro actual.',
+    refreshSuccess: 'Listado recargado.',
+    updateSuccess: 'Usuario actualizado.',
+    statusSuccess: 'Estado actualizado.',
+    passwordSuccess: 'Contraseña restablecida y sesiones revocadas.',
+    deleteSuccess: 'Usuario desactivado y eliminado lógicamente.',
+    table: {
+      user: 'Usuario',
+      email: 'Correo',
+      uo: 'UO',
+      role: 'Rol',
+      status: 'Estado',
+      lastLogin: 'Último acceso',
+    },
+    dialogs: {
+      editTitle: 'Editar usuario',
+      passwordTitle: 'Restablecer contraseña',
+      passwordDescription:
+        'La nueva contraseña sustituirá a la actual y cerrará todas las sesiones activas del usuario.',
+      deleteTitle: 'Eliminar lógicamente usuario',
+      deleteDescription:
+        'Esta acción marcará la cuenta como inactiva, revocará sesiones y ejecutará el borrado lógico.',
+      deactivateTitle: 'Desactivar usuario',
+      deactivateDescription:
+        'La cuenta dejará de poder iniciar sesión hasta que se reactive de nuevo.',
+      activateTitle: 'Activar usuario',
+      activateDescription:
+        'La cuenta volverá a estar disponible para nuevas sesiones.',
+      selfProtected: 'No se permiten acciones destructivas sobre la cuenta autenticada.',
+    },
+  },
+  forms: {
+    validation: {
+      required: 'Este campo es obligatorio.',
+      firstNameLength: 'El nombre debe tener entre 2 y 30 caracteres.',
+      lastNameLength: 'Los apellidos deben tener entre 2 y 50 caracteres.',
+      unioviEmail: 'Introduce un correo institucional válido (uoXXXXXX@uniovi.es).',
+      passwordLength: 'La contraseña debe tener entre 8 y 72 caracteres.',
+      currentPasswordRequired: 'Introduce la contraseña actual.',
+      samePassword: 'La nueva contraseña debe ser distinta de la actual.',
+    },
+  },
+  errors: {
+    generic: 'Se ha producido un error inesperado.',
+    codes: {
+      common: {
+        validation_error: 'Los datos enviados no son válidos.',
+        bad_request: 'La solicitud no es válida.',
+        unauthorized: 'Necesitas iniciar sesión para continuar.',
+        forbidden: 'No tienes permisos para realizar esta acción.',
+        not_found: 'No se ha encontrado el recurso solicitado.',
+        conflict: 'La operación entra en conflicto con el estado actual.',
+        internal_error: 'Se ha producido un error interno del servidor.',
+      },
+      auth: {
+        unauthorized: 'Necesitas una sesión válida para continuar.',
+        invalid_credentials: 'Correo o contraseña incorrectos.',
+        invalid_access_token: 'La sesión actual ya no es válida.',
+        invalid_refresh_token: 'No se ha podido restaurar la sesión.',
+        missing_refresh_token: 'No hay sesión persistente disponible.',
+        refresh_session_revoked: 'La sesión se ha revocado y debes iniciar sesión de nuevo.',
+        refresh_session_expired: 'La sesión ha caducado y debes iniciar sesión de nuevo.',
+        current_password_incorrect: 'La contraseña actual no es correcta.',
+        new_password_must_differ: 'La nueva contraseña debe ser distinta de la actual.',
+        invalid_institutional_email: 'El correo debe ser institucional de UniOvi.',
+        email_already_exists: 'Ya existe una cuenta con ese correo.',
+      },
+      user: {
+        not_found: 'No se ha encontrado el usuario indicado.',
+        invalid_first_name_length: 'El nombre debe tener entre 2 y 30 caracteres.',
+        invalid_last_name_length: 'Los apellidos deben tener entre 2 y 50 caracteres.',
+        email_already_exists: 'Ya existe otro usuario con ese correo.',
+        update_requires_field: 'Debes modificar al menos un campo.',
+        password_too_short: 'La contraseña debe tener al menos 8 caracteres.',
+      },
+    },
+  },
+} as const;
