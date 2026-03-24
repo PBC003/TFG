@@ -3,6 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/errors/http-exception.filter';
+import { createValidationException } from './common/errors/validation-exception.factory';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,6 +12,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.use(cookieParser());
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   app.enableCors({
     origin:
@@ -22,6 +25,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      exceptionFactory: createValidationException,
       transformOptions: {
         enableImplicitConversion: true,
       },
@@ -32,4 +36,4 @@ async function bootstrap() {
 
   await app.listen(port);
 }
-bootstrap();
+void bootstrap();

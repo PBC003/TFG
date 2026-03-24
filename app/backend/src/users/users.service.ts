@@ -1,12 +1,7 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Not, QueryFailedError, Repository } from 'typeorm';
+import { createAppErrorBody } from '../common/errors/app-http.exception';
 import {
   extractUoFromEmail,
   isValidInstitutionalEmail,
@@ -54,7 +49,10 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new HttpException(
+        createAppErrorBody('user.not_found', 'User not found'),
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return this.toAdminUserItem(user);
@@ -69,7 +67,10 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new HttpException(
+        createAppErrorBody('user.not_found', 'User not found'),
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     let hasChanges = false;
@@ -78,8 +79,12 @@ export class UsersService {
       const firstName = updateUserDto.firstName.trim();
 
       if (firstName.length < 2 || firstName.length > 30) {
-        throw new BadRequestException(
-          'firstName must be between 2 and 30 characters',
+        throw new HttpException(
+          createAppErrorBody(
+            'user.invalid_first_name_length',
+            'firstName must be between 2 and 30 characters',
+          ),
+          HttpStatus.BAD_REQUEST,
         );
       }
 
@@ -91,8 +96,12 @@ export class UsersService {
       const lastName = updateUserDto.lastName.trim();
 
       if (lastName.length < 2 || lastName.length > 50) {
-        throw new BadRequestException(
-          'lastName must be between 2 and 50 characters',
+        throw new HttpException(
+          createAppErrorBody(
+            'user.invalid_last_name_length',
+            'lastName must be between 2 and 50 characters',
+          ),
+          HttpStatus.BAD_REQUEST,
         );
       }
 
@@ -104,7 +113,13 @@ export class UsersService {
       const normalizedEmail = normalizeInstitutionalEmail(updateUserDto.email);
 
       if (!isValidInstitutionalEmail(normalizedEmail)) {
-        throw new BadRequestException('Invalid UniOvi institutional email');
+        throw new HttpException(
+          createAppErrorBody(
+            'auth.invalid_institutional_email',
+            'Invalid UniOvi institutional email',
+          ),
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       const uo = extractUoFromEmail(normalizedEmail);
@@ -118,7 +133,13 @@ export class UsersService {
       });
 
       if (conflictingUser) {
-        throw new ConflictException('A user with that email already exists');
+        throw new HttpException(
+          createAppErrorBody(
+            'user.email_already_exists',
+            'A user with that email already exists',
+          ),
+          HttpStatus.CONFLICT,
+        );
       }
 
       user.email = normalizedEmail;
@@ -127,7 +148,13 @@ export class UsersService {
     }
 
     if (!hasChanges) {
-      throw new BadRequestException('At least one field must be provided');
+      throw new HttpException(
+        createAppErrorBody(
+          'user.update_requires_field',
+          'At least one field must be provided',
+        ),
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     try {
@@ -139,10 +166,19 @@ export class UsersService {
         (error as QueryFailedError & { driverError?: { code?: string } })
           .driverError?.code === 'ER_DUP_ENTRY'
       ) {
-        throw new ConflictException('A user with that email already exists');
+        throw new HttpException(
+          createAppErrorBody(
+            'user.email_already_exists',
+            'A user with that email already exists',
+          ),
+          HttpStatus.CONFLICT,
+        );
       }
 
-      throw new InternalServerErrorException('Failed to update user');
+      throw new HttpException(
+        createAppErrorBody('user.update_failed', 'Failed to update user'),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -152,7 +188,10 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new HttpException(
+        createAppErrorBody('user.not_found', 'User not found'),
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     user.role = role;
@@ -170,7 +209,10 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new HttpException(
+        createAppErrorBody('user.not_found', 'User not found'),
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     user.isActive = isActive;
@@ -185,7 +227,20 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new HttpException(
+        createAppErrorBody('user.not_found', 'User not found'),
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (newPassword.length < 8) {
+      throw new HttpException(
+        createAppErrorBody(
+          'user.password_too_short',
+          'Password must be at least 8 characters long',
+        ),
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     user.passwordHash = await hashSecret(newPassword);
@@ -208,7 +263,10 @@ export class UsersService {
         });
 
         if (!user) {
-          throw new NotFoundException('User not found');
+          throw new HttpException(
+            createAppErrorBody('user.not_found', 'User not found'),
+            HttpStatus.NOT_FOUND,
+          );
         }
 
         user.isActive = false;

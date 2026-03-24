@@ -3,12 +3,12 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   Patch,
   Post,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
@@ -24,6 +24,20 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Role } from '../users/enums/role.enum';
 import { Roles } from './decorators/roles.decorator';
 import { RolesGuard } from './guards/roles.guard';
+import type { AppErrorBody } from '../common/errors/app-http.exception';
+import type { AppErrorCode } from '../common/errors/app-error-code.type';
+
+function buildErrorBody(
+  code: AppErrorCode,
+  message: string,
+  details?: Record<string, unknown>,
+): AppErrorBody {
+  if (details === undefined) {
+    return { code, message };
+  }
+
+  return { code, message, details };
+}
 
 @Controller('auth')
 export class AuthController {
@@ -65,7 +79,10 @@ export class AuthController {
     ] as string | undefined;
 
     if (!refreshToken) {
-      throw new UnauthorizedException('Missing refresh token');
+      throw new HttpException(
+        buildErrorBody('auth.missing_refresh_token', 'Missing refresh token'),
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     const result: AuthTokensResponse =

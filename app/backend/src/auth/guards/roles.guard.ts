@@ -1,11 +1,14 @@
 import {
   CanActivate,
   ExecutionContext,
-  ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
+import type { AppErrorBody } from '../../common/errors/app-http.exception';
+import type { AppErrorCode } from '../../common/errors/app-error-code.type';
 import { Role } from '../../users/enums/role.enum';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
@@ -14,6 +17,18 @@ type RequestWithUser = Request & {
     role?: Role;
   };
 };
+
+function buildErrorBody(
+  code: AppErrorCode,
+  message: string,
+  details?: Record<string, unknown>,
+): AppErrorBody {
+  if (details === undefined) {
+    return { code, message };
+  }
+
+  return { code, message, details };
+}
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -33,11 +48,17 @@ export class RolesGuard implements CanActivate {
     const userRole = request.user?.role;
 
     if (!userRole) {
-      return false;
+      throw new HttpException(
+        buildErrorBody('auth.unauthorized', 'Authentication required'),
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     if (!requiredRoles.includes(userRole)) {
-      throw new ForbiddenException('Insufficient permissions');
+      throw new HttpException(
+        buildErrorBody('common.forbidden', 'Insufficient permissions'),
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     return true;

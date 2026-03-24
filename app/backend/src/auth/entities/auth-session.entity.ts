@@ -20,7 +20,12 @@ export class AuthSession {
   @Column({ name: 'expires_at', type: 'datetime', precision: 6 })
   expiresAt!: Date;
 
-  @Column({ name: 'revoked_at', type: 'datetime', precision: 6, nullable: true })
+  @Column({
+    name: 'revoked_at',
+    type: 'datetime',
+    precision: 6,
+    nullable: true,
+  })
   revokedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime', precision: 6 })
@@ -29,7 +34,10 @@ export class AuthSession {
   @UpdateDateColumn({ name: 'updated_at', type: 'datetime', precision: 6 })
   updatedAt!: Date;
 
-  @ManyToOne(() => User, (user) => user.authSessions, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.authSessions, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user!: User;
 }

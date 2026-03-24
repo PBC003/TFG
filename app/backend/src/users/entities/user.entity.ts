@@ -40,7 +40,12 @@ export class User {
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive!: boolean;
 
-  @Column({ name: 'last_login_at', type: 'datetime', precision: 6, nullable: true })
+  @Column({
+    name: 'last_login_at',
+    type: 'datetime',
+    precision: 6,
+    nullable: true,
+  })
   lastLoginAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime', precision: 6 })
@@ -50,7 +55,12 @@ export class User {
   updatedAt!: Date;
 
   @Index()
-  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', precision: 6, nullable: true })
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'datetime',
+    precision: 6,
+    nullable: true,
+  })
   deletedAt!: Date | null;
 
   @OneToMany(() => AuthSession, (authSession) => authSession.user)
