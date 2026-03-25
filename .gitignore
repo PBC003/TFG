@@ -11,5 +11,16 @@ node_modules/
 dist/
 build/
 coverage/
+
+# Env files
 .env
 .env.*
+!.env.example
+!**/.env.example
+
+# Postman
+.postman/
+postman/
+*.postman_environment.json
+*.postman_globals.json
+*.postman_test_run.json

@@ -1,0 +1,240 @@
+export const en = {
+  common: {
+    appName: 'CalcQuiz',
+    appTagline: 'Calculus quizzes with a cleaner and more professional foundation.',
+    loading: 'Loading…',
+    retry: 'Retry',
+    save: 'Save',
+    cancel: 'Cancel',
+    close: 'Close',
+    edit: 'Edit',
+    delete: 'Delete',
+    create: 'Create',
+    confirm: 'Confirm',
+    search: 'Search',
+    actions: 'Actions',
+    status: 'Status',
+    role: 'Role',
+    language: 'Language',
+    yes: 'Yes',
+    no: 'No',
+    active: 'Active',
+    inactive: 'Inactive',
+    all: 'All',
+    none: 'None',
+    refresh: 'Refresh',
+    resetPassword: 'Reset password',
+    deactivate: 'Deactivate',
+    activate: 'Activate',
+    dangerZone: 'Sensitive actions',
+  },
+  nav: {
+    home: 'Home',
+    about: 'About',
+    profile: 'Profile',
+    admin: 'Admin',
+    login: 'Log in',
+    register: 'Register',
+    logout: 'Log out',
+  },
+  footer: {
+    projectLine: 'Bachelor thesis · University of Oviedo',
+    repository: 'Github Repository',
+    university: 'University of Oviedo',
+  },
+  home: {
+    publicBadge: 'Public access',
+    publicTitle: 'CalcQuiz',
+    publicSubtitle:
+      'CalcQuiz presents a professional platform for calculus quizzes, with institutional access and a streamlined management approach.',
+    publicSupportText:
+      'To access the application, you need to log in with an institutional account from the University of Oviedo.',
+    authenticatedBadge: 'Authenticated area',
+    authenticatedTitle: 'You are already inside the CalcQuiz working foundation',
+    authenticatedSubtitle:
+      'Your session is active and the application already exposes the technical core on top of which the rest of the project will grow.',
+    authenticatedSupportText:
+      'From here you can review your account, access the main areas and keep validating the overall behavior of the application.',
+    authenticatedWelcome: 'Welcome, {{name}}.',
+    ctaLogin: 'Log in',
+    ctaRegister: 'Create account',
+    ctaProfile: 'Open profile',
+    ctaAdmin: 'Go to admin',
+    authenticatedOverviewTitle: 'Session overview',
+    authenticatedOverviewBody:
+      'Quickly review your account status and keep the main application areas within reach.',
+    quickActionsTitle: 'Quick actions',
+    quickActionsBody:
+      'From here you can open your profile, go to admin when available or review general project information.',
+    publicFeaturePracticeTitle: 'Built for Calculus quizzes',
+    publicFeaturePracticeBody:
+      'The interface is designed to facilitate the experience of creating and taking calculus quizzes.',
+    publicFeatureAccessTitle: 'Institutional access',
+    publicFeatureAccessBody:
+      'Sign in and registration rely on institutional email to keep access coherent within the academic environment.',
+    publicFeatureProfileTitle: 'Personal account and simple navigation',
+    publicFeatureProfileBody:
+      'Each user has a personal area with account data, access control and integrated bilingual navigation.',
+    accountBlockTitle: 'Account status',
+    accountBlockValue: 'Active session and account data available',
+    foundationBlockTitle: 'Project status',
+    foundationBlockValue: 'Functional baseline ready for expansion',
+  },
+  about: {
+    title: 'About the project',
+    body:
+      'This prototype is part of a bachelor thesis focused on a web platform for creating and taking quizzes, with future support for mathematical notation and basic analytics.',
+    hero: {
+      title: "About CalcQuiz",
+      description:
+        "CalcQuiz is the base project for this final degree project, focused on the management and completion of academic quizzes, with a specific emphasis on calculus and university use.",
+    },
+    cards: {
+      what: {
+        title: "What it is",
+        description:
+          "A web application capable of managing academic quizzes and analyzing their results.",
+      },
+      goal: {
+        title: "Project goal",
+        description:
+          "To provide a platform where teachers and students can work with quizzes in a structured and controlled environment.",
+      },
+      status: {
+        title: "Current status",
+        description:
+          "The current foundation includes authentication, profile management, role-based access control, and basic user administration to keep iterating on.",
+      },
+    },
+    tech: {
+      title: "Technologies and approach",
+      p1: "CalcQuiz has been developed as a modern, modular, and maintainable web application, designed to serve as a solid foundation for a future calculus quiz platform. The frontend uses React with TypeScript and Vite, which makes it possible to build a dynamic, typed interface organized into reusable components. In addition, the design relies on Material UI, helping maintain a consistent, accessible, and professional look across the application.",
+      p2: "The backend has been built with NestJS and TypeScript, following a structured architecture that supports clear separation of concerns, scalability, and maintainability. The project approach has prioritized building a robust technical foundation first, focused on authentication, session persistence, profile management, and role-based access control, before moving on to future functional extensions.",
+    },
+    backHome: "Back to home",
+  },
+  auth: {
+    loginTitle: 'Log in',
+    loginSubtitle: 'Sign in with a University of Oviedo institutional email.',
+    registerTitle: 'Student registration',
+    registerSubtitle: 'Public registration creates STUDENT accounts.',
+    email: 'Institutional email',
+    password: 'Password',
+    currentPassword: 'Current password',
+    newPassword: 'New password',
+    firstName: 'First name',
+    lastName: 'Last name',
+    submitLogin: 'Sign in',
+    submitRegister: 'Create account',
+    changePasswordTitle: 'Change password',
+    changePasswordDescription:
+      'For security reasons, changing the password revokes active sessions and you will need to log in again.',
+    submitPasswordChange: 'Update password',
+    logoutSuccess: 'Session closed.',
+    registerSuccess: 'Account created. You can now log in.',
+    passwordChanged: 'Password updated. Please sign in again.',
+    unauthorizedTitle: 'Unauthorized access',
+    unauthorizedBody: 'You do not have enough permissions to access this page.',
+    sessionLoading: 'Checking session…',
+  },
+  profile: {
+    title: 'Profile',
+    subtitle: 'Current data for the authenticated account.',
+    accountData: 'Account data',
+    accountDataDescription: 'Basic information and key metadata for the authenticated user.',
+    securityHint:
+      'Updating the password invalidates active sessions and you will need to authenticate again with the new credential.',
+    accountState: 'Account status',
+    createdAt: 'Created at',
+    updatedAt: 'Last updated',
+  },
+  roles: {
+    ADMIN: 'Administrator',
+    TEACHER: 'Teacher',
+    STUDENT: 'Student',
+  },
+  admin: {
+    title: 'Administration panel',
+    subtitle:
+      'Basic user management for the system. Search, pagination and incremental loading are still pending as known technical debt.',
+    totalUsers: 'Visible users',
+    searchPlaceholder: 'Search by name, surname, email or UO',
+    stateFilter: 'Filter by status',
+    empty: 'There are no users matching the current filter.',
+    refreshSuccess: 'List refreshed.',
+    updateSuccess: 'User updated.',
+    statusSuccess: 'Status updated.',
+    passwordSuccess: 'Password reset and sessions revoked.',
+    deleteSuccess: 'User deactivated and soft deleted.',
+    table: {
+      user: 'User',
+      email: 'Email',
+      uo: 'UO',
+      role: 'Role',
+      status: 'Status',
+      lastLogin: 'Last login',
+    },
+    dialogs: {
+      editTitle: 'Edit user',
+      passwordTitle: 'Reset password',
+      passwordDescription:
+        'The new password will replace the current one and revoke all active sessions for this user.',
+      deleteTitle: 'Soft delete user',
+      deleteDescription:
+        'This action marks the account as inactive, revokes sessions and performs a soft delete.',
+      deactivateTitle: 'Deactivate user',
+      deactivateDescription:
+        'The account will no longer be able to sign in until it is reactivated.',
+      activateTitle: 'Activate user',
+      activateDescription:
+        'The account will become available again for new sessions.',
+      selfProtected: 'Destructive actions are blocked for the authenticated account.',
+    },
+  },
+  forms: {
+    validation: {
+      required: 'This field is required.',
+      firstNameLength: 'First name must contain between 2 and 30 characters.',
+      lastNameLength: 'Last name must contain between 2 and 50 characters.',
+      unioviEmail: 'Enter a valid institutional email (uoXXXXXX@uniovi.es).',
+      passwordLength: 'Password must contain between 8 and 72 characters.',
+      currentPasswordRequired: 'Enter the current password.',
+      samePassword: 'The new password must be different from the current one.',
+    },
+  },
+  errors: {
+    generic: 'An unexpected error occurred.',
+    codes: {
+      common: {
+        validation_error: 'Submitted data is not valid.',
+        bad_request: 'The request is not valid.',
+        unauthorized: 'You need to sign in to continue.',
+        forbidden: 'You do not have permission to perform this action.',
+        not_found: 'The requested resource was not found.',
+        conflict: 'The operation conflicts with the current state.',
+        internal_error: 'An internal server error occurred.',
+      },
+      auth: {
+        unauthorized: 'You need a valid session to continue.',
+        invalid_credentials: 'Incorrect email or password.',
+        invalid_access_token: 'The current session is no longer valid.',
+        invalid_refresh_token: 'The session could not be restored.',
+        missing_refresh_token: 'There is no persistent session available.',
+        refresh_session_revoked: 'The session has been revoked. Please sign in again.',
+        refresh_session_expired: 'The session has expired. Please sign in again.',
+        current_password_incorrect: 'The current password is incorrect.',
+        new_password_must_differ: 'The new password must be different from the current one.',
+        invalid_institutional_email: 'The email must be a UniOvi institutional address.',
+        email_already_exists: 'An account with that email already exists.',
+      },
+      user: {
+        not_found: 'The requested user was not found.',
+        invalid_first_name_length: 'First name must contain between 2 and 30 characters.',
+        invalid_last_name_length: 'Last name must contain between 2 and 50 characters.',
+        email_already_exists: 'Another user already uses that email.',
+        update_requires_field: 'You must update at least one field.',
+        password_too_short: 'Password must be at least 8 characters long.',
+      },
+    },
+  },
+} as const;

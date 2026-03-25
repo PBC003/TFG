@@ -1,0 +1,9 @@
+CREATE DATABASE IF NOT EXISTS uo289642_tfg
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'uo289642_user'@'localhost'
+  IDENTIFIED BY 'uo289642_password_db';
+
+GRANT ALL PRIVILEGES ON uo289642_tfg.* TO 'uo289642_user'@'localhost';
+FLUSH PRIVILEGES;

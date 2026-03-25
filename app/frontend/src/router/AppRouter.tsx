@@ -1,7 +1,16 @@
 import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
+import { RequireAuth } from "../components/auth/RequireAuth";
+import { RequireGuest } from "../components/auth/RequireGuest";
+import { RequireRole } from "../components/auth/RequireRole";
+import AboutPage from "../pages/AboutPage";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
+import NotFoundPage from "../pages/NotFoundPage";
+import ProfilePage from "../pages/ProfilePage";
+import RegisterPage from "../pages/RegisterPage";
+import UnauthorizedPage from "../pages/UnauthorizedPage";
+import AdminPage from "../pages/admin/AdminPage";
 
 export const router = createBrowserRouter([
   {
@@ -13,8 +22,47 @@ export const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: "login",
-        element: <LoginPage />,
+        path: "about",
+        element: <AboutPage />,
+      },
+      {
+        element: <RequireGuest />,
+        children: [
+          {
+            path: "login",
+            element: <LoginPage />,
+          },
+          {
+            path: "register",
+            element: <RegisterPage />,
+          },
+        ],
+      },
+      {
+        element: <RequireAuth />,
+        children: [
+          {
+            path: "profile",
+            element: <ProfilePage />,
+          },
+        ],
+      },
+      {
+        element: <RequireRole allowedRoles={["ADMIN"]} />,
+        children: [
+          {
+            path: "admin",
+            element: <AdminPage />,
+          },
+        ],
+      },
+      {
+        path: "unauthorized",
+        element: <UnauthorizedPage />,
+      },
+      {
+        path: "*",
+        element: <NotFoundPage />,
       },
     ],
   },
