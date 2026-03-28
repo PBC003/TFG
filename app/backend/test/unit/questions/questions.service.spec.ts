@@ -137,6 +137,126 @@ describe('QuestionsService', () => {
     });
   });
 
+  it('rejects invalid math content in create and update payloads', async () => {
+    await expect(
+      service.createQuestion(
+        {
+          title: 'Pregunta con script',
+          type: QuestionType.TRUE_FALSE,
+          statement: 'Resultado <script>alert(1)</script>',
+          questionConfig: { correctAnswer: true },
+        },
+        { id: 7 },
+      ),
+    ).rejects.toMatchObject({
+      response: {
+        code: 'question.invalid_math_content',
+        details: {
+          fields: expect.arrayContaining([
+            expect.objectContaining({ field: 'statement' }),
+          ]),
+        },
+      },
+      status: HttpStatus.BAD_REQUEST,
+    });
+
+    const save = jest.fn().mockResolvedValue(undefined);
+    questionModel.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        ...baseQuestion,
+        save,
+      }),
+    });
+
+    await expect(
+      service.updateQuestion(
+        'question-1',
+        {
+          statement: 'Texto con $x^2',
+        },
+        { id: 8 },
+      ),
+    ).rejects.toMatchObject({
+      response: { code: 'question.invalid_math_content' },
+      status: HttpStatus.BAD_REQUEST,
+    });
+  });
+
+  it('normalizes questionConfig content before persisting or updating', async () => {
+    questionModel.create.mockResolvedValue({
+      ...baseQuestion,
+      type: QuestionType.SINGLE_CHOICE,
+      questionConfig: {
+        options: [
+          { key: 'a', text: 'Opción A' },
+          { key: 'b', text: 'Opción B' },
+        ],
+        correctOptionKey: 'a',
+      },
+    });
+
+    await service.createQuestion(
+      {
+        title: 'Opciones con espacios',
+        type: QuestionType.SINGLE_CHOICE,
+        statement: 'Selecciona la correcta.',
+        questionConfig: {
+          options: [
+            { key: ' a ', text: '  Opción A  ' },
+            { key: 'b', text: ' Opción B ' },
+          ],
+          correctOptionKey: ' a ',
+        },
+      },
+      { id: 7 },
+    );
+
+    expect(questionModel.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        questionConfig: {
+          options: [
+            { key: 'a', text: 'Opción A' },
+            { key: 'b', text: 'Opción B' },
+          ],
+          correctOptionKey: 'a',
+        },
+      }),
+    );
+
+    const save = jest.fn().mockResolvedValue(undefined);
+    const persistedQuestion = {
+      ...baseQuestion,
+      type: QuestionType.PARAMETRIC,
+      questionConfig: {
+        variables: [{ name: 'x', min: 0, max: 1 }],
+        answerFormula: 'x',
+      },
+      save,
+    };
+
+    questionModel.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue(persistedQuestion),
+    });
+
+    await service.updateQuestion(
+      'question-1',
+      {
+        questionConfig: {
+          variables: [{ name: ' y ', min: 1, max: 3 }],
+          answerFormula: ' y^2 ',
+          sampleAnswer: ' 4 ',
+        },
+      },
+      { id: 9 },
+    );
+
+    expect(persistedQuestion.questionConfig).toEqual({
+      variables: [{ name: 'y', min: 1, max: 3 }],
+      answerFormula: 'y^2',
+      sampleAnswer: '4',
+    });
+  });
+
   it('lists questions sorted by most recently updated and finds single questions', async () => {
     const exec = jest.fn().mockResolvedValue([baseQuestion]);
     const sort = jest.fn().mockReturnValue({ exec });

@@ -18,6 +18,7 @@ export type AppErrorCode =
   | 'common.not_found'
   | 'common.unauthorized'
   | 'common.validation_error'
+  | 'question.invalid_math_content'
   | 'question.invalid_type_config'
   | 'question.not_found'
   | 'question.update_requires_field'

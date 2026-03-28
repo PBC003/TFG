@@ -8,6 +8,10 @@ import { UpdateQuestionDto } from './dto/update-question.dto';
 import { QuestionType } from './enums/question-type.enum';
 import { Question, type QuestionDocument } from './schemas/question.schema';
 import type { QuestionTypeConfig } from './types/question-type-config.type';
+import {
+  normalizeQuestionTypeConfig,
+  validateQuestionMathContent,
+} from './utils/question-math-content.util';
 import { isValidQuestionTypeConfig } from './validators/question-type-config.validator';
 
 export type QuestionItem = {
@@ -31,7 +35,7 @@ type NormalizedCreateQuestionData = {
   statement: string;
   explanation: string | null;
   tags: string[];
-  questionConfig: unknown;
+  questionConfig: QuestionTypeConfig;
 };
 
 type NormalizedUpdateQuestionData = {
@@ -40,7 +44,7 @@ type NormalizedUpdateQuestionData = {
   statement?: string;
   explanation?: string | null;
   tags?: string[];
-  questionConfig?: unknown;
+  questionConfig?: QuestionTypeConfig;
 };
 
 @Injectable()
@@ -72,9 +76,27 @@ export class QuestionsService {
       );
     }
 
+    const mathValidation = validateQuestionMathContent(
+      normalizedPayload.type,
+      normalizedPayload.statement,
+      normalizedPayload.explanation,
+      normalizedPayload.questionConfig,
+    );
+
+    if (!mathValidation.isValid) {
+      throw new HttpException(
+        createAppErrorBody(
+          'question.invalid_math_content',
+          'Question content contains invalid LaTeX or forbidden executable markup',
+          { fields: mathValidation.errors },
+        ),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const question = await this.questionModel.create({
       ...normalizedPayload,
-      questionConfig: normalizedPayload.questionConfig as QuestionTypeConfig,
+      questionConfig: normalizedPayload.questionConfig,
       createdByUserId: user.id,
       updatedByUserId: user.id,
     });
@@ -132,6 +154,14 @@ export class QuestionsService {
       this.normalizeUpdateQuestionData(updateQuestionDto);
 
     const nextType = normalizedPayload.type ?? question.type;
+
+    if (normalizedPayload.questionConfig !== undefined) {
+      normalizedPayload.questionConfig = normalizeQuestionTypeConfig(
+        nextType,
+        normalizedPayload.questionConfig,
+      );
+    }
+
     const nextQuestionConfig =
       normalizedPayload.questionConfig ?? question.questionConfig;
 
@@ -140,6 +170,26 @@ export class QuestionsService {
         createAppErrorBody(
           'question.invalid_type_config',
           'questionConfig does not match the selected question type',
+        ),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const mathValidation = validateQuestionMathContent(
+      nextType,
+      normalizedPayload.statement ?? question.statement,
+      normalizedPayload.explanation === undefined
+        ? question.explanation
+        : normalizedPayload.explanation,
+      nextQuestionConfig,
+    );
+
+    if (!mathValidation.isValid) {
+      throw new HttpException(
+        createAppErrorBody(
+          'question.invalid_math_content',
+          'Question content contains invalid LaTeX or forbidden executable markup',
+          { fields: mathValidation.errors },
         ),
         HttpStatus.BAD_REQUEST,
       );
@@ -166,8 +216,7 @@ export class QuestionsService {
     }
 
     if (normalizedPayload.questionConfig !== undefined) {
-      question.questionConfig =
-        normalizedPayload.questionConfig as QuestionTypeConfig;
+      question.questionConfig = normalizedPayload.questionConfig;
     }
 
     question.updatedByUserId = user.id;
@@ -203,7 +252,10 @@ export class QuestionsService {
           ? null
           : payload.explanation.trim(),
       tags: this.normalizeTags(payload.tags),
-      questionConfig: payload.questionConfig,
+      questionConfig: normalizeQuestionTypeConfig(
+        payload.type,
+        payload.questionConfig as QuestionTypeConfig,
+      ),
     };
   }
 
@@ -234,7 +286,7 @@ export class QuestionsService {
     }
 
     if (payload.questionConfig !== undefined) {
-      normalized.questionConfig = payload.questionConfig;
+      normalized.questionConfig = payload.questionConfig as QuestionTypeConfig;
     }
 
     return normalized;
