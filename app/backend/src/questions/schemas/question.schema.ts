@@ -27,7 +27,7 @@ export class Question {
   @Prop({ required: true, trim: true, minlength: 3, maxlength: 120 })
   title!: string;
 
-  @Prop({ required: true, enum: QuestionType, index: true })
+  @Prop({ type: String, required: true, enum: QuestionType, index: true })
   type!: QuestionType;
 
   @Prop({ required: true, trim: true })
