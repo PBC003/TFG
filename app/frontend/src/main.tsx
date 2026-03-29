@@ -6,6 +6,7 @@ import { router } from "./router/AppRouter";
 import { AuthProvider } from "./context/AuthProvider";
 import { theme } from "./theme";
 import "./i18n";
+import "katex/dist/katex.min.css";
 import "./index.css";
 
 createRoot(document.getElementById("root")!).render(

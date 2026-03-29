@@ -246,6 +246,11 @@ export const es = {
         'Los campos de texto aceptan notación LaTeX. Puedes escribir expresiones usando delimitadores como $...$, $$...$$, \\(...\\) y \\[...\\].',
       latexFieldHelper:
         'Puedes escribir texto normal y expresiones matemáticas con LaTeX en este campo.',
+      perFieldPreviewHelper:
+        'Cada campo compatible con LaTeX tiene su propio botón de vista previa. Puedes revisar una fórmula sin bloquear el resto del formulario.',
+      previewField: 'Vista previa',
+      editField: 'Volver a edición',
+      previewEmpty: 'Todavía no hay contenido para previsualizar.',
       feedbackRuleHelper:
         'Este feedback actúa como respaldo general. Si una respuesta tiene feedback específico, se prioriza ese texto.',
       tagPlaceholder: 'Ejemplo: derivadas',

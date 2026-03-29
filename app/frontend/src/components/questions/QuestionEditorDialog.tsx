@@ -1,6 +1,8 @@
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import PreviewRoundedIcon from "@mui/icons-material/PreviewRounded";
 import {
   Alert,
   Box,
@@ -17,11 +19,13 @@ import {
   Stack,
   Switch,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { QuestionPreviewCard } from "./QuestionPreviewCard";
 import type {
   CreateQuestionInput,
   MultipleChoiceQuestionConfig,
@@ -73,6 +77,8 @@ type FormState = {
     gradingMode: "all_or_nothing" | "partial_credit";
   };
 };
+
+type PreviewState = Record<string, boolean>;
 
 const QUESTION_TYPES: QuestionType[] = [
   "true_false",
@@ -290,7 +296,13 @@ function validateForm(
   return null;
 }
 
-export function QuestionEditorDialog({
+export function QuestionEditorDialog(props: QuestionEditorDialogProps) {
+  const dialogStateKey = `${props.question?.questionId ?? "create"}-${props.open ? "open" : "closed"}`;
+
+  return <QuestionEditorDialogBody key={dialogStateKey} {...props} />;
+}
+
+function QuestionEditorDialogBody({
   open,
   question,
   submitting,
@@ -302,6 +314,7 @@ export function QuestionEditorDialog({
     buildInitialState(question),
   );
   const [formError, setFormError] = useState<string | null>(null);
+  const [previewFields, setPreviewFields] = useState<PreviewState>({});
 
   const dialogTitle = question
     ? t("questions.dialogs.editTitle")
@@ -309,10 +322,19 @@ export function QuestionEditorDialog({
 
   const submitLabel = question ? t("common.save") : t("common.create");
   const isParametricDisabled = form.type === "parametric";
+  const previewEmptyText = t("questions.dialogs.previewEmpty");
+  const latexFieldHelper = t("questions.dialogs.latexFieldHelper");
 
   const handleTypeChange = (nextType: QuestionType) => {
     setForm((current) => ({ ...current, type: nextType }));
     setFormError(null);
+  };
+
+  const togglePreviewField = (fieldKey: string) => {
+    setPreviewFields((current) => ({
+      ...current,
+      [fieldKey]: !current[fieldKey],
+    }));
   };
 
   const handleAddTag = () => {
@@ -470,6 +492,79 @@ export function QuestionEditorDialog({
     await onSubmit(payload);
   };
 
+  const renderMathField = (
+    fieldKey: string,
+    label: string,
+    value: string,
+    onChange: (nextValue: string) => void,
+    options?: {
+      minRows?: number;
+      helperText?: string;
+      required?: boolean;
+      placeholder?: string;
+    },
+  ) => {
+    const isPreview = Boolean(previewFields[fieldKey]);
+    const actionLabel = isPreview
+      ? t("questions.dialogs.editField")
+      : t("questions.dialogs.previewField");
+
+    const action = (
+      <Tooltip title={actionLabel}>
+        <IconButton
+          size="small"
+          onClick={() => togglePreviewField(fieldKey)}
+          aria-label={actionLabel}
+        >
+          {isPreview ? (
+            <EditRoundedIcon fontSize="small" />
+          ) : (
+            <PreviewRoundedIcon fontSize="small" />
+          )}
+        </IconButton>
+      </Tooltip>
+    );
+
+    if (isPreview) {
+      return (
+        <QuestionPreviewCard
+          title={label}
+          content={value}
+          emptyText={previewEmptyText}
+          caption={options?.helperText}
+          action={action}
+        />
+      );
+    }
+
+    return (
+      <Stack spacing={0.75}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          spacing={1}
+        >
+          <Typography variant="subtitle2" fontWeight={700}>
+            {label}
+          </Typography>
+          {action}
+        </Stack>
+        <TextField
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          fullWidth
+          multiline
+          minRows={options?.minRows ?? 2}
+          required={options?.required}
+          helperText={options?.helperText}
+          placeholder={options?.placeholder}
+          inputProps={{ "aria-label": label }}
+        />
+      </Stack>
+    );
+  };
+
   const renderTrueFalseEditor = () => (
     <Stack spacing={2}>
       <TextField
@@ -497,22 +592,23 @@ export function QuestionEditorDialog({
             <Typography fontWeight={700}>
               {t("questions.answers.true")}
             </Typography>
-            <TextField
-              label={t("questions.fields.optionFeedback")}
-              value={form.trueFalse.feedbackForTrue}
-              onChange={(event) =>
+            {renderMathField(
+              "trueFalse.feedbackForTrue",
+              t("questions.fields.optionFeedback"),
+              form.trueFalse.feedbackForTrue,
+              (nextValue) =>
                 setForm((current) => ({
                   ...current,
                   trueFalse: {
                     ...current.trueFalse,
-                    feedbackForTrue: event.target.value,
+                    feedbackForTrue: nextValue,
                   },
-                }))
-              }
-              fullWidth
-              multiline
-              minRows={2}
-            />
+                })),
+              {
+                minRows: 2,
+                helperText: latexFieldHelper,
+              },
+            )}
           </Stack>
         </Paper>
 
@@ -521,22 +617,23 @@ export function QuestionEditorDialog({
             <Typography fontWeight={700}>
               {t("questions.answers.false")}
             </Typography>
-            <TextField
-              label={t("questions.fields.optionFeedback")}
-              value={form.trueFalse.feedbackForFalse}
-              onChange={(event) =>
+            {renderMathField(
+              "trueFalse.feedbackForFalse",
+              t("questions.fields.optionFeedback"),
+              form.trueFalse.feedbackForFalse,
+              (nextValue) =>
                 setForm((current) => ({
                   ...current,
                   trueFalse: {
                     ...current.trueFalse,
-                    feedbackForFalse: event.target.value,
+                    feedbackForFalse: nextValue,
                   },
-                }))
-              }
-              fullWidth
-              multiline
-              minRows={2}
-            />
+                })),
+              {
+                minRows: 2,
+                helperText: latexFieldHelper,
+              },
+            )}
           </Stack>
         </Paper>
       </Stack>
@@ -601,30 +698,29 @@ export function QuestionEditorDialog({
                 </Stack>
               </Stack>
 
-              <TextField
-                label={t("questions.fields.optionText")}
-                value={option.text}
-                onChange={(event) =>
-                  updateSingleChoiceOption(index, "text", event.target.value)
-                }
-                fullWidth
-                helperText={t("questions.dialogs.latexFieldHelper")}
-              />
+              {renderMathField(
+                `singleChoice.optionText.${index}`,
+                t("questions.fields.optionText"),
+                option.text,
+                (nextValue) =>
+                  updateSingleChoiceOption(index, "text", nextValue),
+                {
+                  minRows: 2,
+                  helperText: latexFieldHelper,
+                },
+              )}
 
-              <TextField
-                label={t("questions.fields.optionFeedback")}
-                value={option.feedback}
-                onChange={(event) =>
-                  updateSingleChoiceOption(
-                    index,
-                    "feedback",
-                    event.target.value,
-                  )
-                }
-                fullWidth
-                multiline
-                minRows={2}
-              />
+              {renderMathField(
+                `singleChoice.optionFeedback.${index}`,
+                t("questions.fields.optionFeedback"),
+                option.feedback,
+                (nextValue) =>
+                  updateSingleChoiceOption(index, "feedback", nextValue),
+                {
+                  minRows: 2,
+                  helperText: latexFieldHelper,
+                },
+              )}
             </Stack>
           </Paper>
         ))}
@@ -727,30 +823,29 @@ export function QuestionEditorDialog({
                 </Stack>
               </Stack>
 
-              <TextField
-                label={t("questions.fields.optionText")}
-                value={option.text}
-                onChange={(event) =>
-                  updateMultipleChoiceOption(index, "text", event.target.value)
-                }
-                fullWidth
-                helperText={t("questions.dialogs.latexFieldHelper")}
-              />
+              {renderMathField(
+                `multipleChoice.optionText.${index}`,
+                t("questions.fields.optionText"),
+                option.text,
+                (nextValue) =>
+                  updateMultipleChoiceOption(index, "text", nextValue),
+                {
+                  minRows: 2,
+                  helperText: latexFieldHelper,
+                },
+              )}
 
-              <TextField
-                label={t("questions.fields.optionFeedback")}
-                value={option.feedback}
-                onChange={(event) =>
-                  updateMultipleChoiceOption(
-                    index,
-                    "feedback",
-                    event.target.value,
-                  )
-                }
-                fullWidth
-                multiline
-                minRows={2}
-              />
+              {renderMathField(
+                `multipleChoice.optionFeedback.${index}`,
+                t("questions.fields.optionFeedback"),
+                option.feedback,
+                (nextValue) =>
+                  updateMultipleChoiceOption(index, "feedback", nextValue),
+                {
+                  minRows: 2,
+                  helperText: latexFieldHelper,
+                },
+              )}
             </Stack>
           </Paper>
         ))}
@@ -790,6 +885,9 @@ export function QuestionEditorDialog({
               <Typography variant="body2">
                 {t("questions.dialogs.latexHelper")}
               </Typography>
+              <Typography variant="caption" color="inherit">
+                {t("questions.dialogs.perFieldPreviewHelper")}
+              </Typography>
             </Stack>
           </Alert>
 
@@ -821,36 +919,36 @@ export function QuestionEditorDialog({
             ))}
           </TextField>
 
-          <TextField
-            label={t("questions.fields.statement")}
-            value={form.statement}
-            onChange={(event) =>
+          {renderMathField(
+            "statement",
+            t("questions.fields.statement"),
+            form.statement,
+            (nextValue) =>
               setForm((current) => ({
                 ...current,
-                statement: event.target.value,
-              }))
-            }
-            fullWidth
-            required
-            multiline
-            minRows={4}
-            helperText={t("questions.dialogs.latexFieldHelper")}
-          />
+                statement: nextValue,
+              })),
+            {
+              minRows: 4,
+              required: true,
+              helperText: latexFieldHelper,
+            },
+          )}
 
-          <TextField
-            label={t("questions.fields.generalFeedback")}
-            value={form.explanation}
-            onChange={(event) =>
+          {renderMathField(
+            "generalFeedback",
+            t("questions.fields.generalFeedback"),
+            form.explanation,
+            (nextValue) =>
               setForm((current) => ({
                 ...current,
-                explanation: event.target.value,
-              }))
-            }
-            fullWidth
-            multiline
-            minRows={3}
-            helperText={t("questions.dialogs.feedbackRuleHelper")}
-          />
+                explanation: nextValue,
+              })),
+            {
+              minRows: 3,
+              helperText: t("questions.dialogs.feedbackRuleHelper"),
+            },
+          )}
 
           <Stack spacing={1.5}>
             <Typography variant="subtitle1" fontWeight={700}>
