@@ -44,6 +44,10 @@ export default function AppLayout() {
     if (auth.isAuthenticated) {
       items.push({ label: t("nav.profile"), to: ROUTES.profile });
 
+      if (auth.user?.role === "ADMIN" || auth.user?.role === "TEACHER") {
+        items.push({ label: t("nav.questions"), to: ROUTES.questions });
+      }
+
       if (auth.isAdmin) {
         items.push({ label: t("nav.admin"), to: ROUTES.admin });
       }
@@ -54,7 +58,7 @@ export default function AppLayout() {
     items.push({ label: t("nav.login"), to: ROUTES.login });
     items.push({ label: t("nav.register"), to: ROUTES.register });
     return items;
-  }, [auth.isAdmin, auth.isAuthenticated, t]);
+  }, [auth.isAdmin, auth.isAuthenticated, auth.user?.role, t]);
 
   const toggleDrawer = () => {
     setMobileOpen((current) => !current);
@@ -73,7 +77,7 @@ export default function AppLayout() {
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <AppBar position="sticky" elevation={0}>
-        <Container>
+        <Container maxWidth="lg">
           <Toolbar disableGutters sx={{ gap: 2, minHeight: 76 }}>
             <Stack
               component={RouterLink}
@@ -238,7 +242,11 @@ export default function AppLayout() {
         </Box>
       </Drawer>
 
-      <Container component="main" sx={{ flex: 1, py: { xs: 3, md: 5 } }}>
+      <Container
+        maxWidth="lg"
+        component="main"
+        sx={{ flex: 1, py: { xs: 3, md: 5 } }}
+      >
         <Outlet />
       </Container>
 

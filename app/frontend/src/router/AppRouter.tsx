@@ -11,6 +11,7 @@ import ProfilePage from "../pages/ProfilePage";
 import RegisterPage from "../pages/RegisterPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import AdminPage from "../pages/admin/AdminPage";
+import QuestionsPage from "../pages/questions/QuestionsPage";
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +54,15 @@ export const router = createBrowserRouter([
           {
             path: "admin",
             element: <AdminPage />,
+          },
+        ],
+      },
+      {
+        element: <RequireRole allowedRoles={["ADMIN", "TEACHER"]} />,
+        children: [
+          {
+            path: "questions",
+            element: <QuestionsPage />,
           },
         ],
       },

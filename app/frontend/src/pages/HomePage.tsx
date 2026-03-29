@@ -9,7 +9,13 @@ export default function HomePage() {
 
   return (
     <Stack spacing={3.5}>
-      <HomeHero isAuthenticated={auth.isAuthenticated} isAdmin={auth.isAdmin} />
+      <HomeHero
+        isAuthenticated={auth.isAuthenticated}
+        isAdmin={auth.isAdmin}
+        canManageQuestions={
+          auth.user?.role === "ADMIN" || auth.user?.role === "TEACHER"
+        }
+      />
       {auth.isAuthenticated ? (
         <HomeAuthenticatedSection />
       ) : (
