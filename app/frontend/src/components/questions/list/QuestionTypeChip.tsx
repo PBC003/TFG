@@ -1,6 +1,6 @@
 import { Chip } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import type { QuestionType } from "../../types/question";
+import type { QuestionType } from "../../../types/question";
 
 type QuestionTypeChipProps = {
   type: QuestionType;

@@ -1,8 +1,8 @@
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import { Button, Chip, Paper, Stack, Typography } from "@mui/material";
-import type { QuestionItem } from "../../types/question";
-import { formatDateTime } from "../../utils/date";
+import type { QuestionItem } from "../../../types/question";
+import { formatDateTime } from "../../../utils/date";
 import { QuestionTypeChip } from "./QuestionTypeChip";
 
 type QuestionsMobileListProps = {

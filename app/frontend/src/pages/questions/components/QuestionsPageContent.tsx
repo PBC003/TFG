@@ -1,6 +1,6 @@
 import { Paper, Typography } from "@mui/material";
-import { QuestionsMobileList } from "../../../components/questions/QuestionsMobileList";
-import { QuestionsTableView } from "../../../components/questions/QuestionsTableView";
+import { QuestionsMobileList } from "../../../components/questions/list/QuestionsMobileList";
+import { QuestionsTableView } from "../../../components/questions/list/QuestionsTableView";
 import type { QuestionsPageContentProps } from "../types/questions-page.types";
 
 export function QuestionsPageContent({

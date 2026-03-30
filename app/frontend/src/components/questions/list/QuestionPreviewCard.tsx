@@ -1,6 +1,6 @@
 import { Paper, Stack, Typography } from "@mui/material";
 import { type ReactNode } from "react";
-import { MathText } from "../math/MathText";
+import { MathText } from "../../math/MathText";
 
 interface QuestionPreviewCardProps {
   title?: string;

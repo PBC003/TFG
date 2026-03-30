@@ -7,7 +7,7 @@ import type {
   QuestionTypeConfig,
   SingleChoiceQuestionConfig,
   TrueFalseQuestionConfig,
-} from "../../types/question";
+} from "../../../types/question";
 import type { EditableOption, FormState } from "./question-editor.types";
 
 export const QUESTION_TYPES: QuestionType[] = [

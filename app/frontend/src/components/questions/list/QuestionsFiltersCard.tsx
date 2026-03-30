@@ -6,7 +6,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type { QuestionType } from "../../types/question";
+import type { QuestionType } from "../../../types/question";
 
 export type QuestionTypeFilter = QuestionType | "all";
 

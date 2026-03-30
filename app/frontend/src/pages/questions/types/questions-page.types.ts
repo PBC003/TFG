@@ -3,7 +3,7 @@ import type {
   CreateQuestionInput,
   UpdateQuestionInput,
 } from "../../../types/question";
-import type { QuestionTypeFilter } from "../../../components/questions/QuestionsFiltersCard";
+import type { QuestionTypeFilter } from "../../../components/questions/list/QuestionsFiltersCard";
 
 export type QuestionsPageFeedbackState = {
   severity: "success" | "error";

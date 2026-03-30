@@ -1,13 +1,13 @@
 import { Alert, Box, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
-import { DeleteQuestionDialog } from "../../components/questions/DeleteQuestionDialog";
-import { QuestionEditorDialog } from "../../components/questions/QuestionEditorDialog";
+import { DeleteQuestionDialog } from "../../components/questions/dialogs/DeleteQuestionDialog";
+import { QuestionEditorDialog } from "../../components/questions/editor/QuestionEditorDialog";
 import {
   QuestionsFiltersCard,
   type QuestionTypeFilter,
-} from "../../components/questions/QuestionsFiltersCard";
-import { QuestionsHeaderCard } from "../../components/questions/QuestionsHeaderCard";
+} from "../../components/questions/list/QuestionsFiltersCard";
+import { QuestionsHeaderCard } from "../../components/questions/list/QuestionsHeaderCard";
 import { QuestionsPageContent } from "./components/QuestionsPageContent";
 import { useQuestionsPage } from "./hooks/useQuestionsPage";
 

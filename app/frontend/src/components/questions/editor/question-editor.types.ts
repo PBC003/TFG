@@ -1,4 +1,4 @@
-import type { QuestionType } from "../../types/question";
+import type { QuestionType } from "../../../types/question";
 
 export type EditableOption = {
   key: string;

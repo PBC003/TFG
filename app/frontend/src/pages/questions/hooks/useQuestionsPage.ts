@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { QuestionTypeFilter } from "../../../components/questions/QuestionsFiltersCard";
+import type { QuestionTypeFilter } from "../../../components/questions/list/QuestionsFiltersCard";
 import { useAuth } from "../../../hooks/useAuth";
 import { questionsApi } from "../../../services/questions/questions-api";
 import type {

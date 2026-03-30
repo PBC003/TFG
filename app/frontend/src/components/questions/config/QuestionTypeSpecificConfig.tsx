@@ -8,9 +8,12 @@ import {
   Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { QuestionChoiceOptionsEditor } from "./QuestionChoiceOptionsEditor";
-import { QuestionTrueFalseEditor } from "./QuestionTrueFalseEditor";
-import type { EditableOption, FormState } from "./question-editor.types";
+import { QuestionChoiceOptionsEditor } from "../editor/QuestionChoiceOptionsEditor";
+import { QuestionTrueFalseEditor } from "../editor/QuestionTrueFalseEditor";
+import type {
+  EditableOption,
+  FormState,
+} from "../editor/question-editor.types";
 
 type QuestionTypeSpecificConfigProps = {
   form: FormState;

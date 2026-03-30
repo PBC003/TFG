@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { QuestionPreviewCard } from "./QuestionPreviewCard";
+import { QuestionPreviewCard } from "../list/QuestionPreviewCard";
 
 type QuestionMathFieldProps = {
   fieldKey: string;
