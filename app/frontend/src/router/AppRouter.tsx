@@ -7,7 +7,7 @@ import AboutPage from "../pages/AboutPage";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
-import ProfilePage from "../pages/ProfilePage";
+import ProfilePage from "../pages/profile/ProfilePage";
 import RegisterPage from "../pages/RegisterPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import AdminPage from "../pages/admin/AdminPage";
