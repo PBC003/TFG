@@ -38,7 +38,7 @@ vi.mock("../../../src/pages/NotFoundPage", () => ({
   default: () => null,
 }));
 
-vi.mock("../../../src/pages/ProfilePage", () => ({
+vi.mock("../../../src/pages/profile/ProfilePage", () => ({
   default: () => null,
 }));
 
@@ -51,6 +51,10 @@ vi.mock("../../../src/pages/UnauthorizedPage", () => ({
 }));
 
 vi.mock("../../../src/pages/admin/AdminPage", () => ({
+  default: () => null,
+}));
+
+vi.mock("../../../src/pages/questions/QuestionsPage", () => ({
   default: () => null,
 }));
 
@@ -68,7 +72,7 @@ describe("router configuration", () => {
 
     expect(router).toEqual({ routes });
     expect(root).toMatchObject({ path: "/" });
-    expect(root.children).toHaveLength(7);
+    expect(root.children).toHaveLength(8);
 
     expect(root.children[0]).toMatchObject({ index: true });
     expect(root.children[1]).toMatchObject({ path: "about" });
@@ -76,7 +80,8 @@ describe("router configuration", () => {
     expect(root.children[2].children[1]).toMatchObject({ path: "register" });
     expect(root.children[3].children[0]).toMatchObject({ path: "profile" });
     expect(root.children[4].children[0]).toMatchObject({ path: "admin" });
-    expect(root.children[5]).toMatchObject({ path: "unauthorized" });
-    expect(root.children[6]).toMatchObject({ path: "*" });
+    expect(root.children[5].children[0]).toMatchObject({ path: "questions" });
+    expect(root.children[6]).toMatchObject({ path: "unauthorized" });
+    expect(root.children[7]).toMatchObject({ path: "*" });
   });
 });

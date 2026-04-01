@@ -6,7 +6,7 @@ import {
   DialogTitle,
   Typography,
 } from "@mui/material";
-import type { QuestionItem } from "../../types/question";
+import type { QuestionItem } from "../../../types/question";
 
 type DeleteQuestionDialogProps = {
   question: QuestionItem | null;
