@@ -15,7 +15,7 @@ import {
   resolveValidatedQuestionSnapshot,
 } from './utils/question-payload.util';
 import { assertValidQuestionContent } from './utils/question-validation.util';
-
+export type { QuestionItem } from './types/question-item.type';
 @Injectable()
 export class QuestionsService {
   constructor(

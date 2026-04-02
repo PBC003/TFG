@@ -8,13 +8,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Role } from './enums/role.enum';
 import { AdminUserItem } from './types/admin-user-item.type';
-
 import { toAdminUserItem } from './utils/admin-user-item.util';
 import {
   applyUpdateUserDtoToUser,
   assertUserUpdateHasChanges,
 } from './utils/update-user.util';
 import { revokeActiveSessionsForUser } from './utils/user-session.util';
+export type { AdminUserItem } from './types/admin-user-item.type';
 
 @Injectable()
 export class UsersService {
