@@ -1,6 +1,7 @@
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
-import { Button, Chip, Paper, Stack, Typography } from "@mui/material";
+import { Box, Button, Chip, Stack, Typography } from "@mui/material";
+import { MathText } from "../../math/MathText";
 import type { QuestionItem } from "../../../types/question";
 import { formatDateTime } from "../../../utils/date";
 import { QuestionTypeChip } from "./QuestionTypeChip";
@@ -27,9 +28,9 @@ export function QuestionsMobileList({
   onDelete,
 }: QuestionsMobileListProps) {
   return (
-    <Stack spacing={1.5}>
+    <Stack spacing={1.5} sx={{ p: 2 }}>
       {questions.map((question) => (
-        <Paper key={question.questionId} variant="outlined" sx={{ p: 2.25 }}>
+        <Box key={question.questionId} sx={{ p: 0.25 }}>
           <Stack spacing={1.5}>
             <Stack spacing={0.75}>
               <Stack
@@ -38,18 +39,47 @@ export function QuestionsMobileList({
                 alignItems="flex-start"
                 gap={1}
               >
-                <Typography fontWeight={700}>{question.title}</Typography>
+                <Typography fontWeight={700} sx={{ overflowWrap: "anywhere" }}>
+                  {question.title}
+                </Typography>
                 <QuestionTypeChip type={question.type} />
               </Stack>
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ overflowWrap: "anywhere" }}
+              >
                 {question.questionId}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {question.statement}
-              </Typography>
+              <Box
+                sx={{
+                  typography: "body2",
+                  color: "text.secondary",
+                  maxWidth: "100%",
+                  overflow: "hidden",
+                  overflowWrap: "anywhere",
+                  wordBreak: "break-word",
+                  "& .katex-display": {
+                    margin: 0,
+                    maxWidth: "100%",
+                    overflow: "hidden",
+                  },
+                  "& .katex": {
+                    fontSize: "0.95em",
+                    maxWidth: "100%",
+                    whiteSpace: "normal",
+                  },
+                  "& .katex-html": {
+                    maxWidth: "100%",
+                    whiteSpace: "normal",
+                  },
+                }}
+              >
+                <MathText value={question.statement} />
+              </Box>
             </Stack>
 
-            <Stack direction="row" flexWrap="wrap" gap={0.75}>
+            <Stack direction="row" flexWrap="wrap" gap={0.75} useFlexGap>
               {question.tags.length > 0 ? (
                 question.tags.map((tag) => (
                   <Chip
@@ -86,7 +116,7 @@ export function QuestionsMobileList({
               </Button>
             </Stack>
           </Stack>
-        </Paper>
+        </Box>
       ))}
     </Stack>
   );

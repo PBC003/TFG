@@ -17,6 +17,11 @@ vi.mock(
     ),
   }),
 );
+vi.mock("../../../../../src/components/math/MathText", () => ({
+  MathText: ({ value }: { value?: string | null }) => (
+    <span>{`math:${value ?? ""}`}</span>
+  ),
+}));
 
 const question: QuestionItem = {
   questionId: "q-1",
@@ -40,7 +45,7 @@ const question: QuestionItem = {
 };
 
 describe("QuestionsMobileList", () => {
-  it("renders mobile cards and emits edit/delete actions", async () => {
+  it("renders mobile cards with math-aware statements and emits edit/delete actions", async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();
     const onDelete = vi.fn();
@@ -60,6 +65,7 @@ describe("QuestionsMobileList", () => {
 
     expect(screen.getAllByText("Integral").length).toBeGreaterThan(0);
     expect(screen.getAllByText("type:single_choice")).toHaveLength(2);
+    expect(screen.getAllByText("math:\\int x dx")).toHaveLength(2);
     expect(screen.getByText("integrales")).toBeInTheDocument();
     expect(screen.getByText("ninguna")).toBeInTheDocument();
     expect(

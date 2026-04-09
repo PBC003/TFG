@@ -4,7 +4,6 @@ import {
   Box,
   Chip,
   IconButton,
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -13,6 +12,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import { MathText } from "../../math/MathText";
 import type { QuestionItem } from "../../../types/question";
 import { formatDateTime } from "../../../utils/date";
 import { QuestionTypeChip } from "./QuestionTypeChip";
@@ -46,37 +46,72 @@ export function QuestionsTableView({
   onDelete,
 }: QuestionsTableViewProps) {
   return (
-    <Paper variant="outlined" sx={{ overflowX: "auto" }}>
-      <Table>
+    <Box sx={{ width: "100%" }}>
+      <Table sx={{ width: "100%", tableLayout: "fixed" }}>
         <TableHead>
           <TableRow>
-            <TableCell>{headers.title}</TableCell>
-            <TableCell>{headers.type}</TableCell>
-            <TableCell>{headers.tags}</TableCell>
-            <TableCell>{headers.version}</TableCell>
-            <TableCell>{headers.updatedAt}</TableCell>
-            <TableCell align="right">{headers.actions}</TableCell>
+            <TableCell sx={{ width: "40%" }}>{headers.title}</TableCell>
+            <TableCell sx={{ width: "12%" }}>{headers.type}</TableCell>
+            <TableCell sx={{ width: "18%" }}>{headers.tags}</TableCell>
+            <TableCell sx={{ width: "8%" }}>{headers.version}</TableCell>
+            <TableCell sx={{ width: "14%" }}>{headers.updatedAt}</TableCell>
+            <TableCell align="center" sx={{ width: "8%", px: 2 }}>
+              {headers.actions}
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {questions.map((question) => (
             <TableRow key={question.questionId} hover>
-              <TableCell>
-                <Stack spacing={0.5}>
-                  <Typography fontWeight={700}>{question.title}</Typography>
-                  <Typography variant="body2" color="text.secondary">
+              <TableCell sx={{ verticalAlign: "top" }}>
+                <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+                  <Typography
+                    fontWeight={700}
+                    sx={{ overflowWrap: "anywhere" }}
+                  >
+                    {question.title}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ overflowWrap: "anywhere" }}
+                  >
                     {question.questionId}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {question.statement}
-                  </Typography>
+                  <Box
+                    sx={{
+                      typography: "body2",
+                      color: "text.secondary",
+                      minWidth: 0,
+                      maxWidth: "100%",
+                      overflow: "hidden",
+                      overflowWrap: "anywhere",
+                      wordBreak: "break-word",
+                      "& .katex-display": {
+                        margin: 0,
+                        maxWidth: "100%",
+                        overflow: "hidden",
+                      },
+                      "& .katex": {
+                        fontSize: "0.95em",
+                        maxWidth: "100%",
+                        whiteSpace: "normal",
+                      },
+                      "& .katex-html": {
+                        maxWidth: "100%",
+                        whiteSpace: "normal",
+                      },
+                    }}
+                  >
+                    <MathText value={question.statement} />
+                  </Box>
                 </Stack>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ verticalAlign: "top" }}>
                 <QuestionTypeChip type={question.type} />
               </TableCell>
-              <TableCell>
-                <Stack direction="row" flexWrap="wrap" gap={0.75}>
+              <TableCell sx={{ verticalAlign: "top" }}>
+                <Stack direction="row" flexWrap="wrap" gap={0.75} useFlexGap>
                   {question.tags.length > 0 ? (
                     question.tags.map((tag) => (
                       <Chip
@@ -91,12 +126,25 @@ export function QuestionsTableView({
                   )}
                 </Stack>
               </TableCell>
-              <TableCell>{question.version}</TableCell>
-              <TableCell>
+              <TableCell sx={{ verticalAlign: "top", whiteSpace: "nowrap" }}>
+                {question.version}
+              </TableCell>
+              <TableCell sx={{ verticalAlign: "top", whiteSpace: "nowrap" }}>
                 {formatDateTime(question.updatedAt, locale)}
               </TableCell>
-              <TableCell align="right">
-                <Box sx={{ display: "inline-flex", gap: 0.5 }}>
+              <TableCell
+                align="center"
+                sx={{ verticalAlign: "top", whiteSpace: "nowrap", px: 2 }}
+              >
+                <Box
+                  sx={{
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 0.5,
+                  }}
+                >
                   <IconButton
                     aria-label={editLabel}
                     onClick={() => onEdit(question)}
@@ -116,6 +164,6 @@ export function QuestionsTableView({
           ))}
         </TableBody>
       </Table>
-    </Paper>
+    </Box>
   );
 }

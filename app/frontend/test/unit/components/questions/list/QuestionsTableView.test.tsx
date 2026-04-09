@@ -17,6 +17,11 @@ vi.mock(
     ),
   }),
 );
+vi.mock("../../../../../src/components/math/MathText", () => ({
+  MathText: ({ value }: { value?: string | null }) => (
+    <span>{`math:${value ?? ""}`}</span>
+  ),
+}));
 
 const question: QuestionItem = {
   questionId: "q-1",
@@ -40,7 +45,7 @@ const question: QuestionItem = {
 };
 
 describe("QuestionsTableView", () => {
-  it("renders the desktop table and emits edit/delete actions", async () => {
+  it("renders the desktop table with math-aware statements and emits edit/delete actions", async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();
     const onDelete = vi.fn();
@@ -67,6 +72,7 @@ describe("QuestionsTableView", () => {
 
     expect(screen.getByText("Título")).toBeInTheDocument();
     expect(screen.getAllByText("type:single_choice")).toHaveLength(2);
+    expect(screen.getAllByText("math:\\int x dx")).toHaveLength(2);
     expect(screen.getByText("integrales")).toBeInTheDocument();
     expect(screen.getByText("ninguna")).toBeInTheDocument();
     expect(screen.getAllByText("es:2026-03-30T12:00:00.000Z")).toHaveLength(2);

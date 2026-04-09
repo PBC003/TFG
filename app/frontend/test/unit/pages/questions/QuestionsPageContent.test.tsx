@@ -53,6 +53,14 @@ const baseProps = {
     actions: "actions",
   },
   lastUpdatedLabel: (value: string) => value,
+  page: 0,
+  rowsPerPage: 10,
+  totalQuestions: 1,
+  rowsPerPageLabel: "rows per page",
+  displayedRowsLabel: (from: number, to: number, count: number) =>
+    `${from}-${to}-${count}`,
+  onPageChange: vi.fn(),
+  onRowsPerPageChange: vi.fn(),
   onEdit: vi.fn(),
   onDelete: vi.fn(),
 };
@@ -65,6 +73,7 @@ describe("QuestionsPageContent", () => {
         loading
         isMobile={false}
         questions={[]}
+        totalQuestions={0}
       />,
     );
 
@@ -76,6 +85,7 @@ describe("QuestionsPageContent", () => {
         loading={false}
         isMobile={false}
         questions={[]}
+        totalQuestions={0}
       />,
     );
 
@@ -93,6 +103,7 @@ describe("QuestionsPageContent", () => {
     );
 
     expect(screen.getByTestId("mobile-list")).toHaveTextContent("q-1");
+    expect(screen.getByText("rows per page")).toBeInTheDocument();
 
     rerender(
       <QuestionsPageContent

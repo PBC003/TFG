@@ -138,6 +138,13 @@ vi.mock(
       deleteLabel,
       tableHeaders,
       lastUpdatedLabel,
+      page,
+      rowsPerPage,
+      totalQuestions,
+      rowsPerPageLabel,
+      displayedRowsLabel,
+      onPageChange,
+      onRowsPerPageChange,
       onEdit,
       onDelete,
     }: {
@@ -159,6 +166,13 @@ vi.mock(
         actions: string;
       };
       lastUpdatedLabel: (value: string) => string;
+      page: number;
+      rowsPerPage: number;
+      totalQuestions: number;
+      rowsPerPageLabel: string;
+      displayedRowsLabel: (from: number, to: number, count: number) => string;
+      onPageChange: (page: number) => void;
+      onRowsPerPageChange: (value: number) => void;
       onEdit: (q: QuestionItem) => void;
       onDelete: (q: QuestionItem) => void;
     }) => (
@@ -173,6 +187,9 @@ vi.mock(
             ? questions.map((q) => q.questionId).join(",")
             : "empty-list"}
         </div>
+        <div data-testid="pagination-props">{`${page}|${rowsPerPage}|${totalQuestions}|${rowsPerPageLabel}|${displayedRowsLabel(1, Math.max(1, questions.length), totalQuestions)}`}</div>
+        <button onClick={() => onPageChange(page + 1)}>next-page</button>
+        <button onClick={() => onRowsPerPageChange(25)}>rows-per-page</button>
         {questions.length > 0 ? (
           <div data-testid="last-updated">
             {lastUpdatedLabel(questions[0]!.updatedAt)}
@@ -279,12 +296,15 @@ describe("QuestionsPage", () => {
   const clearFeedback = vi.fn();
   const setSearch = vi.fn();
   const setTypeFilter = vi.fn();
+  const setPage = vi.fn();
+  const setRowsPerPage = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useQuestionsPage).mockReturnValue({
       questions: [question],
       visibleQuestions: [question],
+      paginatedQuestions: [question],
       loading: false,
       submitting: false,
       feedback: { severity: "success", message: "ok" },
@@ -293,8 +313,12 @@ describe("QuestionsPage", () => {
       editorOpen: true,
       editingQuestion: question,
       deletingQuestion: question,
+      page: 0,
+      rowsPerPage: 10,
       setSearch,
       setTypeFilter,
+      setPage,
+      setRowsPerPage,
       clearFeedback,
       openCreateDialog,
       openEditDialog,
@@ -322,6 +346,9 @@ describe("QuestionsPage", () => {
     );
     expect(screen.getByText("ok")).toBeInTheDocument();
     expect(screen.getByTestId("content")).toHaveTextContent("q-1");
+    expect(screen.getByTestId("pagination-props")).toHaveTextContent(
+      "0|10|1|questions.pagination.rowsPerPage|1-1-1",
+    );
     expect(screen.getByTestId("last-updated")).toHaveTextContent(
       "questions.lastUpdated",
     );
@@ -342,6 +369,12 @@ describe("QuestionsPage", () => {
 
     await user.click(screen.getByRole("button", { name: "set-type-filter" }));
     expect(setTypeFilter).toHaveBeenCalledWith("multiple_choice");
+
+    await user.click(screen.getByRole("button", { name: "next-page" }));
+    expect(setPage).toHaveBeenCalledWith(1);
+
+    await user.click(screen.getByRole("button", { name: "rows-per-page" }));
+    expect(setRowsPerPage).toHaveBeenCalledWith(25);
 
     await user.click(screen.getByRole("button", { name: "edit" }));
     expect(openEditDialog).toHaveBeenCalledWith(question);
@@ -366,6 +399,7 @@ describe("QuestionsPage", () => {
     vi.mocked(useQuestionsPage).mockReturnValue({
       questions: [question],
       visibleQuestions: [],
+      paginatedQuestions: [],
       loading: true,
       submitting: true,
       feedback: null,
@@ -374,8 +408,12 @@ describe("QuestionsPage", () => {
       editorOpen: false,
       editingQuestion: null,
       deletingQuestion: null,
+      page: 0,
+      rowsPerPage: 10,
       setSearch,
       setTypeFilter,
+      setPage,
+      setRowsPerPage,
       clearFeedback,
       openCreateDialog,
       openEditDialog,

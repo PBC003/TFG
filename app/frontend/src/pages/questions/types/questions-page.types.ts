@@ -31,6 +31,13 @@ export type QuestionsPageContentProps = {
   deleteLabel: string;
   tableHeaders: QuestionsPageTableHeaders;
   lastUpdatedLabel: (value: string) => string;
+  page: number;
+  rowsPerPage: number;
+  totalQuestions: number;
+  rowsPerPageLabel: string;
+  displayedRowsLabel: (from: number, to: number, count: number) => string;
+  onPageChange: (page: number) => void;
+  onRowsPerPageChange: (value: number) => void;
   onEdit: (question: QuestionItem) => void;
   onDelete: (question: QuestionItem) => void;
 };
@@ -42,6 +49,7 @@ export type UseQuestionsPageOptions = {
 export type UseQuestionsPageResult = {
   questions: QuestionItem[];
   visibleQuestions: QuestionItem[];
+  paginatedQuestions: QuestionItem[];
   loading: boolean;
   submitting: boolean;
   feedback: QuestionsPageFeedbackState;
@@ -50,8 +58,12 @@ export type UseQuestionsPageResult = {
   editorOpen: boolean;
   editingQuestion: QuestionItem | null;
   deletingQuestion: QuestionItem | null;
+  page: number;
+  rowsPerPage: number;
   setSearch: (value: string) => void;
   setTypeFilter: (value: QuestionTypeFilter) => void;
+  setPage: (value: number) => void;
+  setRowsPerPage: (value: number) => void;
   clearFeedback: () => void;
   openCreateDialog: () => void;
   openEditDialog: (question: QuestionItem) => void;

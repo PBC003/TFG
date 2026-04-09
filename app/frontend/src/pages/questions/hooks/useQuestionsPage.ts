@@ -14,6 +14,8 @@ import type {
   UseQuestionsPageResult,
 } from "../types/questions-page.types";
 
+const DEFAULT_ROWS_PER_PAGE = 10;
+
 export function useQuestionsPage({
   t,
 }: {
@@ -33,6 +35,8 @@ export function useQuestionsPage({
   const [deletingQuestion, setDeletingQuestion] = useState<QuestionItem | null>(
     null,
   );
+  const [page, setPageState] = useState(0);
+  const [rowsPerPage, setRowsPerPageState] = useState(DEFAULT_ROWS_PER_PAGE);
 
   const refreshQuestions = useCallback(
     async (successMessage?: string) => {
@@ -78,6 +82,34 @@ export function useQuestionsPage({
       return matchesSearch && matchesType;
     });
   }, [questions, search, typeFilter]);
+
+  useEffect(() => {
+    setPageState(0);
+  }, [search, typeFilter]);
+
+  useEffect(() => {
+    const lastPage = Math.max(
+      0,
+      Math.ceil(visibleQuestions.length / rowsPerPage) - 1,
+    );
+
+    setPageState((current) => (current > lastPage ? lastPage : current));
+  }, [visibleQuestions.length, rowsPerPage]);
+
+  const paginatedQuestions = useMemo(() => {
+    const start = page * rowsPerPage;
+
+    return visibleQuestions.slice(start, start + rowsPerPage);
+  }, [page, rowsPerPage, visibleQuestions]);
+
+  const setPage = useCallback((value: number) => {
+    setPageState(value);
+  }, []);
+
+  const setRowsPerPage = useCallback((value: number) => {
+    setRowsPerPageState(value);
+    setPageState(0);
+  }, []);
 
   const openCreateDialog = useCallback(() => {
     setEditingQuestion(null);
@@ -191,6 +223,7 @@ export function useQuestionsPage({
   return {
     questions,
     visibleQuestions,
+    paginatedQuestions,
     loading,
     submitting,
     feedback,
@@ -199,8 +232,12 @@ export function useQuestionsPage({
     editorOpen,
     editingQuestion,
     deletingQuestion,
+    page,
+    rowsPerPage,
     setSearch,
     setTypeFilter,
+    setPage,
+    setRowsPerPage,
     clearFeedback,
     openCreateDialog,
     openEditDialog,

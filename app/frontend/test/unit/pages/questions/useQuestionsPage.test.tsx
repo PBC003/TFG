@@ -73,7 +73,7 @@ describe("useQuestionsPage", () => {
     vi.mocked(questionsApi.deleteQuestion).mockResolvedValue(undefined);
   });
 
-  it("loads questions, filters them and manages editor/delete state", async () => {
+  it("loads questions, filters them, paginates and manages editor/delete state", async () => {
     const t = createT();
     const { result } = renderHook(() => useQuestionsPage({ t }));
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -81,12 +81,35 @@ describe("useQuestionsPage", () => {
       "q-a",
       "q-b",
     ]);
+    expect(result.current.paginatedQuestions.map((q) => q.questionId)).toEqual([
+      "q-a",
+      "q-b",
+    ]);
+    expect(result.current.page).toBe(0);
+    expect(result.current.rowsPerPage).toBe(10);
+
+    act(() => {
+      result.current.setRowsPerPage(1);
+    });
+    expect(result.current.paginatedQuestions.map((q) => q.questionId)).toEqual([
+      "q-a",
+    ]);
+
+    act(() => {
+      result.current.setPage(1);
+    });
+    expect(result.current.paginatedQuestions.map((q) => q.questionId)).toEqual([
+      "q-b",
+    ]);
+
     act(() => {
       result.current.setSearch("deri");
     });
+    expect(result.current.page).toBe(0);
     expect(result.current.visibleQuestions.map((q) => q.questionId)).toEqual([
       "q-b",
     ]);
+
     act(() => {
       result.current.setTypeFilter("single_choice");
     });

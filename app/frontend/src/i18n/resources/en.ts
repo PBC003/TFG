@@ -235,6 +235,10 @@ export const en = {
       version: 'Version',
       updatedAt: 'Updated at',
     },
+    pagination: {
+      rowsPerPage: 'Questions per page',
+      displayedRows: '{{from}}-{{to}} of {{count}}',
+    },
     dialogs: {
       createTitle: 'Create question',
       editTitle: 'Edit question',

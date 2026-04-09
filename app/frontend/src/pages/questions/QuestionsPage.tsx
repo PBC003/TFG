@@ -25,6 +25,7 @@ export default function QuestionsPage() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const {
     visibleQuestions,
+    paginatedQuestions,
     loading,
     submitting,
     feedback,
@@ -33,8 +34,12 @@ export default function QuestionsPage() {
     editorOpen,
     editingQuestion,
     deletingQuestion,
+    page,
+    rowsPerPage,
     setSearch,
     setTypeFilter,
+    setPage,
+    setRowsPerPage,
     clearFeedback,
     openCreateDialog,
     openEditDialog,
@@ -89,7 +94,7 @@ export default function QuestionsPage() {
         <QuestionsPageContent
           loading={loading}
           isMobile={isMobile}
-          questions={visibleQuestions}
+          questions={paginatedQuestions}
           locale={i18n.language}
           noneLabel={t("common.none")}
           loadingLabel={t("common.loading")}
@@ -105,6 +110,15 @@ export default function QuestionsPage() {
             actions: t("common.actions"),
           }}
           lastUpdatedLabel={lastUpdatedLabel}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          totalQuestions={visibleQuestions.length}
+          rowsPerPageLabel={t("questions.pagination.rowsPerPage")}
+          displayedRowsLabel={(from, to, count) =>
+            t("questions.pagination.displayedRows", { from, to, count })
+          }
+          onPageChange={setPage}
+          onRowsPerPageChange={setRowsPerPage}
           onEdit={openEditDialog}
           onDelete={openDeleteDialog}
         />

@@ -235,6 +235,10 @@ export const es = {
       version: 'Versión',
       updatedAt: 'Actualizada',
     },
+    pagination: {
+      rowsPerPage: 'Preguntas por página',
+      displayedRows: '{{from}}-{{to}} de {{count}}',
+    },
     dialogs: {
       createTitle: 'Crear pregunta',
       editTitle: 'Editar pregunta',
