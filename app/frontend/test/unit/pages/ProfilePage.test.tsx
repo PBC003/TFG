@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@mui/material";
-import ProfilePage from "../../../src/pages/ProfilePage";
+import ProfilePage from "../../../src/pages/profile/ProfilePage";
 import { AuthContext } from "../../../src/context/AuthContext";
 import { theme } from "../../../src/theme";
 import { createAuthValue } from "../../utils/auth";

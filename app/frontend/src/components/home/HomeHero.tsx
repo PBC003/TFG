@@ -15,9 +15,14 @@ import { ROUTES } from "../../constants/routes";
 interface HomeHeroProps {
   isAuthenticated: boolean;
   isAdmin: boolean;
+  canManageQuestions?: boolean;
 }
 
-export function HomeHero({ isAuthenticated, isAdmin }: HomeHeroProps) {
+export function HomeHero({
+  isAuthenticated,
+  isAdmin,
+  canManageQuestions = false,
+}: HomeHeroProps) {
   const { t } = useTranslation();
 
   return (
@@ -83,6 +88,16 @@ export function HomeHero({ isAuthenticated, isAdmin }: HomeHeroProps) {
                 >
                   {t("home.ctaProfile")}
                 </Button>
+                {canManageQuestions ? (
+                  <Button
+                    component={RouterLink}
+                    to={ROUTES.questions}
+                    variant="outlined"
+                    color="inherit"
+                  >
+                    {t("home.ctaQuestions")}
+                  </Button>
+                ) : null}
                 {isAdmin ? (
                   <Button
                     component={RouterLink}

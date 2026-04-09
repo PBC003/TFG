@@ -21,35 +21,36 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AuthSession } from './entities/auth-session.entity';
+import type {
+  AuthTokensResponse,
+  PublicUser,
+} from './types/auth-response.type.ts';
+import type { RefreshTokenPayload } from './types/token-payload.type';
 import {
-  AccessTokenPayload,
-  RefreshTokenPayload,
-} from './types/token-payload.type';
+  findRefreshSessionForLogout,
+  getValidatedRefreshSession,
+  issueTokensForUser,
+  revokeActiveUserSessions,
+  revokeRefreshSession,
+  rotateRefreshSessionTokens,
+} from './utils/auth-session.util';
+import {
+  getRefreshCookieClearOptions,
+  getRefreshCookieName,
+  getRefreshCookieOptions,
+  getRefreshTokenExpiresAt,
+  signAccessToken,
+  signRefreshToken,
+  tryVerifyRefreshToken,
+  verifyRefreshToken,
+} from './utils/auth-token.util';
 import { compareSecret, hashSecret } from './utils/password.util';
-import {
-  addDurationToDate,
-  parseDurationToMs,
-  type DurationString,
-} from './utils/duration.util';
+import { toPublicUser } from './utils/public-user.util';
 
-export type PublicUser = Pick<
-  User,
-  | 'id'
-  | 'firstName'
-  | 'lastName'
-  | 'email'
-  | 'uo'
-  | 'role'
-  | 'isActive'
-  | 'createdAt'
-  | 'updatedAt'
->;
-
-export type AuthTokensResponse = {
-  accessToken: string;
-  refreshToken: string;
-  user: PublicUser;
-};
+export type {
+  AuthTokensResponse,
+  PublicUser,
+} from './types/auth-response.type';
 
 @Injectable()
 export class AuthService {
@@ -70,7 +71,6 @@ export class AuthService {
     }
 
     const uo = extractUoFromEmail(normalizedEmail);
-
     const existingUser = await this.usersRepository.findOne({
       where: [{ email: normalizedEmail }, { uo }],
     });
@@ -80,7 +80,6 @@ export class AuthService {
     }
 
     const passwordHash = await hashSecret(registerDto.password);
-
     const user = this.usersRepository.create({
       firstName: registerDto.firstName.trim(),
       lastName: registerDto.lastName.trim(),
@@ -96,7 +95,7 @@ export class AuthService {
       const savedUser = await this.usersRepository.save(user);
 
       return {
-        user: this.toPublicUser(savedUser),
+        user: toPublicUser(savedUser),
       };
     } catch (error) {
       if (
@@ -113,7 +112,6 @@ export class AuthService {
 
   async login(loginDto: LoginDto): Promise<AuthTokensResponse> {
     const normalizedEmail = normalizeInstitutionalEmail(loginDto.email);
-
     const user = await this.usersRepository.findOne({
       where: { email: normalizedEmail },
     });
@@ -131,92 +129,50 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.issueTokensForUser(user);
+    return issueTokensForUser({
+      user,
+      authSessionsRepository: this.authSessionsRepository,
+      usersRepository: this.usersRepository,
+      signAccessToken: (targetUser, sessionId) =>
+        this.signAccessToken(targetUser, sessionId),
+      signRefreshToken: (targetUser, sessionId) =>
+        this.signRefreshToken(targetUser, sessionId),
+      getRefreshTokenExpiresAt: (from) => this.getRefreshTokenExpiresAt(from),
+      toPublicUser,
+    });
   }
 
   async refresh(refreshToken: string): Promise<AuthTokensResponse> {
-    const payload = await this.verifyRefreshToken(refreshToken);
-
-    if (payload.type !== 'refresh') {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    const session = await this.authSessionsRepository.findOne({
-      where: { id: payload.sessionId },
-      relations: ['user'],
+    const session = await getValidatedRefreshSession({
+      refreshToken,
+      authSessionsRepository: this.authSessionsRepository,
+      verifyRefreshToken: (token) => this.verifyRefreshToken(token),
     });
 
-    if (!session || !session.user) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    if (session.revokedAt) {
-      throw new UnauthorizedException('Refresh session revoked');
-    }
-
-    if (session.expiresAt.getTime() <= Date.now()) {
-      throw new UnauthorizedException('Refresh session expired');
-    }
-
-    if (!session.user.isActive) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    const refreshMatches = await compareSecret(
-      refreshToken,
-      session.refreshTokenHash,
-    );
-
-    if (!refreshMatches) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    const newAccessToken = await this.signAccessToken(session.user, session.id);
-    const newRefreshToken = await this.signRefreshToken(
-      session.user,
-      session.id,
-    );
-    const newRefreshTokenHash = await hashSecret(newRefreshToken);
-    const newRefreshExpiresAt = this.getRefreshTokenExpiresAt();
-
-    session.refreshTokenHash = newRefreshTokenHash;
-    session.expiresAt = newRefreshExpiresAt;
-
-    await this.authSessionsRepository.save(session);
-
-    return {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-      user: this.toPublicUser(session.user),
-    };
+    return rotateRefreshSessionTokens({
+      session,
+      authSessionsRepository: this.authSessionsRepository,
+      signAccessToken: (user, sessionId) =>
+        this.signAccessToken(user, sessionId),
+      signRefreshToken: (user, sessionId) =>
+        this.signRefreshToken(user, sessionId),
+      getRefreshTokenExpiresAt: (from) => this.getRefreshTokenExpiresAt(from),
+      toPublicUser,
+    });
   }
 
   async logout(refreshToken: string): Promise<void> {
-    const payload = await this.tryVerifyRefreshToken(refreshToken);
-
-    if (!payload || payload.type !== 'refresh') {
-      return;
-    }
-
-    const session = await this.authSessionsRepository.findOne({
-      where: { id: payload.sessionId },
+    const session = await findRefreshSessionForLogout({
+      refreshToken,
+      authSessionsRepository: this.authSessionsRepository,
+      tryVerifyRefreshToken: (token) => this.tryVerifyRefreshToken(token),
     });
 
-    if (!session || session.revokedAt) {
+    if (!session) {
       return;
     }
 
-    const refreshMatches = await compareSecret(
-      refreshToken,
-      session.refreshTokenHash,
-    );
-
-    if (!refreshMatches) {
-      return;
-    }
-
-    session.revokedAt = new Date();
-    await this.authSessionsRepository.save(session);
+    await revokeRefreshSession(this.authSessionsRepository, session);
   }
 
   async changePassword(
@@ -254,175 +210,63 @@ export class AuthService {
     user.passwordHash = await hashSecret(changePasswordDto.newPassword);
     await this.usersRepository.save(user);
 
-    const activeSessions = await this.authSessionsRepository
-      .createQueryBuilder('session')
-      .leftJoin('session.user', 'user')
-      .where('user.id = :userId', { userId })
-      .andWhere('session.revokedAt IS NULL')
-      .getMany();
-
-    if (activeSessions.length > 0) {
-      const revokedAt = new Date();
-
-      for (const session of activeSessions) {
-        session.revokedAt = revokedAt;
-      }
-
-      await this.authSessionsRepository.save(activeSessions);
-    }
+    await revokeActiveUserSessions({
+      userId,
+      authSessionsRepository: this.authSessionsRepository,
+    });
   }
 
   async signAccessToken(user: User, sessionId: number): Promise<string> {
-    const payload: AccessTokenPayload = {
-      sub: user.id,
+    return signAccessToken(
+      this.jwtService,
+      this.configService,
+      user,
       sessionId,
-      email: user.email,
-      role: user.role,
-      type: 'access',
-    };
-
-    const accessExpiresIn = (this.configService.get<string>(
-      'auth.accessExpiresIn',
-    ) ?? '15m') as DurationString;
-
-    return this.jwtService.signAsync(payload, {
-      secret: this.configService.getOrThrow<string>('auth.accessSecret'),
-      expiresIn: accessExpiresIn,
-    });
+    );
   }
 
   async signRefreshToken(user: User, sessionId: number): Promise<string> {
-    const payload: RefreshTokenPayload = {
-      sub: user.id,
+    return signRefreshToken(
+      this.jwtService,
+      this.configService,
+      user,
       sessionId,
-      type: 'refresh',
-    };
-
-    const refreshExpiresIn = (this.configService.get<string>(
-      'auth.refreshExpiresIn',
-    ) ?? '7d') as DurationString;
-
-    return this.jwtService.signAsync(payload, {
-      secret: this.configService.getOrThrow<string>('auth.refreshSecret'),
-      expiresIn: refreshExpiresIn,
-    });
+    );
   }
 
   getRefreshTokenExpiresAt(from = new Date()): Date {
-    const refreshExpiresIn = (this.configService.get<string>(
-      'auth.refreshExpiresIn',
-    ) ?? '7d') as DurationString;
-
-    return addDurationToDate(refreshExpiresIn, from);
+    return getRefreshTokenExpiresAt(this.configService, from);
   }
 
   getRefreshCookieName(): string {
-    return (
-      this.configService.get<string>('auth.refreshCookieName') ??
-      'refresh_token'
-    );
+    return getRefreshCookieName(this.configService);
   }
 
   getRefreshCookieOptions(): CookieOptions {
-    const refreshExpiresIn = (this.configService.get<string>(
-      'auth.refreshExpiresIn',
-    ) ?? '7d') as DurationString;
-
-    return {
-      ...this.getRefreshCookieClearOptions(),
-      maxAge: parseDurationToMs(refreshExpiresIn),
-    };
+    return getRefreshCookieOptions(this.configService);
   }
 
   getRefreshCookieClearOptions(): CookieOptions {
-    return {
-      httpOnly: true,
-      secure: this.configService.get<boolean>('auth.cookieSecure') ?? false,
-      sameSite:
-        this.configService.get<CookieOptions['sameSite']>(
-          'auth.cookieSameSite',
-        ) ?? 'lax',
-      path: '/',
-    };
-  }
-
-  toPublicUser(user: User): PublicUser {
-    return {
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      uo: user.uo,
-      role: user.role,
-      isActive: user.isActive,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
-  }
-
-  private async issueTokensForUser(user: User): Promise<AuthTokensResponse> {
-    const now = new Date();
-    const refreshExpiresAt = this.getRefreshTokenExpiresAt(now);
-
-    const placeholderHash = await hashSecret(
-      `pending-${user.id}-${now.toISOString()}`,
-    );
-
-    const session = this.authSessionsRepository.create({
-      user,
-      refreshTokenHash: placeholderHash,
-      expiresAt: refreshExpiresAt,
-      revokedAt: null,
-    });
-
-    const savedSession = await this.authSessionsRepository.save(session);
-
-    const accessToken = await this.signAccessToken(user, savedSession.id);
-    const refreshToken = await this.signRefreshToken(user, savedSession.id);
-    const refreshTokenHash = await hashSecret(refreshToken);
-
-    savedSession.refreshTokenHash = refreshTokenHash;
-    savedSession.expiresAt = refreshExpiresAt;
-
-    await this.authSessionsRepository.save(savedSession);
-
-    user.lastLoginAt = now;
-    await this.usersRepository.save(user);
-
-    return {
-      accessToken,
-      refreshToken,
-      user: this.toPublicUser(user),
-    };
+    return getRefreshCookieClearOptions(this.configService);
   }
 
   private async verifyRefreshToken(
     refreshToken: string,
   ): Promise<RefreshTokenPayload> {
-    try {
-      return await this.jwtService.verifyAsync<RefreshTokenPayload>(
-        refreshToken,
-        {
-          secret: this.configService.getOrThrow<string>('auth.refreshSecret'),
-        },
-      );
-    } catch {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
+    return verifyRefreshToken(
+      this.jwtService,
+      this.configService,
+      refreshToken,
+    );
   }
 
   private async tryVerifyRefreshToken(
     refreshToken: string,
   ): Promise<RefreshTokenPayload | null> {
-    try {
-      return await this.jwtService.verifyAsync<RefreshTokenPayload>(
-        refreshToken,
-        {
-          secret: this.configService.getOrThrow<string>('auth.refreshSecret'),
-        },
-      );
-    } catch {
-      return null;
-    }
+    return tryVerifyRefreshToken(
+      this.jwtService,
+      this.configService,
+      refreshToken,
+    );
   }
 }

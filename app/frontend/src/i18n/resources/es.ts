@@ -32,6 +32,7 @@ export const es = {
     home: 'Inicio',
     about: 'Acerca de',
     profile: 'Perfil',
+    questions: 'Preguntas',
     admin: 'Administración',
     login: 'Iniciar sesión',
     register: 'Registrarse',
@@ -59,6 +60,7 @@ export const es = {
     ctaLogin: 'Iniciar sesión',
     ctaRegister: 'Crear cuenta',
     ctaProfile: 'Abrir perfil',
+    ctaQuestions: 'Gestionar preguntas',
     ctaAdmin: 'Ir a administración',
     authenticatedOverviewTitle: 'Resumen de sesión',
     authenticatedOverviewBody:
@@ -191,6 +193,95 @@ export const es = {
       selfProtected: 'No se permiten acciones destructivas sobre la cuenta autenticada.',
     },
   },
+  questions: {
+    title: 'Gestión de preguntas',
+    subtitle:
+      'Editor visual para profesorado, con configuración específica por tipo, soporte previsto para LaTeX en los textos y sin exponer JSON manual.',
+    createAction: 'Crear pregunta',
+    searchPlaceholder: 'Buscar por título, enunciado, etiqueta o questionId',
+    typeFilter: 'Filtrar por tipo',
+    totalVisible: 'Preguntas visibles: {{count}}',
+    empty: 'No hay preguntas que cumplan el filtro actual.',
+    refreshSuccess: 'Listado de preguntas recargado.',
+    createSuccess: 'Pregunta creada correctamente.',
+    updateSuccess: 'Pregunta actualizada correctamente.',
+    deleteSuccess: 'Pregunta eliminada correctamente.',
+    lastUpdated: 'Última actualización: {{value}}',
+    fields: {
+      title: 'Título',
+      type: 'Tipo',
+      statement: 'Enunciado',
+      generalFeedback: 'Feedback general',
+      tags: 'Etiquetas',
+      newTag: 'Nueva etiqueta',
+      typeSpecificConfig: 'Configuración específica del tipo',
+      correctAnswer: 'Respuesta correcta',
+      optionText: 'Texto de la respuesta',
+      optionFeedback: 'Feedback específico de esta respuesta',
+      correctOption: 'Marcar como correcta',
+      optionIsCorrect: 'Correcta',
+      optionLabel: 'Respuesta {{index}}',
+      randomizeOptions: 'Barajar respuestas al mostrar la pregunta',
+      gradingMode: 'Modo de corrección',
+    },
+    actions: {
+      addTag: 'Añadir etiqueta',
+      addOption: 'Añadir respuesta',
+    },
+    table: {
+      title: 'Pregunta',
+      type: 'Tipo',
+      tags: 'Etiquetas',
+      version: 'Versión',
+      updatedAt: 'Actualizada',
+    },
+    pagination: {
+      rowsPerPage: 'Preguntas por página',
+      displayedRows: '{{from}}-{{to}} de {{count}}',
+    },
+    dialogs: {
+      createTitle: 'Crear pregunta',
+      editTitle: 'Editar pregunta',
+      deleteTitle: 'Eliminar pregunta',
+      deleteDescription:
+        'Esta acción elimina de forma permanente la pregunta seleccionada de la colección actual.',
+      latexTitle: 'Soporte de notación matemática',
+      latexHelper:
+        'Los campos de texto aceptan notación LaTeX. Puedes escribir expresiones usando delimitadores como $...$, $$...$$, \\(...\\) y \\[...\\].',
+      latexFieldHelper:
+        'Puedes escribir texto normal y expresiones matemáticas con LaTeX en este campo.',
+      perFieldPreviewHelper:
+        'Cada campo compatible con LaTeX tiene su propio botón de vista previa. Puedes revisar una fórmula sin bloquear el resto del formulario.',
+      previewField: 'Vista previa',
+      editField: 'Volver a edición',
+      previewEmpty: 'Todavía no hay contenido para previsualizar.',
+      feedbackRuleHelper:
+        'Este feedback actúa como respaldo general. Si una respuesta tiene feedback específico, se prioriza ese texto.',
+      tagPlaceholder: 'Ejemplo: derivadas',
+      noTags: 'Todavía no hay etiquetas añadidas.',
+      parametricUnavailable:
+        'La pregunta paramétrica sigue en fase de spike y no está disponible en este editor por ahora.',
+      titleValidation: 'El título debe tener al menos 3 caracteres.',
+      statementValidation: 'El enunciado no puede quedar vacío.',
+      optionsValidation: 'Debes definir al menos dos respuestas y rellenar el texto de todas ellas.',
+      singleChoiceValidation: 'Debes marcar una única respuesta correcta.',
+      multipleChoiceValidation: 'Debes marcar al menos una respuesta correcta.',
+    },
+    answers: {
+      true: 'Verdadero',
+      false: 'Falso',
+    },
+    gradingModes: {
+      all_or_nothing: 'Todo o nada',
+      partial_credit: 'Crédito parcial',
+    },
+    types: {
+      true_false: 'Verdadero / Falso',
+      single_choice: 'Opción única',
+      multiple_choice: 'Opción múltiple',
+      parametric: 'Paramétrica',
+    },
+  },
   forms: {
     validation: {
       required: 'Este campo es obligatorio.',
@@ -234,6 +325,13 @@ export const es = {
         email_already_exists: 'Ya existe otro usuario con ese correo.',
         update_requires_field: 'Debes modificar al menos un campo.',
         password_too_short: 'La contraseña debe tener al menos 8 caracteres.',
+      },
+      question: {
+        not_found: 'No se ha encontrado la pregunta indicada.',
+        invalid_type_config: 'questionConfig no coincide con el tipo de pregunta seleccionado.',
+        update_requires_field: 'Debes modificar al menos un campo de la pregunta.',
+        invalid_math_content:
+          'La pregunta contiene LaTeX inválido, delimitadores desbalanceados o markup ejecutable no permitido.',
       },
     },
   },

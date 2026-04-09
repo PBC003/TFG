@@ -1,18 +1,21 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import databaseConfig from './database/database.config';
+import mongodbConfig from './database/mongodb.config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import authConfig from './auth/auth.config';
+import { QuestionsModule } from './questions/questions.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, authConfig],
+      load: [databaseConfig, mongodbConfig, authConfig],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -28,8 +31,16 @@ import authConfig from './auth/auth.config';
         logging: configService.get<boolean>('database.logging') ?? false,
       }),
     }),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('mongodb.uri'),
+        autoIndex: configService.get<boolean>('mongodb.autoIndex') ?? false,
+      }),
+    }),
     UsersModule,
     AuthModule,
+    QuestionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

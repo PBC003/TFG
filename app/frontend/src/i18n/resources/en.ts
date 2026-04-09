@@ -32,6 +32,7 @@ export const en = {
     home: 'Home',
     about: 'About',
     profile: 'Profile',
+    questions: 'Questions',
     admin: 'Admin',
     login: 'Log in',
     register: 'Register',
@@ -59,6 +60,7 @@ export const en = {
     ctaLogin: 'Log in',
     ctaRegister: 'Create account',
     ctaProfile: 'Open profile',
+    ctaQuestions: 'Manage questions',
     ctaAdmin: 'Go to admin',
     authenticatedOverviewTitle: 'Session overview',
     authenticatedOverviewBody:
@@ -191,6 +193,90 @@ export const en = {
       selfProtected: 'Destructive actions are blocked for the authenticated account.',
     },
   },
+  questions: {
+    title: 'Question management',
+    subtitle:
+      'Teacher-friendly visual editor with type-specific configuration, LaTeX-aware text inputs and no manual JSON editing.',
+    createAction: 'Create question',
+    searchPlaceholder: 'Search by title, statement, tag or questionId',
+    typeFilter: 'Filter by type',
+    totalVisible: 'Visible questions: {{count}}',
+    empty: 'There are no questions matching the current filter.',
+    refreshSuccess: 'Question list refreshed.',
+    createSuccess: 'Question created successfully.',
+    updateSuccess: 'Question updated successfully.',
+    deleteSuccess: 'Question deleted successfully.',
+    lastUpdated: 'Last updated: {{value}}',
+    fields: {
+      title: 'Title',
+      type: 'Type',
+      statement: 'Statement',
+      generalFeedback: 'General feedback',
+      tags: 'Tags',
+      newTag: 'New tag',
+      typeSpecificConfig: 'Type-specific configuration',
+      correctAnswer: 'Correct answer',
+      optionText: 'Answer text',
+      optionFeedback: 'Specific feedback for this answer',
+      correctOption: 'Mark as correct',
+      optionIsCorrect: 'Correct',
+      optionLabel: 'Answer {{index}}',
+      randomizeOptions: 'Shuffle answers when showing the question',
+      gradingMode: 'Grading mode',
+    },
+    actions: {
+      addTag: 'Add tag',
+      addOption: 'Add answer',
+    },
+    table: {
+      title: 'Question',
+      type: 'Type',
+      tags: 'Tags',
+      version: 'Version',
+      updatedAt: 'Updated at',
+    },
+    pagination: {
+      rowsPerPage: 'Questions per page',
+      displayedRows: '{{from}}-{{to}} of {{count}}',
+    },
+    dialogs: {
+      createTitle: 'Create question',
+      editTitle: 'Edit question',
+      deleteTitle: 'Delete question',
+      deleteDescription:
+        'This action permanently deletes the selected question from the current collection.',
+      latexTitle: 'Math notation support',
+      latexHelper:
+        'Text fields accept LaTeX notation. You can write expressions with delimiters such as $...$, $$...$$, \\(...\\) and \\[...\\].',
+      latexFieldHelper:
+        'You can write plain text and mathematical expressions with LaTeX in this field.',
+      feedbackRuleHelper:
+        'This feedback acts as the general fallback. If a selected answer has specific feedback, that text should take priority.',
+      tagPlaceholder: 'Example: derivatives',
+      noTags: 'No tags have been added yet.',
+      parametricUnavailable:
+        'Parametric questions are still in spike mode and are not available in this editor yet.',
+      titleValidation: 'Title must contain at least 3 characters.',
+      statementValidation: 'Statement cannot be empty.',
+      optionsValidation: 'You must define at least two answers and provide text for all of them.',
+      singleChoiceValidation: 'You must mark exactly one correct answer.',
+      multipleChoiceValidation: 'You must mark at least one correct answer.',
+    },
+    answers: {
+      true: 'True',
+      false: 'False',
+    },
+    gradingModes: {
+      all_or_nothing: 'All or nothing',
+      partial_credit: 'Partial credit',
+    },
+    types: {
+      true_false: 'True / False',
+      single_choice: 'Single choice',
+      multiple_choice: 'Multiple choice',
+      parametric: 'Parametric',
+    },
+  },
   forms: {
     validation: {
       required: 'This field is required.',
@@ -234,6 +320,13 @@ export const en = {
         email_already_exists: 'Another user already uses that email.',
         update_requires_field: 'You must update at least one field.',
         password_too_short: 'Password must be at least 8 characters long.',
+      },
+      question: {
+        not_found: 'The requested question was not found.',
+        invalid_type_config: 'questionConfig does not match the selected question type.',
+        update_requires_field: 'You must update at least one field in the question.',
+        invalid_math_content:
+          'The question contains invalid LaTeX, unbalanced delimiters or forbidden executable markup.',
       },
     },
   },
