@@ -1,0 +1,208 @@
+import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from "@mui/material";
+import { useTranslation } from "react-i18next";
+import { formatDateTime } from "../../../utils/date";
+import type { QuizItem } from "../../../types/quiz";
+
+type QuizzesTableCardProps = {
+  loading: boolean;
+  submitting: boolean;
+  quizzes: QuizItem[];
+  language: string;
+  onEdit: (quiz: QuizItem) => void;
+  onCopyLink: (quiz: QuizItem) => Promise<void>;
+  onTogglePublishStatus: (quiz: QuizItem) => Promise<void>;
+  onDelete: (quiz: QuizItem) => Promise<void>;
+};
+
+export function QuizzesTableCard({
+  loading,
+  submitting,
+  quizzes,
+  language,
+  onEdit,
+  onCopyLink,
+  onTogglePublishStatus,
+  onDelete,
+}: QuizzesTableCardProps) {
+  const { t } = useTranslation();
+
+  return (
+    <Card>
+      {loading ? (
+        <CardContent sx={{ p: 3 }}>
+          <Typography color="text.secondary">{t("common.loading")}</Typography>
+        </CardContent>
+      ) : quizzes.length === 0 ? (
+        <CardContent sx={{ p: 3 }}>
+          <Typography color="text.secondary">{t("quizzes.empty")}</Typography>
+        </CardContent>
+      ) : (
+        <TableContainer sx={{ overflowX: "auto" }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>{t("quizzes.table.title")}</TableCell>
+                <TableCell>{t("quizzes.table.status")}</TableCell>
+                <TableCell>{t("quizzes.table.accessCode")}</TableCell>
+                <TableCell>{t("quizzes.table.questions")}</TableCell>
+                <TableCell>{t("quizzes.table.attempts")}</TableCell>
+                <TableCell>{t("quizzes.table.updatedAt")}</TableCell>
+                <TableCell align="right">{t("common.actions")}</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {quizzes.map((quiz) => (
+                <TableRow key={quiz.quizId} hover>
+                  <TableCell>
+                    <Stack spacing={0.75}>
+                      <Typography fontWeight={700}>{quiz.title}</Typography>
+                      {quiz.description ? (
+                        <Typography variant="body2" color="text.secondary">
+                          {quiz.description}
+                        </Typography>
+                      ) : null}
+                      {!quiz.canEdit ? (
+                        <Typography variant="caption" color="warning.main">
+                          {quiz.hasAttempts
+                            ? t("quizzes.lockedByAttempts")
+                            : t("quizzes.lockedWhilePublished")}
+                        </Typography>
+                      ) : null}
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={t(`quizzes.status.${quiz.status}`)}
+                      color={
+                        quiz.status === "published" ? "success" : "default"
+                      }
+                      variant={
+                        quiz.status === "published" ? "filled" : "outlined"
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Stack spacing={0.5}>
+                      <Typography fontFamily="monospace" fontWeight={700}>
+                        {quiz.requiresAccessCode
+                          ? quiz.accessCode
+                          : t("quizzes.noAccessCode")}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {quiz.requiresAccessCode
+                          ? t("quizzes.accessCodeRequired")
+                          : t("quizzes.directLinkOnly")}
+                      </Typography>
+                    </Stack>
+                  </TableCell>
+                  <TableCell sx={{ minWidth: 160 }}>
+                    <Typography variant="body2">
+                      {t("quizzes.questionSummary", {
+                        count: quiz.totalQuestions,
+                        points: quiz.totalPoints,
+                      })}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Stack spacing={0.5}>
+                      <Typography variant="body2">
+                        {t("quizzes.attemptSummary", {
+                          count: quiz.attemptsAllowed,
+                        })}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {quiz.timeLimitMinutes
+                          ? t("quizzes.timeLimitSummary", {
+                              value: quiz.timeLimitMinutes,
+                            })
+                          : t("quizzes.noTimeLimit")}
+                      </Typography>
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    {formatDateTime(quiz.updatedAt, language)}
+                  </TableCell>
+                  <TableCell align="right" sx={{ minWidth: 320 }}>
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "repeat(2, minmax(0, 1fr))",
+                        },
+                        gap: 1,
+                        width: "100%",
+                        maxWidth: 340,
+                        ml: "auto",
+                      }}
+                    >
+                      <Button
+                        size="small"
+                        fullWidth
+                        startIcon={<EditRoundedIcon />}
+                        onClick={() => onEdit(quiz)}
+                        disabled={!quiz.canEdit || submitting}
+                      >
+                        {t("common.edit")}
+                      </Button>
+                      <Button
+                        size="small"
+                        fullWidth
+                        startIcon={<ContentCopyRoundedIcon />}
+                        onClick={() => void onCopyLink(quiz)}
+                      >
+                        {t("quizzes.actions.copyLink")}
+                      </Button>
+                      <Button
+                        size="small"
+                        fullWidth
+                        variant={
+                          quiz.status === "published" ? "outlined" : "contained"
+                        }
+                        color={
+                          quiz.status === "published" ? "warning" : "primary"
+                        }
+                        onClick={() => void onTogglePublishStatus(quiz)}
+                        disabled={submitting}
+                      >
+                        {quiz.status === "published"
+                          ? t("quizzes.actions.unpublish")
+                          : t("quizzes.actions.publish")}
+                      </Button>
+                      <Button
+                        size="small"
+                        fullWidth
+                        color="error"
+                        startIcon={<DeleteOutlineRoundedIcon />}
+                        onClick={() => void onDelete(quiz)}
+                        disabled={!quiz.canDelete || submitting}
+                      >
+                        {t("common.delete")}
+                      </Button>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Card>
+  );
+}
