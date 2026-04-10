@@ -71,13 +71,6 @@ export function QuestionsTableView({
                   >
                     {question.title}
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ overflowWrap: "anywhere" }}
-                  >
-                    {question.questionId}
-                  </Typography>
                   <Box
                     sx={{
                       typography: "body2",

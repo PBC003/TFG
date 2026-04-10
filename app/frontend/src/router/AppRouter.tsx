@@ -12,6 +12,8 @@ import RegisterPage from "../pages/RegisterPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import AdminPage from "../pages/admin/AdminPage";
 import QuestionsPage from "../pages/questions/QuestionsPage";
+import QuizzesPage from "../pages/quizzes/QuizzesPage";
+import QuizAccessPage from "../pages/quiz-access/QuizAccessPage";
 
 export const router = createBrowserRouter([
   {
@@ -25,6 +27,19 @@ export const router = createBrowserRouter([
       {
         path: "about",
         element: <AboutPage />,
+      },
+      {
+        element: <RequireAuth />,
+        children: [
+          {
+            path: "quiz-access",
+            element: <QuizAccessPage />,
+          },
+          {
+            path: "quiz-access/:quizId",
+            element: <QuizAccessPage />,
+          },
+        ],
       },
       {
         element: <RequireGuest />,
@@ -63,6 +78,10 @@ export const router = createBrowserRouter([
           {
             path: "questions",
             element: <QuestionsPage />,
+          },
+          {
+            path: "quizzes",
+            element: <QuizzesPage />,
           },
         ],
       },

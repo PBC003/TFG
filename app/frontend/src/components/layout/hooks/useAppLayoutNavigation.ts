@@ -14,6 +14,7 @@ function buildNavItems(
   const items: AppNavItem[] = [
     { label: t("nav.home"), to: ROUTES.home },
     { label: t("nav.about"), to: ROUTES.about },
+    { label: t("nav.quizAccess"), to: ROUTES.quizAccess },
   ];
 
   if (!isAuthenticated) {
@@ -26,6 +27,7 @@ function buildNavItems(
 
   if (role === "ADMIN" || role === "TEACHER") {
     items.push({ label: t("nav.questions"), to: ROUTES.questions });
+    items.push({ label: t("nav.quizzes"), to: ROUTES.quizzes });
   }
 
   if (isAdmin) {

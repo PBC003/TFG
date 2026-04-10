@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import authConfig from './auth/auth.config';
 import { QuestionsModule } from './questions/questions.module';
+import { QuizzesModule } from './quizzes/quizzes.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { QuestionsModule } from './questions/questions.module';
     UsersModule,
     AuthModule,
     QuestionsModule,
+    QuizzesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
