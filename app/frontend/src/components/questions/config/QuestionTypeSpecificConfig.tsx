@@ -1,19 +1,12 @@
-import {
-  Alert,
-  FormControlLabel,
-  MenuItem,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { QuestionChoiceOptionsEditor } from "../editor/QuestionChoiceOptionsEditor";
 import { QuestionTrueFalseEditor } from "../editor/QuestionTrueFalseEditor";
 import type {
   EditableOption,
   FormState,
 } from "../editor/question-editor.types";
+import { QuestionMultipleChoiceConfigSection } from "./QuestionMultipleChoiceConfigSection";
+import { QuestionSingleChoiceConfigSection } from "./QuestionSingleChoiceConfigSection";
 
 type QuestionTypeSpecificConfigProps = {
   form: FormState;
@@ -101,130 +94,29 @@ export function QuestionTypeSpecificConfig({
       ) : null}
 
       {form.type === "single_choice" ? (
-        <Stack spacing={2}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={form.singleChoice.randomizeOptions}
-                onChange={(event) =>
-                  onUpdateForm((current) => ({
-                    ...current,
-                    singleChoice: {
-                      ...current.singleChoice,
-                      randomizeOptions: event.target.checked,
-                    },
-                  }))
-                }
-              />
-            }
-            label={t("questions.fields.randomizeOptions")}
-          />
-
-          <QuestionChoiceOptionsEditor
-            deleteLabel={t("common.delete")}
-            options={form.singleChoice.options}
-            correctLabel={t("questions.fields.correctOption")}
-            optionTextLabel={t("questions.fields.optionText")}
-            optionFeedbackLabel={t("questions.fields.optionFeedback")}
-            optionLabel={(index) =>
-              t("questions.fields.optionLabel", { index: index + 1 })
-            }
-            addOptionLabel={t("questions.actions.addOption")}
-            latexFieldHelper={latexFieldHelper}
-            canSelectMultipleCorrect={false}
-            onToggleCorrect={(index) =>
-              onUpdateSingleChoiceOption(index, "isCorrect", true)
-            }
-            onChangeOptionField={(index, field, value) =>
-              onUpdateSingleChoiceOption(index, field, value)
-            }
-            onRemoveOption={onRemoveSingleChoiceOption}
-            onAddOption={onAddSingleChoiceOption}
-            isOptionPreview={(fieldKey) =>
-              isPreview(`singleChoice.${fieldKey}`)
-            }
-            onTogglePreview={(fieldKey) =>
-              onTogglePreview(`singleChoice.${fieldKey}`)
-            }
-          />
-        </Stack>
+        <QuestionSingleChoiceConfigSection
+          form={form}
+          latexFieldHelper={latexFieldHelper}
+          isPreview={isPreview}
+          onTogglePreview={onTogglePreview}
+          onUpdateForm={onUpdateForm}
+          onUpdateSingleChoiceOption={onUpdateSingleChoiceOption}
+          onAddSingleChoiceOption={onAddSingleChoiceOption}
+          onRemoveSingleChoiceOption={onRemoveSingleChoiceOption}
+        />
       ) : null}
 
       {form.type === "multiple_choice" ? (
-        <Stack spacing={2}>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={form.multipleChoice.randomizeOptions}
-                  onChange={(event) =>
-                    onUpdateForm((current) => ({
-                      ...current,
-                      multipleChoice: {
-                        ...current.multipleChoice,
-                        randomizeOptions: event.target.checked,
-                      },
-                    }))
-                  }
-                />
-              }
-              label={t("questions.fields.randomizeOptions")}
-            />
-
-            <TextField
-              select
-              label={t("questions.fields.gradingMode")}
-              value={form.multipleChoice.gradingMode}
-              onChange={(event) =>
-                onUpdateForm((current) => ({
-                  ...current,
-                  multipleChoice: {
-                    ...current.multipleChoice,
-                    gradingMode: event.target.value as
-                      | "all_or_nothing"
-                      | "partial_credit",
-                  },
-                }))
-              }
-              sx={{ minWidth: { xs: "100%", md: 260 } }}
-            >
-              <MenuItem value="all_or_nothing">
-                {t("questions.gradingModes.all_or_nothing")}
-              </MenuItem>
-              <MenuItem value="partial_credit">
-                {t("questions.gradingModes.partial_credit")}
-              </MenuItem>
-            </TextField>
-          </Stack>
-
-          <QuestionChoiceOptionsEditor
-            deleteLabel={t("common.delete")}
-            options={form.multipleChoice.options}
-            correctLabel={t("questions.fields.optionIsCorrect")}
-            optionTextLabel={t("questions.fields.optionText")}
-            optionFeedbackLabel={t("questions.fields.optionFeedback")}
-            optionLabel={(index) =>
-              t("questions.fields.optionLabel", { index: index + 1 })
-            }
-            addOptionLabel={t("questions.actions.addOption")}
-            latexFieldHelper={latexFieldHelper}
-            canSelectMultipleCorrect
-            onToggleCorrect={(index, checked) =>
-              onUpdateMultipleChoiceOption(index, "isCorrect", checked)
-            }
-            onChangeOptionField={(index, field, value) =>
-              onUpdateMultipleChoiceOption(index, field, value)
-            }
-            onRemoveOption={onRemoveMultipleChoiceOption}
-            onAddOption={onAddMultipleChoiceOption}
-            isOptionPreview={(fieldKey) =>
-              isPreview(`multipleChoice.${fieldKey}`)
-            }
-            onTogglePreview={(fieldKey) =>
-              onTogglePreview(`multipleChoice.${fieldKey}`)
-            }
-          />
-        </Stack>
+        <QuestionMultipleChoiceConfigSection
+          form={form}
+          latexFieldHelper={latexFieldHelper}
+          isPreview={isPreview}
+          onTogglePreview={onTogglePreview}
+          onUpdateForm={onUpdateForm}
+          onUpdateMultipleChoiceOption={onUpdateMultipleChoiceOption}
+          onAddMultipleChoiceOption={onAddMultipleChoiceOption}
+          onRemoveMultipleChoiceOption={onRemoveMultipleChoiceOption}
+        />
       ) : null}
 
       {form.type === "parametric" ? (

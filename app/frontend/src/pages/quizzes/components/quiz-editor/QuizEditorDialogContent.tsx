@@ -1,9 +1,9 @@
 import {
   Alert,
+  Button,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Button,
   Divider,
   Stack,
   Typography,
@@ -18,6 +18,7 @@ type QuizEditorDialogContentProps = Omit<QuizEditorDialogProps, "open">;
 export function QuizEditorDialogContent({
   quiz,
   questionBank,
+  questionBankLoading = false,
   submitting,
   title,
   description,
@@ -37,7 +38,6 @@ export function QuizEditorDialogContent({
     quizTitle,
     quizDescription,
     accessCode,
-    requiresAccessCode,
     attemptsAllowed,
     startAt,
     endAt,
@@ -55,7 +55,6 @@ export function QuizEditorDialogContent({
     setQuizTitle,
     setQuizDescription,
     setAccessCode,
-    setRequiresAccessCode,
     setAttemptsAllowed,
     setStartAt,
     setEndAt,
@@ -93,7 +92,6 @@ export function QuizEditorDialogContent({
             quizTitle={quizTitle}
             quizDescription={quizDescription}
             accessCode={accessCode}
-            requiresAccessCode={requiresAccessCode}
             attemptsAllowed={attemptsAllowed}
             startAt={startAt}
             endAt={endAt}
@@ -103,7 +101,6 @@ export function QuizEditorDialogContent({
             onQuizTitleChange={setQuizTitle}
             onQuizDescriptionChange={setQuizDescription}
             onAccessCodeChange={setAccessCode}
-            onRequiresAccessCodeChange={setRequiresAccessCode}
             onAttemptsAllowedChange={setAttemptsAllowed}
             onStartAtChange={setStartAt}
             onEndAtChange={setEndAt}
@@ -116,11 +113,13 @@ export function QuizEditorDialogContent({
 
           <QuizEditorQuestionBankSection
             submitting={submitting}
+            loading={questionBankLoading}
             searchPlaceholder={searchPlaceholder}
             unsupportedTypeLabel={unsupportedTypeLabel}
             questionsSectionTitle={questionsSectionTitle}
             questionPointsLabel={questionPointsLabel}
             noQuestionsLabel={noQuestionsLabel}
+            loadingLabel="Loading…"
             cancelLabel={cancelLabel}
             saveLabel={saveLabel}
             fields={fields}
@@ -151,7 +150,7 @@ export function QuizEditorDialogContent({
         </Button>
         <Button
           onClick={() => void submit()}
-          disabled={submitting}
+          disabled={submitting || questionBankLoading}
           variant="contained"
         >
           {saveLabel}

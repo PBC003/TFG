@@ -1,13 +1,13 @@
-import { QuestionType } from '../../questions/enums/question-type.enum';
-import type { QuestionDocument } from '../../questions/schemas/question.schema';
+import { QuestionType } from '../../../questions/enums/question-type.enum';
+import type { QuestionDocument } from '../../../questions/schemas/question.schema';
 import type {
   MultipleChoiceQuestionConfig,
   SingleChoiceQuestionConfig,
   TrueFalseQuestionConfig,
-} from '../../questions/types/question-type-config.type';
-import type { QuizAttemptDocument } from '../schemas/quiz-attempt.schema';
-import type { QuizDocument } from '../schemas/quiz.schema';
-import type { SupportedQuestionConfig } from '../types/quiz.types';
+} from '../../../questions/types/question-type-config.type';
+import type { QuizAttemptDocument } from '../../schemas/quiz-attempt.schema';
+import type { QuizDocument } from '../../schemas/quiz.schema';
+import type { SupportedQuestionConfig } from '../../types/quiz.types';
 
 function shuffleItems<T>(items: T[]): T[] {
   const clonedItems = [...items];

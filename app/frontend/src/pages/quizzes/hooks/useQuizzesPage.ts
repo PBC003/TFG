@@ -11,12 +11,23 @@ import type {
 } from "../../../types/quiz";
 import { getErrorMessage } from "../../../utils/error-code";
 import type { UseQuizzesPageResult } from "../types/quizzes-page.types";
+import {
+  buildQuizAccessUrl,
+  filterQuizzes,
+  paginateItems,
+  prependQuizItem,
+  removeQuizItem,
+  replaceQuizItem,
+} from "../utils/quizzes-page.utils";
+
+const DEFAULT_ROWS_PER_PAGE = 5;
 
 export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
   const auth = useAuth();
   const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
   const [questionBank, setQuestionBank] = useState<QuestionItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [questionBankLoading, setQuestionBankLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] =
     useState<UseQuizzesPageResult["feedback"]>(null);
@@ -26,19 +37,19 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "draft" | "published"
   >("all");
+  const [page, setPageState] = useState(0);
+  const [rowsPerPage, setRowsPerPageState] = useState(DEFAULT_ROWS_PER_PAGE);
 
   const refreshQuizzes = useCallback(
     async (successMessage?: string) => {
       setLoading(true);
 
       try {
-        const [quizzesResponse, questionsResponse] = await Promise.all([
-          auth.executeWithSession((token) => quizzesApi.listQuizzes(token)),
-          auth.executeWithSession((token) => questionsApi.listQuestions(token)),
-        ]);
+        const response = await auth.executeWithSession((token) =>
+          quizzesApi.listQuizzes(token),
+        );
 
-        setQuizzes(quizzesResponse.quizzes);
-        setQuestionBank(questionsResponse.questions);
+        setQuizzes(response.quizzes);
 
         if (successMessage) {
           setFeedback({ severity: "success", message: successMessage });
@@ -52,37 +63,65 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
     [auth, t],
   );
 
+  const ensureQuestionBankLoaded = useCallback(async () => {
+    if (questionBank.length > 0 || questionBankLoading) {
+      return;
+    }
+
+    setQuestionBankLoading(true);
+
+    try {
+      const response = await auth.executeWithSession((token) =>
+        questionsApi.listQuestions(token),
+      );
+      setQuestionBank(response.questions);
+    } catch (error) {
+      setFeedback({ severity: "error", message: getErrorMessage(t, error) });
+    } finally {
+      setQuestionBankLoading(false);
+    }
+  }, [auth, questionBank.length, questionBankLoading, t]);
+
   useEffect(() => {
     void refreshQuizzes();
   }, [refreshQuizzes]);
 
-  const visibleQuizzes = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
+  const visibleQuizzes = useMemo(
+    () => filterQuizzes(quizzes, search, statusFilter),
+    [quizzes, search, statusFilter],
+  );
 
-    return quizzes.filter((quiz) => {
-      const matchesStatus =
-        statusFilter === "all" || quiz.status === statusFilter;
-      if (!matchesStatus) {
-        return false;
-      }
+  useEffect(() => {
+    setPageState(0);
+  }, [search, statusFilter]);
 
-      if (!normalizedSearch) {
-        return true;
-      }
+  useEffect(() => {
+    const lastPage = Math.max(
+      0,
+      Math.ceil(visibleQuizzes.length / rowsPerPage) - 1,
+    );
+    setPageState((current) => (current > lastPage ? lastPage : current));
+  }, [visibleQuizzes.length, rowsPerPage]);
 
-      return (
-        quiz.title.toLowerCase().includes(normalizedSearch) ||
-        (quiz.description ?? "").toLowerCase().includes(normalizedSearch) ||
-        (quiz.accessCode ?? "").toLowerCase().includes(normalizedSearch) ||
-        quiz.status.toLowerCase().includes(normalizedSearch)
-      );
-    });
-  }, [quizzes, search, statusFilter]);
+  const paginatedQuizzes = useMemo(
+    () => paginateItems(visibleQuizzes, page, rowsPerPage),
+    [page, rowsPerPage, visibleQuizzes],
+  );
+
+  const setPage = useCallback((value: number) => {
+    setPageState(value);
+  }, []);
+
+  const setRowsPerPage = useCallback((value: number) => {
+    setRowsPerPageState(value);
+    setPageState(0);
+  }, []);
 
   const openCreateDialog = useCallback(() => {
     setEditingQuiz(null);
     setEditorOpen(true);
-  }, []);
+    void ensureQuestionBankLoaded();
+  }, [ensureQuestionBankLoaded]);
 
   const openEditDialog = useCallback(
     (quiz: QuizItem) => {
@@ -93,8 +132,9 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
 
       setEditingQuiz(quiz);
       setEditorOpen(true);
+      void ensureQuestionBankLoaded();
     },
-    [t],
+    [ensureQuestionBankLoaded, t],
   );
 
   const closeEditor = useCallback(() => {
@@ -116,11 +156,7 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
             quizzesApi.updateQuiz(token, editingQuiz.quizId, payload),
           );
 
-          setQuizzes((current) =>
-            current.map((quiz) =>
-              quiz.quizId === response.quiz.quizId ? response.quiz : quiz,
-            ),
-          );
+          setQuizzes((current) => replaceQuizItem(current, response.quiz));
           setFeedback({
             severity: "success",
             message: t("quizzes.updateSuccess"),
@@ -130,7 +166,7 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
             quizzesApi.createQuiz(token, payload as CreateQuizInput),
           );
 
-          setQuizzes((current) => [response.quiz, ...current]);
+          setQuizzes((current) => prependQuizItem(current, response.quiz));
           setFeedback({
             severity: "success",
             message: t("quizzes.createSuccess"),
@@ -159,13 +195,7 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
             : quizzesApi.publishQuiz(token, quiz.quizId),
         );
 
-        setQuizzes((current) =>
-          current.map((candidate) =>
-            candidate.quizId === response.quiz.quizId
-              ? response.quiz
-              : candidate,
-          ),
-        );
+        setQuizzes((current) => replaceQuizItem(current, response.quiz));
         setFeedback({
           severity: "success",
           message:
@@ -184,10 +214,8 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
 
   const copyAccessLink = useCallback(
     async (quiz: QuizItem) => {
-      const quizAccessUrl = `${window.location.origin}/quiz-access/${quiz.quizId}`;
-
       try {
-        await navigator.clipboard.writeText(quizAccessUrl);
+        await navigator.clipboard.writeText(buildQuizAccessUrl(quiz.quizId));
         setFeedback({
           severity: "success",
           message: t("quizzes.copyLinkSuccess"),
@@ -219,9 +247,7 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
         await auth.executeWithSession((token) =>
           quizzesApi.deleteQuiz(token, quiz.quizId),
         );
-        setQuizzes((current) =>
-          current.filter((candidate) => candidate.quizId !== quiz.quizId),
-        );
+        setQuizzes((current) => removeQuizItem(current, quiz.quizId));
         setFeedback({
           severity: "success",
           message: t("quizzes.deleteSuccess"),
@@ -242,16 +268,22 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
   return {
     quizzes,
     visibleQuizzes,
+    paginatedQuizzes,
     questionBank,
     loading,
+    questionBankLoading,
     submitting,
     feedback,
     search,
     statusFilter,
     editorOpen,
     editingQuiz,
+    page,
+    rowsPerPage,
     setSearch,
     setStatusFilter,
+    setPage,
+    setRowsPerPage,
     clearFeedback,
     openCreateDialog,
     openEditDialog,

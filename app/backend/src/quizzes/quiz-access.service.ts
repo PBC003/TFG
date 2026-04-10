@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import type { QuestionDocument } from '../questions/schemas/question.schema';
 import { StartQuizAttemptDto } from './dto/start-quiz-attempt.dto';
 import { SubmitQuizAttemptDto } from './dto/submit-quiz-attempt.dto';
 import { QuizAttemptStatus } from './enums/quiz-attempt-status.enum';
@@ -15,13 +16,21 @@ import type {
   QuizAttemptItem,
   QuizSubmissionResult,
 } from './types/quiz.types';
-import { gradeAttempt } from './utils/grade-attempt.util';
+import type {
+  GradedAttempt,
+  SubmittedAnswerMap,
+} from './utils/grade/grade-attempt.types';
+import { gradeAttempt } from './utils/grade/grade-attempt.util';
 import {
   toQuizAttemptItem,
   toQuizSubmissionResult,
 } from './utils/public-attempt.util';
-import { buildAttemptQuestionSnapshots } from './utils/quiz-attempt-snapshot.util';
+import { toPublicQuizCatalogItem } from './utils/quiz/quiz-access-catalog.util';
+import { buildAttemptQuestionSnapshots } from './utils/quiz/quiz-attempt-snapshot.util';
+import { getQuizSubmissionVisibility } from './utils/quiz/quiz-submission-visibility.util';
 import { QuizzesSharedService } from './quizzes-shared.service';
+
+// cspell:ignore Profesorado
 
 @Injectable()
 export class QuizAccessService {
@@ -51,40 +60,76 @@ export class QuizAccessService {
     );
     const nowMs = Date.now();
 
-    return quizzes.map((quiz) => {
-      const totalQuestions = quiz.questions.length;
-      const totalPoints = quiz.questions.reduce(
-        (sum, question) => sum + Number(question.points),
-        0,
-      );
-      const isAvailableNow =
-        (!quiz.startAt || quiz.startAt.getTime() <= nowMs) &&
-        (!quiz.endAt || quiz.endAt.getTime() >= nowMs);
-      const attemptsRemaining =
+    return quizzes.map((quiz) =>
+      toPublicQuizCatalogItem(
+        quiz,
+        teachersById.get(quiz.createdByUserId) ?? 'Profesorado',
         normalizedParticipantName.length >= 2
           ? (attemptsRemainingByQuiz.get(quiz.quizId) ?? quiz.attemptsAllowed)
-          : null;
+          : null,
+        nowMs,
+      ),
+    );
+  }
 
-      return {
-        quizId: quiz.quizId,
+  async getBestResult(
+    quizId: string,
+    participantName?: string,
+  ): Promise<QuizSubmissionResult | null> {
+    const normalizedParticipantName = participantName?.trim() ?? '';
+
+    if (normalizedParticipantName.length < 2) {
+      this.quizzesSharedService.throwBadRequest(
+        'quiz.access_data_required',
+        'A participant identity is required to retrieve quiz feedback',
+      );
+    }
+
+    const quiz =
+      await this.quizzesSharedService.findQuizDocumentOrThrow(quizId);
+    const bestAttempt = await this.quizAttemptModel
+      .findOne({
+        quizId,
+        participantName: normalizedParticipantName,
+        status: QuizAttemptStatus.SUBMITTED,
+      })
+      .sort({ earnedPoints: -1, submittedAt: -1, attemptNumber: -1 })
+      .exec();
+
+    if (!bestAttempt) {
+      return null;
+    }
+
+    const consumedAttempts =
+      await this.quizzesSharedService.countConsumedAttempts(
+        quiz.quizId,
+        normalizedParticipantName,
+      );
+    const attemptsRemaining = Math.max(
+      0,
+      quiz.attemptsAllowed - consumedAttempts,
+    );
+    const visibility = getQuizSubmissionVisibility(quiz, attemptsRemaining);
+    const submittedAnswersByQuestionId: SubmittedAnswerMap = new Map<
+      string,
+      unknown
+    >(bestAttempt.answers.map((answer) => [answer.questionId, answer.value]));
+    const gradedAttempt: GradedAttempt = gradeAttempt(
+      bestAttempt.questions,
+      submittedAnswersByQuestionId,
+    );
+
+    return toQuizSubmissionResult(
+      bestAttempt,
+      {
         title: quiz.title,
-        description: quiz.description,
-        teacherName: teachersById.get(quiz.createdByUserId) ?? 'Profesorado',
-        requiresAccessCode: quiz.requiresAccessCode === true,
         attemptsAllowed: quiz.attemptsAllowed,
         attemptsRemaining,
-        totalQuestions,
-        totalPoints,
-        startAt: quiz.startAt,
-        endAt: quiz.endAt,
-        timeLimitMinutes: quiz.timeLimitMinutes,
-        publishedAt: quiz.publishedAt,
-        isAvailableNow,
-        canStart:
-          isAvailableNow &&
-          (attemptsRemaining === null || attemptsRemaining > 0),
-      };
-    });
+        canRevealFeedback: visibility.canRevealFeedback,
+        revealBlockedByEndDate: visibility.revealBlockedByEndDate,
+      },
+      gradedAttempt.review,
+    );
   }
 
   async startAttempt(
@@ -193,15 +238,24 @@ export class QuizAccessService {
     const quiz = await this.quizzesSharedService.findQuizDocumentOrThrow(
       attempt.quizId,
     );
-    const answerMap = new Map(
+    const submittedAnswersByQuestionId: SubmittedAnswerMap = new Map<
+      string,
+      unknown
+    >(
       submitQuizAttemptDto.answers.map((answer) => [
         answer.questionId,
         answer.value,
       ]),
     );
-    const gradedAttempt = gradeAttempt(attempt.questions, answerMap);
+    const gradedAttempt: GradedAttempt = gradeAttempt(
+      attempt.questions,
+      submittedAnswersByQuestionId,
+    );
+    const gradedAnswers = gradedAttempt.answers.map((answer) => ({
+      ...answer,
+    }));
 
-    attempt.answers = gradedAttempt.answers;
+    attempt.answers = gradedAnswers;
     attempt.earnedPoints = gradedAttempt.earnedPoints;
     attempt.maxPoints = gradedAttempt.maxPoints;
     attempt.status = QuizAttemptStatus.SUBMITTED;
@@ -218,12 +272,7 @@ export class QuizAccessService {
       0,
       quiz.attemptsAllowed - consumedAttempts,
     );
-    const revealBlockedByEndDate =
-      quiz.revealAnswersAfterClose &&
-      quiz.endAt !== null &&
-      quiz.endAt.getTime() > Date.now();
-    const canRevealFeedback =
-      attemptsRemaining === 0 && !revealBlockedByEndDate;
+    const visibility = getQuizSubmissionVisibility(quiz, attemptsRemaining);
 
     return toQuizSubmissionResult(
       attempt,
@@ -231,8 +280,8 @@ export class QuizAccessService {
         title: quiz.title,
         attemptsAllowed: quiz.attemptsAllowed,
         attemptsRemaining,
-        canRevealFeedback,
-        revealBlockedByEndDate,
+        canRevealFeedback: visibility.canRevealFeedback,
+        revealBlockedByEndDate: visibility.revealBlockedByEndDate,
       },
       gradedAttempt.review,
     );
@@ -343,16 +392,19 @@ export class QuizAccessService {
     quiz: QuizDocument,
   ): Promise<QuizAttemptDocument['questions']> {
     const questionIds = quiz.questions.map((question) => question.questionId);
-    const questionMap =
+    const questionMap: Map<string, QuestionDocument> =
       await this.quizzesSharedService.loadQuestionsMap(questionIds);
-    const snapshots = buildAttemptQuestionSnapshots(quiz, questionMap);
+    const snapshotsOrNull: QuizAttemptDocument['questions'] | null =
+      buildAttemptQuestionSnapshots(quiz, questionMap);
 
-    if (!snapshots) {
+    if (!snapshotsOrNull) {
       this.quizzesSharedService.throwBadRequest(
         'quiz.question_not_found',
         'At least one quiz question does not exist anymore',
       );
     }
+
+    const snapshots: QuizAttemptDocument['questions'] = snapshotsOrNull;
 
     return snapshots;
   }

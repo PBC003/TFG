@@ -1,9 +1,9 @@
-import { IsOptional, IsString, Length } from 'class-validator';
+import { IsOptional, IsString, Length, MaxLength } from 'class-validator';
 
 export class StartQuizAttemptDto {
   @IsOptional()
   @IsString()
-  @Length(4, 16)
+  @MaxLength(16)
   accessCode?: string | null;
 
   @IsOptional()

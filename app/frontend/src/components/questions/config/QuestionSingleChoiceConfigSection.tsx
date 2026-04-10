@@ -1,20 +1,7 @@
 import { FormControlLabel, Stack, Switch } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { QuestionChoiceOptionsEditor } from "../editor/QuestionChoiceOptionsEditor";
-import type {
-  QuestionPreviewControlProps,
-  QuestionTypeSpecificConfigProps,
-} from "./question-type-specific-config.types";
-
-type QuestionSingleChoiceConfigSectionProps = Pick<
-  QuestionTypeSpecificConfigProps,
-  | "form"
-  | "onUpdateForm"
-  | "onUpdateSingleChoiceOption"
-  | "onAddSingleChoiceOption"
-  | "onRemoveSingleChoiceOption"
-> &
-  QuestionPreviewControlProps;
+import type { QuestionSingleChoiceConfigSectionProps } from "./question-type-specific-config.types";
 
 export function QuestionSingleChoiceConfigSection({
   form,

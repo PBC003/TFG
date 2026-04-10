@@ -9,6 +9,7 @@ export interface QuizEditorDialogProps {
   open: boolean;
   quiz: QuizItem | null;
   questionBank: QuestionItem[];
+  questionBankLoading?: boolean;
   submitting: boolean;
   title: string;
   description: string;
@@ -24,15 +25,14 @@ export interface QuizEditorDialogProps {
     title: string;
     description: string;
     accessCode: string;
+    accessCodePlaceholder: string;
+    accessCodeHelp: string;
     attemptsAllowed: string;
     startAt: string;
     endAt: string;
     timeLimitMinutes: string;
     shuffleQuestions: string;
     revealAnswersAfterClose: string;
-    accessCodeOptional: string;
-    accessCodeHelp: string;
-    accessCodeAuto: string;
     selectedQuestionsFirst: string;
     selectedQuestionsCount: string;
     questionPaginationLabel: string;
@@ -54,7 +54,6 @@ export type QuizEditorInitialState = {
   quizTitle: string;
   quizDescription: string;
   accessCode: string;
-  requiresAccessCode: boolean;
   attemptsAllowed: string;
   startAt: string;
   endAt: string;

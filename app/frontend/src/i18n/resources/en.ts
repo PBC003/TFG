@@ -27,6 +27,7 @@ export const en = {
     deactivate: 'Deactivate',
     activate: 'Activate',
     dangerZone: 'Sensitive actions',
+    optional: 'Optional',
   },
   nav: {
     home: 'Home',
@@ -331,7 +332,7 @@ export const en = {
       shuffleQuestions: 'Shuffle questions for each attempt',
       revealAnswersAfterClose: 'Hide corrections until the end date',
       accessCodeOptional: 'Require an access code to enter',
-      accessCodeHelp: 'If code access is enabled, it must contain at least 4 characters. Leave it empty to generate one automatically.',
+      accessCodeHelp: 'Leave it empty if you do not want to require an access code. Whitespace-only values will be treated as empty.',
       accessCodeAuto: 'Generate automatic code',
       startAtHelper: 'Leave empty if the quiz can open at any time after publication.',
       endAtHelper: 'If you set an end date, it must be in the future and after the start date.',
@@ -361,6 +362,9 @@ export const en = {
       validationMessage:
         'Review the form: the title must be valid, at least one question is required, every selected question must have at least 1 point, and parametric questions are not supported in this sprint.',
     },
+    pagination: {
+      rowsPerPage: 'Quizzes per page',
+    },
   },
   quizAccess: {
     title: 'Quiz access',
@@ -383,6 +387,7 @@ export const en = {
     scoreOverTen: 'Equivalent over 10: {{value}}',
     participantNameRequired: 'Open a quiz from the public list to continue.',
     accessLookupRequired: 'Provide a code or start from the published quiz list.',
+    bestResultUnavailable: 'There is no review available for this quiz yet.',
     feedbackBlockedUntilAttemptsEnd:
       'Detailed correction and feedback will only be shown when all available attempts are exhausted.',
     feedbackBlockedUntilEndDate:
@@ -404,6 +409,7 @@ export const en = {
       submitAttempt: 'Submit attempt',
       newLookup: 'Back to access',
       startAnotherAttempt: 'Start another attempt',
+      viewBestResult: 'View best review',
     },
     catalog: {
       title: 'Available published quizzes',

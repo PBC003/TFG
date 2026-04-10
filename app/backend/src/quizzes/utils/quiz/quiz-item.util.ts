@@ -1,8 +1,8 @@
-import { QuestionType } from '../../questions/enums/question-type.enum';
-import type { QuestionDocument } from '../../questions/schemas/question.schema';
-import type { QuizDocument } from '../schemas/quiz.schema';
-import { QuizStatus } from '../enums/quiz-status.enum';
-import type { QuizItem } from '../types/quiz.types';
+import { QuestionType } from '../../../questions/enums/question-type.enum';
+import type { QuestionDocument } from '../../../questions/schemas/question.schema';
+import type { QuizDocument } from '../../schemas/quiz.schema';
+import { QuizStatus } from '../../enums/quiz-status.enum';
+import type { QuizItem } from '../../types/quiz.types';
 
 export type QuizItemFlags = {
   hasAttempts?: boolean;

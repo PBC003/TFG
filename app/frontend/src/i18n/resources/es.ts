@@ -27,6 +27,7 @@ export const es = {
     deactivate: 'Desactivar',
     activate: 'Activar',
     dangerZone: 'Acciones sensibles',
+    optional: 'Opcional',
   },
   nav: {
     home: 'Inicio',
@@ -336,7 +337,7 @@ export const es = {
       shuffleQuestions: 'Barajar preguntas en cada intento',
       revealAnswersAfterClose: 'Ocultar correcciones hasta la fecha de fin',
       accessCodeOptional: 'Pedir código de acceso para entrar',
-      accessCodeHelp: 'Si activas el código, debe tener al menos 4 caracteres. Si lo dejas vacío, se genera automáticamente.',
+      accessCodeHelp: 'Déjalo vacío si no quieres pedir código de acceso. Si escribes solo espacios, se considerará vacío.',
       accessCodeAuto: 'Generar código automático',
       startAtHelper: 'Déjalo vacío si el cuestionario puede abrirse en cualquier momento tras publicarse.',
       endAtHelper: 'Si indicas fecha de fin, debe ser futura y posterior a la fecha de inicio.',
@@ -366,6 +367,9 @@ export const es = {
       validationMessage:
         'Revisa el formulario: el título debe ser válido, debe haber al menos una pregunta, cada pregunta debe tener al menos 1 punto y no se admiten paramétricas en este sprint.',
     },
+    pagination: {
+      rowsPerPage: 'Cuestionarios por página',
+    },
   },
   quizAccess: {
     title: 'Acceso a cuestionarios',
@@ -388,6 +392,7 @@ export const es = {
     scoreOverTen: 'Equivalencia sobre 10: {{value}}',
     participantNameRequired: 'Selecciona un cuestionario de la lista pública para acceder a su ficha.',
     accessLookupRequired: 'Indica un código o accede desde el listado de cuestionarios publicados.',
+    bestResultUnavailable: 'Todavía no hay una corrección disponible para este cuestionario.',
     feedbackBlockedUntilAttemptsEnd:
       'La corrección detallada y el feedback solo se mostrarán cuando se agoten todos los intentos disponibles.',
     feedbackBlockedUntilEndDate:
@@ -409,6 +414,7 @@ export const es = {
       submitAttempt: 'Enviar intento',
       newLookup: 'Volver al acceso',
       startAnotherAttempt: 'Iniciar otro intento',
+      viewBestResult: 'Ver mejor corrección',
     },
     catalog: {
       title: 'Cuestionarios publicados disponibles',

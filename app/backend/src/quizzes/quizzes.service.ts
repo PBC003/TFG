@@ -7,22 +7,12 @@ import { UpdateQuizDto } from './dto/update-quiz.dto';
 import { QuizStatus } from './enums/quiz-status.enum';
 import { Quiz, type QuizDocument } from './schemas/quiz.schema';
 import type { QuizItem } from './types/quiz.types';
-import { toQuizItem } from './utils/quiz-item.util';
+import { toQuizItem } from './utils/quiz/quiz-item.util';
+import {
+  normalizeQuizMutationPayload,
+  type QuizMutationPayload,
+} from './utils/quiz/quiz-mutation-payload.util';
 import { QuizzesSharedService } from './quizzes-shared.service';
-
-type QuizMutationPayload = {
-  title: string;
-  description: string | null;
-  accessCode: string;
-  requiresAccessCode: boolean;
-  attemptsAllowed: number;
-  startAt: Date | null;
-  endAt: Date | null;
-  timeLimitMinutes: number | null;
-  shuffleQuestions: boolean;
-  revealAnswersAfterClose: boolean;
-  questions: { questionId: string; points: number }[];
-};
 
 @Injectable()
 export class QuizzesService {
@@ -36,8 +26,10 @@ export class QuizzesService {
     createQuizDto: CreateQuizDto,
     user: Pick<PublicUser, 'id'>,
   ): Promise<QuizItem> {
-    const normalizedPayload =
-      await this.normalizeQuizMutationPayload(createQuizDto);
+    const normalizedPayload = await normalizeQuizMutationPayload(
+      this.quizzesSharedService,
+      createQuizDto,
+    );
 
     const quiz = await this.quizModel.create({
       ...normalizedPayload,
@@ -126,25 +118,13 @@ export class QuizzesService {
       );
     }
 
-    const normalizedPayload = await this.normalizeQuizMutationPayload(
+    const normalizedPayload = await normalizeQuizMutationPayload(
+      this.quizzesSharedService,
       updateQuizDto,
       quiz,
     );
 
-    quiz.title = normalizedPayload.title;
-    quiz.description = normalizedPayload.description;
-    quiz.accessCode = normalizedPayload.accessCode;
-    quiz.requiresAccessCode = normalizedPayload.requiresAccessCode;
-    quiz.attemptsAllowed = normalizedPayload.attemptsAllowed;
-    quiz.startAt = normalizedPayload.startAt;
-    quiz.endAt = normalizedPayload.endAt;
-    quiz.timeLimitMinutes = normalizedPayload.timeLimitMinutes;
-    quiz.shuffleQuestions = normalizedPayload.shuffleQuestions;
-    quiz.revealAnswersAfterClose = normalizedPayload.revealAnswersAfterClose;
-    quiz.questions = normalizedPayload.questions;
-    quiz.updatedByUserId = user.id;
-    quiz.version += 1;
-
+    this.applyQuizMutationPayload(quiz, normalizedPayload, user.id);
     await quiz.save();
 
     const hasAttempts = await this.quizzesSharedService.quizHasAttempts(
@@ -233,104 +213,24 @@ export class QuizzesService {
     await this.quizModel.deleteOne({ quizId: quiz.quizId }).exec();
   }
 
-  private async normalizeQuizMutationPayload(
-    payload: CreateQuizDto | UpdateQuizDto,
-    currentQuiz?: QuizDocument,
-  ): Promise<QuizMutationPayload> {
-    const title = (payload.title ?? currentQuiz?.title)?.trim();
-    const description =
-      payload.description !== undefined
-        ? payload.description?.trim() || null
-        : (currentQuiz?.description ?? null);
-    const requiresAccessCode =
-      payload.requiresAccessCode ?? currentQuiz?.requiresAccessCode ?? false;
-    const accessCodeInput =
-      payload.accessCode !== undefined
-        ? payload.accessCode?.trim() || null
-        : null;
-    const accessCode = this.quizzesSharedService.normalizeAccessCode(
-      requiresAccessCode
-        ? (accessCodeInput ??
-            currentQuiz?.accessCode ??
-            this.quizzesSharedService.generateAccessCode())
-        : (currentQuiz?.accessCode ??
-            this.quizzesSharedService.generateAccessCode()),
-    );
-    const attemptsAllowed =
-      payload.attemptsAllowed ?? currentQuiz?.attemptsAllowed;
-    const startAt =
-      payload.startAt !== undefined
-        ? this.toNullableDate(payload.startAt)
-        : (currentQuiz?.startAt ?? null);
-    const endAt =
-      payload.endAt !== undefined
-        ? this.toNullableDate(payload.endAt)
-        : (currentQuiz?.endAt ?? null);
-    const timeLimitMinutes =
-      payload.timeLimitMinutes !== undefined
-        ? (payload.timeLimitMinutes ?? null)
-        : (currentQuiz?.timeLimitMinutes ?? null);
-    const shuffleQuestions =
-      payload.shuffleQuestions ?? currentQuiz?.shuffleQuestions ?? false;
-    const revealAnswersAfterClose =
-      payload.revealAnswersAfterClose ??
-      currentQuiz?.revealAnswersAfterClose ??
-      false;
-    const questions = payload.questions ?? currentQuiz?.questions;
-
-    if (!title || attemptsAllowed === undefined || !questions) {
-      this.quizzesSharedService.throwBadRequest(
-        'common.bad_request',
-        'Incomplete quiz payload',
-      );
-    }
-
-    if (endAt && startAt && endAt.getTime() <= startAt.getTime()) {
-      this.quizzesSharedService.throwBadRequest(
-        'quiz.invalid_schedule',
-        'Quiz end date must be later than its start date',
-      );
-    }
-
-    await this.quizzesSharedService.assertAccessCodeIsAvailable(
-      accessCode,
-      currentQuiz?.quizId,
-    );
-    await this.quizzesSharedService.assertQuestionReferencesAreValid(questions);
-
-    return {
-      title,
-      description,
-      accessCode,
-      requiresAccessCode,
-      attemptsAllowed,
-      startAt,
-      endAt,
-      timeLimitMinutes,
-      shuffleQuestions,
-      revealAnswersAfterClose,
-      questions: questions.map((question) => ({
-        questionId: question.questionId,
-        points: Number(question.points),
-      })),
-    };
-  }
-
-  private toNullableDate(value: string | null | undefined): Date | null {
-    if (!value || value.trim().length === 0) {
-      return null;
-    }
-
-    const parsedDate = new Date(value);
-
-    if (Number.isNaN(parsedDate.getTime())) {
-      this.quizzesSharedService.throwBadRequest(
-        'quiz.invalid_schedule',
-        'Invalid quiz schedule',
-      );
-    }
-
-    return parsedDate;
+  private applyQuizMutationPayload(
+    quiz: QuizDocument,
+    payload: QuizMutationPayload,
+    userId: number,
+  ) {
+    quiz.title = payload.title;
+    quiz.description = payload.description;
+    quiz.accessCode = payload.accessCode;
+    quiz.requiresAccessCode = payload.requiresAccessCode;
+    quiz.attemptsAllowed = payload.attemptsAllowed;
+    quiz.startAt = payload.startAt;
+    quiz.endAt = payload.endAt;
+    quiz.timeLimitMinutes = payload.timeLimitMinutes;
+    quiz.shuffleQuestions = payload.shuffleQuestions;
+    quiz.revealAnswersAfterClose = payload.revealAnswersAfterClose;
+    quiz.questions = payload.questions;
+    quiz.updatedByUserId = userId;
+    quiz.version += 1;
   }
 
   private async mapQuizItem(

@@ -9,6 +9,7 @@ import {
   IsString,
   Length,
   Max,
+  MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -27,7 +28,7 @@ export class CreateQuizDto {
 
   @IsOptional()
   @IsString()
-  @Length(4, 16)
+  @MaxLength(16)
   accessCode?: string | null;
 
   @IsBoolean()

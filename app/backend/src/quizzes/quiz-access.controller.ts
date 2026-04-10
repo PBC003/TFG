@@ -21,6 +21,18 @@ export class QuizAccessController {
     return { quizzes };
   }
 
+  @Get('quizzes/:quizId/best-result')
+  async getBestResult(
+    @Param('quizId') quizId: string,
+    @Query('participantName') participantName?: string,
+  ): Promise<{ result: QuizSubmissionResult | null }> {
+    const result = await this.quizAccessService.getBestResult(
+      quizId,
+      participantName,
+    );
+    return { result };
+  }
+
   @Post('start')
   async startAttempt(
     @Body() startQuizAttemptDto: StartQuizAttemptDto,

@@ -15,6 +15,12 @@ export const quizAccessApi = {
       `/quiz-access/quizzes${query}`,
     );
   },
+  getBestResult(quizId: string, participantName: string) {
+    const query = `?participantName=${encodeURIComponent(participantName.trim())}`;
+    return request<{ result: QuizSubmissionResult | null }>(
+      `/quiz-access/quizzes/${quizId}/best-result${query}`,
+    );
+  },
   startAttempt(payload: {
     quizId?: string;
     accessCode?: string | null;

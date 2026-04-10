@@ -14,7 +14,7 @@ import type {
   UseQuestionsPageResult,
 } from "../types/questions-page.types";
 
-const DEFAULT_ROWS_PER_PAGE = 10;
+const DEFAULT_ROWS_PER_PAGE = 5;
 
 export function useQuestionsPage({
   t,

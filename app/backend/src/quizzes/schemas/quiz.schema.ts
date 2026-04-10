@@ -45,7 +45,6 @@ export class Quiz {
     unique: true,
     trim: true,
     uppercase: true,
-    minlength: 4,
     maxlength: 16,
     index: true,
   })

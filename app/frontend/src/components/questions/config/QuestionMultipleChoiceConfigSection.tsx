@@ -7,20 +7,7 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { QuestionChoiceOptionsEditor } from "../editor/QuestionChoiceOptionsEditor";
-import type {
-  QuestionPreviewControlProps,
-  QuestionTypeSpecificConfigProps,
-} from "./question-type-specific-config.types";
-
-type QuestionMultipleChoiceConfigSectionProps = Pick<
-  QuestionTypeSpecificConfigProps,
-  | "form"
-  | "onUpdateForm"
-  | "onUpdateMultipleChoiceOption"
-  | "onAddMultipleChoiceOption"
-  | "onRemoveMultipleChoiceOption"
-> &
-  QuestionPreviewControlProps;
+import type { QuestionMultipleChoiceConfigSectionProps } from "./question-type-specific-config.types";
 
 export function QuestionMultipleChoiceConfigSection({
   form,

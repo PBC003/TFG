@@ -1,21 +1,7 @@
 import type { QuizItem } from "../../../types/quiz";
 import type { QuizEditorInitialState } from "../components/quiz-editor/quiz-editor-dialog.types";
 
-// cspell:disable-next-line
-const ACCESS_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
 export const QUESTION_ROWS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
-
-export function generateAccessCode(length = 6): string {
-  let result = "";
-
-  for (let index = 0; index < length; index += 1) {
-    const randomIndex = Math.floor(Math.random() * ACCESS_CODE_ALPHABET.length);
-    result += ACCESS_CODE_ALPHABET[randomIndex];
-  }
-
-  return result;
-}
 
 export function toLocalDateTimeValue(value: string | null): string {
   if (!value) {
@@ -54,8 +40,7 @@ export function getInitialQuizEditorState(
   return {
     quizTitle: quiz?.title ?? "",
     quizDescription: quiz?.description ?? "",
-    accessCode: quiz?.accessCode ?? generateAccessCode(),
-    requiresAccessCode: quiz?.requiresAccessCode ?? false,
+    accessCode: quiz?.requiresAccessCode ? (quiz.accessCode ?? "") : "",
     attemptsAllowed: String(quiz?.attemptsAllowed ?? 1),
     startAt: toLocalDateTimeValue(quiz?.startAt ?? null),
     endAt: toLocalDateTimeValue(quiz?.endAt ?? null),
