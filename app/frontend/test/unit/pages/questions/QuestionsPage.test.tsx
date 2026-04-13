@@ -347,7 +347,7 @@ describe("QuestionsPage", () => {
     expect(screen.getByText("ok")).toBeInTheDocument();
     expect(screen.getByTestId("content")).toHaveTextContent("q-1");
     expect(screen.getByTestId("pagination-props")).toHaveTextContent(
-      "0|10|1|questions.pagination.rowsPerPage|1-1-1",
+      "0|10|1|questions.pagination.rowsPerPage|questions.pagination.displayedRows",
     );
     expect(screen.getByTestId("last-updated")).toHaveTextContent(
       "questions.lastUpdated",

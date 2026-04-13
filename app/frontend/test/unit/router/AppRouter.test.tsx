@@ -58,6 +58,14 @@ vi.mock("../../../src/pages/questions/QuestionsPage", () => ({
   default: () => null,
 }));
 
+vi.mock("../../../src/pages/quizzes/QuizzesPage", () => ({
+  default: () => null,
+}));
+
+vi.mock("../../../src/pages/quiz-access/QuizAccessPage", () => ({
+  default: () => null,
+}));
+
 describe("router configuration", () => {
   beforeEach(() => {
     createBrowserRouter.mockClear();
@@ -72,16 +80,21 @@ describe("router configuration", () => {
 
     expect(router).toEqual({ routes });
     expect(root).toMatchObject({ path: "/" });
-    expect(root.children).toHaveLength(8);
+    expect(root.children).toHaveLength(9);
 
     expect(root.children[0]).toMatchObject({ index: true });
     expect(root.children[1]).toMatchObject({ path: "about" });
-    expect(root.children[2].children[0]).toMatchObject({ path: "login" });
-    expect(root.children[2].children[1]).toMatchObject({ path: "register" });
-    expect(root.children[3].children[0]).toMatchObject({ path: "profile" });
-    expect(root.children[4].children[0]).toMatchObject({ path: "admin" });
-    expect(root.children[5].children[0]).toMatchObject({ path: "questions" });
-    expect(root.children[6]).toMatchObject({ path: "unauthorized" });
-    expect(root.children[7]).toMatchObject({ path: "*" });
+    expect(root.children[2].children[0]).toMatchObject({ path: "quiz-access" });
+    expect(root.children[2].children[1]).toMatchObject({
+      path: "quiz-access/:quizId",
+    });
+    expect(root.children[3].children[0]).toMatchObject({ path: "login" });
+    expect(root.children[3].children[1]).toMatchObject({ path: "register" });
+    expect(root.children[4].children[0]).toMatchObject({ path: "profile" });
+    expect(root.children[5].children[0]).toMatchObject({ path: "admin" });
+    expect(root.children[6].children[0]).toMatchObject({ path: "questions" });
+    expect(root.children[6].children[1]).toMatchObject({ path: "quizzes" });
+    expect(root.children[7]).toMatchObject({ path: "unauthorized" });
+    expect(root.children[8]).toMatchObject({ path: "*" });
   });
 });

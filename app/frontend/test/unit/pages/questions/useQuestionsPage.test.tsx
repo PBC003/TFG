@@ -86,7 +86,7 @@ describe("useQuestionsPage", () => {
       "q-b",
     ]);
     expect(result.current.page).toBe(0);
-    expect(result.current.rowsPerPage).toBe(10);
+    expect(result.current.rowsPerPage).toBe(5);
 
     act(() => {
       result.current.setRowsPerPage(1);

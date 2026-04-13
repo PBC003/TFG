@@ -206,25 +206,25 @@ describe("QuestionEditorDialogContent", () => {
       screen.getByRole("option", { name: "questions.types.single_choice" }),
     );
 
-    await user.click(screen.getByRole("button", { name: "toggle-statement" }));
-    await user.click(screen.getByRole("button", { name: "change-statement" }));
-    await user.click(
+    fireEvent.click(screen.getByRole("button", { name: "toggle-statement" }));
+    fireEvent.click(screen.getByRole("button", { name: "change-statement" }));
+    fireEvent.click(
       screen.getByRole("button", { name: "toggle-generalFeedback" }),
     );
-    await user.click(
+    fireEvent.click(
       screen.getByRole("button", { name: "change-generalFeedback" }),
     );
-    await user.click(screen.getByRole("button", { name: "change-tag" }));
-    await user.click(screen.getByRole("button", { name: "add-tag" }));
-    await user.click(screen.getByRole("button", { name: "remove-tag" }));
-    await user.click(screen.getByRole("button", { name: "type-toggle" }));
-    await user.click(screen.getByRole("button", { name: "update-form" }));
-    await user.click(screen.getByRole("button", { name: "single-option" }));
-    await user.click(screen.getByRole("button", { name: "multi-option" }));
-    await user.click(screen.getByRole("button", { name: "add-single" }));
-    await user.click(screen.getByRole("button", { name: "add-multi" }));
-    await user.click(screen.getByRole("button", { name: "remove-single" }));
-    await user.click(screen.getByRole("button", { name: "remove-multi" }));
+    fireEvent.click(screen.getByRole("button", { name: "change-tag" }));
+    fireEvent.click(screen.getByRole("button", { name: "add-tag" }));
+    fireEvent.click(screen.getByRole("button", { name: "remove-tag" }));
+    fireEvent.click(screen.getByRole("button", { name: "type-toggle" }));
+    fireEvent.click(screen.getByRole("button", { name: "update-form" }));
+    fireEvent.click(screen.getByRole("button", { name: "single-option" }));
+    fireEvent.click(screen.getByRole("button", { name: "multi-option" }));
+    fireEvent.click(screen.getByRole("button", { name: "add-single" }));
+    fireEvent.click(screen.getByRole("button", { name: "add-multi" }));
+    fireEvent.click(screen.getByRole("button", { name: "remove-single" }));
+    fireEvent.click(screen.getByRole("button", { name: "remove-multi" }));
 
     expect(currentForm.title).toBe("Nueva pregunta");
     expect(currentForm.type).toBe("single_choice");

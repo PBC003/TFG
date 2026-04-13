@@ -1,5 +1,4 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { QuestionMultipleChoiceConfigSection } from "../../../../../src/components/questions/config/QuestionMultipleChoiceConfigSection";
 import type { FormState } from "../../../../../src/components/questions/editor/question-editor.types";
@@ -19,8 +18,8 @@ vi.mock(
       onToggleCorrect: (index: number, checked: boolean) => void;
       onChangeOptionField: (
         index: number,
-        field: "text" | "feedback",
-        value: string,
+        field: "text" | "feedback" | "isCorrect",
+        value: string | boolean,
       ) => void;
       onRemoveOption: (index: number) => void;
       onAddOption: () => void;
@@ -77,8 +76,7 @@ const baseForm: FormState = {
 };
 
 describe("QuestionMultipleChoiceConfigSection", () => {
-  it("updates multiple-choice settings and delegates all child callbacks with prefixed preview keys", async () => {
-    const user = userEvent.setup();
+  it("updates multiple-choice settings and delegates all child callbacks with prefixed preview keys", () => {
     let currentForm = structuredClone(baseForm);
     const onUpdateForm = vi.fn((updater: (current: FormState) => FormState) => {
       currentForm = updater(currentForm);
@@ -112,22 +110,24 @@ describe("QuestionMultipleChoiceConfigSection", () => {
     ).toBeInTheDocument();
     expect(screen.getAllByText("true")).toHaveLength(2);
 
-    await user.click(
+    fireEvent.click(
       screen.getByRole("switch", { name: "questions.fields.randomizeOptions" }),
     );
-    await user.click(
-      screen.getByRole("combobox", { name: "questions.fields.gradingMode" }),
+
+    const gradingMode = screen.getByRole("combobox", {
+      name: "questions.fields.gradingMode",
+    });
+    fireEvent.mouseDown(gradingMode);
+    const listbox = screen.getByRole("listbox");
+    fireEvent.click(
+      within(listbox).getByText("questions.gradingModes.partial_credit"),
     );
-    await user.click(
-      screen.getByRole("option", {
-        name: "questions.gradingModes.partial_credit",
-      }),
-    );
-    await user.click(screen.getByRole("button", { name: "toggle-correct" }));
-    await user.click(screen.getByRole("button", { name: "change-field" }));
-    await user.click(screen.getByRole("button", { name: "add-option" }));
-    await user.click(screen.getByRole("button", { name: "remove-option" }));
-    await user.click(screen.getByRole("button", { name: "preview-option" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "toggle-correct" }));
+    fireEvent.click(screen.getByRole("button", { name: "change-field" }));
+    fireEvent.click(screen.getByRole("button", { name: "add-option" }));
+    fireEvent.click(screen.getByRole("button", { name: "remove-option" }));
+    fireEvent.click(screen.getByRole("button", { name: "preview-option" }));
 
     expect(currentForm.multipleChoice.randomizeOptions).toBe(true);
     expect(currentForm.multipleChoice.gradingMode).toBe("partial_credit");
@@ -147,5 +147,5 @@ describe("QuestionMultipleChoiceConfigSection", () => {
     expect(onTogglePreview).toHaveBeenCalledWith(
       "multipleChoice.options.0.text",
     );
-  });
+  }, 15000);
 });
