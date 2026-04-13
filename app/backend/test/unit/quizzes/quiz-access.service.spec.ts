@@ -194,7 +194,7 @@ describe('QuizAccessService', () => {
       }),
     );
 
-    const identified = await service.listPublishedQuizzes('Pablo');
+    const identified = await service.listPublishedQuizzes('  Pablo  ');
     expect(sharedService.countConsumedAttempts).toHaveBeenCalledWith(
       'quiz-1',
       'Pablo',
@@ -236,7 +236,7 @@ describe('QuizAccessService', () => {
   it('starts attempts by reusing active ones or creating new attempts', async () => {
     await expect(
       service.startAttempt({
-        participantName: 'Pablo',
+        participantName: '  Pablo  ',
         accessCode: '',
         quizId: '',
       } as never),
@@ -250,7 +250,7 @@ describe('QuizAccessService', () => {
       }),
     });
     const existing = await service.startAttempt({
-      participantName: 'Pablo',
+      participantName: '  Pablo  ',
       quizId: 'quiz-1',
       accessCode: 'ABCD',
     } as never);
@@ -263,7 +263,7 @@ describe('QuizAccessService', () => {
       attemptNumber: 2,
     });
     const created = await service.startAttempt({
-      participantName: 'Pablo',
+      participantName: '  Pablo  ',
       quizId: 'quiz-1',
       accessCode: 'abcd',
     } as never);
@@ -271,6 +271,7 @@ describe('QuizAccessService', () => {
     expect(quizAttemptModel.create).toHaveBeenCalledWith(
       expect.objectContaining({
         quizId: 'quiz-1',
+        participantName: 'Pablo',
         attemptNumber: 2,
         status: QuizAttemptStatus.IN_PROGRESS,
       }),

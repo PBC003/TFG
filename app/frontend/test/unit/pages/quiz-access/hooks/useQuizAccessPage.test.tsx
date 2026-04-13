@@ -113,6 +113,7 @@ describe("useQuizAccessPage", () => {
 
     await waitFor(() => expect(result.current.catalogLoading).toBe(false));
     expect(result.current.selectedQuiz?.quizId).toBe("quiz-1");
+    expect(result.current.paginatedCatalog).toHaveLength(1);
     expect(result.current.selectedQuizStartDisabled).toBe(true);
 
     act(() => {
@@ -123,11 +124,14 @@ describe("useQuizAccessPage", () => {
     expect(result.current.selectedQuizStartDisabled).toBe(false);
 
     await act(async () => {
-      await result.current.handleStartAttempt();
+      await result.current.handleStartAttempt({
+        quizId: "quiz-1",
+        accessCode: " zx9 ",
+      });
     });
     expect(quizAccessApi.startAttempt).toHaveBeenCalledWith({
       quizId: "quiz-1",
-      accessCode: "ABCD",
+      accessCode: "ZX9",
       participantName: "Pablo",
     });
     await waitFor(() =>

@@ -9,6 +9,13 @@ import type {
   UseQuizAccessPageResult,
 } from "../types/quiz-access-page.types";
 import {
+  buildSubmitAnswersPayload,
+  getCanRequestBestResult,
+  getSelectedQuizStartDisabled,
+  normalizeStartAttemptPayload,
+  shouldAutoSubmitExpiredAttempt,
+} from "../utils/quiz-access-page.logic";
+import {
   filterAndSortQuizCatalog,
   paginateQuizCatalog,
 } from "../utils/quiz-access.utils";
@@ -120,11 +127,8 @@ export function useQuizAccessPage({
 
   const handleStartAttempt = useCallback(
     async (options?: StartAttemptOptions) => {
-      const normalizedQuizId = options?.quizId ?? routeQuizId ?? undefined;
-      const normalizedAccessCode =
-        options?.accessCode !== undefined
-          ? (options.accessCode?.trim().toUpperCase() ?? "")
-          : accessCode.trim().toUpperCase();
+      const { quizId: normalizedQuizId, accessCode: normalizedAccessCode } =
+        normalizeStartAttemptPayload(options, routeQuizId, accessCode);
 
       if (!participantIdentity) {
         setFeedback({
@@ -219,10 +223,7 @@ export function useQuizAccessPage({
       const response = await quizAccessApi.submitAttempt(
         activeAttempt.attemptId,
         {
-          answers: Object.entries(answers).map(([questionId, value]) => ({
-            questionId,
-            value,
-          })),
+          answers: buildSubmitAnswersPayload(answers),
         },
       );
       setResult(response.result);
@@ -242,15 +243,14 @@ export function useQuizAccessPage({
 
   useEffect(() => {
     if (
-      !activeAttempt?.expiresAt ||
-      autoSubmitTriggered ||
-      submitting ||
-      result !== null
+      !shouldAutoSubmitExpiredAttempt({
+        activeAttempt,
+        autoSubmitTriggered,
+        submitting,
+        result,
+        nowMs,
+      })
     ) {
-      return;
-    }
-
-    if (new Date(activeAttempt.expiresAt).getTime() > nowMs) {
       return;
     }
 
@@ -265,16 +265,16 @@ export function useQuizAccessPage({
     submitting,
   ]);
 
-  const selectedQuizStartDisabled =
-    starting ||
-    !participantIdentity ||
-    !selectedQuiz ||
-    !selectedQuiz.isAvailableNow ||
-    selectedQuiz.attemptsRemaining === 0 ||
-    (selectedQuiz.requiresAccessCode && !accessCode.trim());
+  const selectedQuizStartDisabled = getSelectedQuizStartDisabled({
+    starting,
+    participantIdentity,
+    selectedQuiz,
+    accessCode,
+  });
 
-  const canRequestBestResult = Boolean(
-    selectedQuiz && participantIdentity && selectedQuiz.attemptsRemaining === 0,
+  const canRequestBestResult = getCanRequestBestResult(
+    selectedQuiz,
+    participantIdentity,
   );
 
   const updateAnswer = useCallback(
