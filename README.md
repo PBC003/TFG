@@ -3,8 +3,14 @@
 > Final Degree Project (TFG) — Academic year 2025/2026
 
 ## Context
-This repository contains the work for my Final Degree Project (TFG).  
-The project focuses on designing and building an web application for creating and taking quizzes, with support for mathematical content (LaTeX) and basic reporting for teachers.
+This repository contains the work for my Final Degree Project (TFG).
+The project focuses on designing and building a web application for creating and taking quizzes, with support for mathematical content (LaTeX), automatic grading for the supported question types, and a teacher-oriented workflow for publishing and reviewing quizzes.
+
+At the current stage, the project already includes:
+- a **question bank** with support for LaTeX rendering and preview,
+- a **quiz builder** for teachers,
+- a **student attempt flow** with grading,
+- and the supporting documentation, tests and project-management artifacts developed during the sprints.
 
 ## Contributors
 | Role | Name | Contact |
@@ -15,15 +21,41 @@ The project focuses on designing and building an web application for creating an
 > Note: The Supervisor role refers to academic supervision (not necessarily code contributions).
 
 ## Project scope (high-level)
-- **Question bank**: create/manage questions (including LaTeX content).
-- **Quizzes**: teachers assemble and publish quizzes from the question bank.
-- **Attempts & grading**: students take quizzes; attempts and results are stored.
-- **Analytics**: basic statistics and export (e.g., CSV).
+- **Question bank**: create, edit and manage question items, including mathematical content rendered with LaTeX.
+- **Quizzes**: teachers assemble quizzes from the question bank, configure attempts/timing/basic visibility rules, and publish or unpublish them.
+- **Attempts & grading**: authenticated students access available quizzes, submit attempts and receive the corresponding grading/feedback according to the configured rules.
+- **Analytics**: basic teacher analytics and export capabilities are planned as a later project block.
 
 ## Repository structure
-- `docs/` — Documentation (MVP, requirements, planning, budget, ADRs, use cases, meeting minutes).
-- `app/` — Application source code (to be scaffolded after validation).
-- Other folders may be added as implementation progresses.
+
+```text
+TFG/
+├── app/
+│   ├── backend/
+│   │   ├── src/
+│   │   │   ├── auth/          # Authentication and session management
+│   │   │   ├── users/         # User management and admin-related services
+│   │   │   ├── questions/     # Question bank domain, validation and grading helpers
+│   │   │   └── quizzes/       # Quiz builder, attempts and quiz access flow
+│   │   └── test/              # Backend unit/integration tests
+│   └── frontend/
+│       ├── src/
+│       │   ├── pages/         # Main application pages and route-level features
+│       │   ├── components/    # Reusable UI and feature-specific components
+│       │   ├── services/      # API communication layer
+│       │   ├── hooks/         # Shared frontend hooks
+│       │   ├── stores/        # Global/client state management
+│       │   ├── types/         # Shared TypeScript types
+│       │   └── i18n/          # Internationalization resources
+│       └── test/              # FrontEnd unit tests
+├── docs/
+│   ├── requirements/          # Requirements specification
+│   ├── use cases/             # Use case documentation
+│   ├── adrs/                  # Architectural Decision Records
+│   ├── mm/                    # Meeting minutes
+│   └── ...                    # Additional TFG support material
+└── README.md                  # Main repository entry point
+```
 
 ## Project management
 We track work using:
@@ -40,12 +72,51 @@ We track work using:
   - Planning & Budget: `docs/planing/`, `docs/budget/`
   - ADRs: `docs/adrs/`
   - Use cases: `docs/use cases/`
+  - Meeting minutes: `docs/mm/`
 
-## Quick start (TBD)
-This section will be completed once the technology stack is validated and the app scaffold is created.
+## Quick start
+### 1. Backend
+```bash
+cd app/backend
+npm install
+cp .env.example .env
+npm run start:dev
+```
 
-## Deployment (TBD)
-Deployment instructions will be added once the hosting/deployment strategy is defined.
+By default, the backend runs on `http://localhost:3001`.
+
+The backend uses:
+- a relational database connection for the authentication/user area,
+- and MongoDB for the question bank and quiz/attempt domains.
+
+### 2. Frontend
+```bash
+cd app/frontend
+npm install
+npm run dev
+```
+
+By default, the frontend runs on `http://localhost:5173`.
+
+### 3. Useful validation commands
+**Backend**
+```bash
+cd app/backend
+npm run build
+npm run test
+npm run test:cov
+```
+
+**Frontend**
+```bash
+cd app/frontend
+npm run build
+npm run lint
+```
+
+## Deployment (current status)
+A final production deployment strategy is not closed yet.  
+At this stage, the project is prepared and documented mainly for local development, academic review and sprint-based validation.
 
 ## License
-TBD (if needed for the academic context).
+Pending decision according to the academic delivery context.
