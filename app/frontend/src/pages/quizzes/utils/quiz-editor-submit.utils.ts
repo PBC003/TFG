@@ -55,12 +55,32 @@ export function buildQuizEditorPayload({
     return { payload: null, validationMessage };
   }
 
+  const hasInvalidParametricSelection = selectedQuestions.some((question) => {
+    if (question.type !== "parametric") {
+      return false;
+    }
+
+    const quantity = Number(question.quantity ?? 1);
+    const toleranceText = question.toleranceOverride?.trim() ?? "";
+    const toleranceOverride = toleranceText
+      ? Number.parseFloat(toleranceText)
+      : null;
+
+    return (
+      !Number.isInteger(quantity) ||
+      quantity < 1 ||
+      (toleranceOverride !== null &&
+        (Number.isNaN(toleranceOverride) || toleranceOverride < 0))
+    );
+  });
+
   if (
     Number.isNaN(normalizedAttemptsAllowed) ||
     normalizedAttemptsAllowed < 1 ||
     selectedQuestions.length === 0 ||
     hasUnsupportedSelectedQuestion ||
-    selectedQuestions.some((question) => question.points <= 0)
+    selectedQuestions.some((question) => question.points <= 0) ||
+    hasInvalidParametricSelection
   ) {
     return { payload: null, validationMessage };
   }
@@ -92,10 +112,19 @@ export function buildQuizEditorPayload({
           : null,
       shuffleQuestions,
       revealAnswersAfterClose,
-      questions: selectedQuestions.map((question) => ({
-        questionId: question.questionId,
-        points: question.points,
-      })),
+      questions: selectedQuestions.map((question) => {
+        const toleranceText = question.toleranceOverride?.trim() ?? "";
+        return {
+          questionId: question.questionId,
+          points: question.points,
+          quantity:
+            question.type === "parametric" ? (question.quantity ?? 1) : 1,
+          toleranceOverride:
+            question.type === "parametric" && toleranceText
+              ? Number.parseFloat(toleranceText)
+              : null,
+        };
+      }),
     },
     validationMessage: null,
   };

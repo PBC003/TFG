@@ -16,6 +16,8 @@ export type QuizQuestionItem = {
   tags: string[];
   points: number;
   order: number;
+  quantity?: number;
+  toleranceOverride?: number | null;
 };
 
 export type QuizItem = {

@@ -48,6 +48,15 @@ export class Question {
   @Prop({ type: Number, default: 1 })
   version!: number;
 
+  @Prop({ type: Boolean, default: false, index: true })
+  isArchived!: boolean;
+
+  @Prop({ type: Date, required: false, default: null })
+  archivedAt!: Date | null;
+
+  @Prop({ type: Number, required: false, default: null })
+  archivedByUserId!: number | null;
+
   @Prop({
     type: SchemaTypes.Mixed,
     required: true,

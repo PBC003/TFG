@@ -71,7 +71,10 @@ export class QuestionsController {
 
   @Delete(':questionId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteQuestion(@Param('questionId') questionId: string): Promise<void> {
-    await this.questionsService.deleteQuestion(questionId);
+  async deleteQuestion(
+    @Param('questionId') questionId: string,
+    @Req() request: Request & { user: PublicUser },
+  ): Promise<void> {
+    await this.questionsService.deleteQuestion(questionId, request.user);
   }
 }

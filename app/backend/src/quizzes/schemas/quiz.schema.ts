@@ -12,6 +12,12 @@ export class QuizQuestionRef {
 
   @Prop({ required: true, min: 0 })
   points!: number;
+
+  @Prop({ type: Number, default: 1, min: 1 })
+  quantity!: number;
+
+  @Prop({ type: Number, default: null, min: 0 })
+  toleranceOverride!: number | null;
 }
 
 export const QuizQuestionRefSchema =

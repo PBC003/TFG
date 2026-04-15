@@ -26,11 +26,13 @@ export function toQuizItem(
       tags: question?.tags ?? [],
       points: quizQuestion.points,
       order: index,
+      quantity: quizQuestion.quantity ?? 1,
+      toleranceOverride: quizQuestion.toleranceOverride ?? null,
     };
   });
 
   const totalPoints = questionItems.reduce(
-    (sum, question) => sum + question.points,
+    (sum, question) => sum + question.points * (question.quantity ?? 1),
     0,
   );
 
@@ -51,7 +53,10 @@ export function toQuizItem(
     shuffleQuestions: quiz.shuffleQuestions,
     revealAnswersAfterClose: quiz.revealAnswersAfterClose,
     publishedAt: quiz.publishedAt,
-    totalQuestions: questionItems.length,
+    totalQuestions: questionItems.reduce(
+      (sum, question) => sum + (question.quantity ?? 1),
+      0,
+    ),
     totalPoints,
     questions: questionItems,
     createdByUserId: quiz.createdByUserId,

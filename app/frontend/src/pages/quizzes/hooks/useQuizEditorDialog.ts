@@ -16,6 +16,8 @@ import {
   paginateQuizEditorQuestions,
   toggleQuizEditorQuestionSelection,
   updateQuizEditorQuestionPoints,
+  updateQuizEditorQuestionQuantity,
+  updateQuizEditorQuestionToleranceOverride,
 } from "../utils/quiz-editor-selection.utils";
 import { getInitialQuizEditorState } from "../utils/quiz-editor-dialog.utils";
 import { buildQuizEditorPayload } from "../utils/quiz-editor-submit.utils";
@@ -87,7 +89,7 @@ export function useQuizEditorDialog({
   const toggleQuestion = useCallback((question: QuestionItem) => {
     setQuestionPage(0);
     setSelectedQuestions((current) =>
-      toggleQuizEditorQuestionSelection(current, question.questionId),
+      toggleQuizEditorQuestionSelection(current, question),
     );
   }, []);
 
@@ -100,10 +102,29 @@ export function useQuizEditorDialog({
     [],
   );
 
-  const hasUnsupportedSelectedQuestion = hasUnsupportedQuizEditorQuestionType(
-    selectedQuestions,
-    questionBank,
+  const updateQuestionQuantity = useCallback(
+    (questionId: string, nextValue: string) => {
+      setSelectedQuestions((current) =>
+        updateQuizEditorQuestionQuantity(current, questionId, nextValue),
+      );
+    },
+    [],
   );
+
+  const updateQuestionToleranceOverride = useCallback(
+    (questionId: string, nextValue: string) => {
+      setSelectedQuestions((current) =>
+        updateQuizEditorQuestionToleranceOverride(
+          current,
+          questionId,
+          nextValue,
+        ),
+      );
+    },
+    [],
+  );
+
+  const hasUnsupportedSelectedQuestion = hasUnsupportedQuizEditorQuestionType();
 
   const submit = useCallback(async () => {
     const { payload, validationMessage: nextValidationMessage } =
@@ -179,6 +200,8 @@ export function useQuizEditorDialog({
     setQuestionRowsPerPage,
     toggleQuestion,
     updateQuestionPoints,
+    updateQuestionQuantity,
+    updateQuestionToleranceOverride,
     submit,
   };
 }

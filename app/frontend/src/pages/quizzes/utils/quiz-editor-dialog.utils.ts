@@ -51,7 +51,14 @@ export function getInitialQuizEditorState(
     revealAnswersAfterClose: quiz?.revealAnswersAfterClose ?? false,
     selectedQuestions: (quiz?.questions ?? []).map((question) => ({
       questionId: question.questionId,
+      type: question.type,
       points: question.points,
+      quantity: question.quantity ?? 1,
+      toleranceOverride:
+        question.toleranceOverride === undefined ||
+        question.toleranceOverride === null
+          ? ""
+          : String(question.toleranceOverride),
     })),
   };
 }

@@ -362,6 +362,11 @@ export const en = {
       endAtHelper: 'If you set an end date, it must be in the future and after the start date.',
       invalidDateRange: 'The end date must be later than the start date.',
       invalidEndDateInPast: 'The end date must be in the future.',
+      parametricQuantity: 'Variant count',
+      parametricToleranceOverride: 'Tolerance in this quiz',
+      parametricQuantityHelper: 'Maximum available for this family: {{max}}.',
+      parametricToleranceOverrideHelper:
+        'Keep the default value to reuse the family grading tolerance inside the quiz.',
     },
     actions: {
       publish: 'Publish',

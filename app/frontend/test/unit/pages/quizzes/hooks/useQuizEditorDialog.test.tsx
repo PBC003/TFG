@@ -4,7 +4,11 @@ import { useQuizEditorDialog } from "../../../../../src/pages/quizzes/hooks/useQ
 
 describe("useQuizEditorDialog", () => {
   it("initializes from a quiz, orders/paginates questions and submits a valid payload", async () => {
-    const onSubmit = vi.fn(async () => undefined);
+    const onSubmit = vi.fn((...args: [unknown]) => {
+      void args;
+      return Promise.resolve();
+    });
+
     const quiz = {
       title: "Quiz 1",
       description: "Desc",
@@ -16,8 +20,11 @@ describe("useQuizEditorDialog", () => {
       timeLimitMinutes: 15,
       shuffleQuestions: true,
       revealAnswersAfterClose: false,
-      questions: [{ questionId: "q-1", points: 2 }],
+      questions: [
+        { questionId: "q-1", points: 2, quantity: 1, toleranceOverride: null },
+      ],
     };
+
     const questionBank = [
       {
         questionId: "q-1",
@@ -34,6 +41,7 @@ describe("useQuizEditorDialog", () => {
         type: "single_choice",
       },
     ];
+
     const { result } = renderHook(() =>
       useQuizEditorDialog({
         quiz: quiz as never,
@@ -75,20 +83,57 @@ describe("useQuizEditorDialog", () => {
     await act(async () => {
       await result.current.submit();
     });
-    expect(onSubmit).toHaveBeenCalledWith(
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+
+    const firstCall = onSubmit.mock.calls[0];
+    expect(firstCall).toBeDefined();
+
+    const payload = firstCall[0] as
+      | (Record<string, unknown> & { questions: unknown[] })
+      | undefined;
+
+    expect(payload).toBeDefined();
+
+    expect(payload).toEqual(
       expect.objectContaining({
         title: "Quiz actualizado",
         description: "Nueva desc",
         accessCode: "WXYZ",
+        requiresAccessCode: true,
         attemptsAllowed: 4,
+        shuffleQuestions: false,
         revealAnswersAfterClose: true,
-        questions: expect.arrayContaining([{ questionId: "q-2", points: 3 }]),
+        timeLimitMinutes: 20,
+        startAt: new Date("2099-04-12T10:30").toISOString(),
+        endAt: new Date("2099-04-12T11:30").toISOString(),
       }),
+    );
+
+    expect(payload?.questions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          questionId: "q-1",
+          points: 2,
+          quantity: 1,
+          toleranceOverride: null,
+        }),
+        expect.objectContaining({
+          questionId: "q-2",
+          points: 3,
+          quantity: 1,
+          toleranceOverride: null,
+        }),
+      ]),
     );
   });
 
   it("stores local validation messages when the payload is invalid", async () => {
-    const onSubmit = vi.fn(async () => undefined);
+    const onSubmit = vi.fn((...args: [unknown]) => {
+      void args;
+      return Promise.resolve();
+    });
+
     const questionBank = [
       {
         questionId: "q-1",
@@ -96,8 +141,13 @@ describe("useQuizEditorDialog", () => {
         statement: "S1",
         tags: [],
         type: "parametric",
+        questionConfig: {
+          templateId: "series_geometric",
+          tolerance: 0.01,
+        },
       },
     ];
+
     const { result } = renderHook(() =>
       useQuizEditorDialog({
         quiz: null,
@@ -119,6 +169,7 @@ describe("useQuizEditorDialog", () => {
     await act(async () => {
       await result.current.submit();
     });
+
     expect(result.current.localValidationMessage).toBe("invalid");
     expect(onSubmit).not.toHaveBeenCalled();
   });

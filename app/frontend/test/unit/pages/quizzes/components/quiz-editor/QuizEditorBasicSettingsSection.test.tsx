@@ -1,7 +1,6 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { QuizEditorBasicSettingsSection } from "../../../../../../src/pages/quizzes/components/quiz-editor/QuizEditorBasicSettingsSection";
-import { renderWithProviders } from "../../../../../utils/render";
 
 const fields = {
   title: "title",
@@ -38,7 +37,7 @@ describe("QuizEditorBasicSettingsSection", () => {
       onRevealAnswersAfterCloseChange: vi.fn(),
     };
 
-    renderWithProviders(
+    render(
       <QuizEditorBasicSettingsSection
         fields={fields}
         submitting={false}
@@ -58,24 +57,31 @@ describe("QuizEditorBasicSettingsSection", () => {
     fireEvent.change(screen.getByRole("textbox", { name: /title/i }), {
       target: { value: "Nuevo" },
     });
+
     fireEvent.change(screen.getByRole("textbox", { name: /description/i }), {
       target: { value: "Texto" },
     });
-    fireEvent.change(screen.getByRole("textbox", { name: /accessCode/i }), {
+
+    fireEvent.change(screen.getByRole("textbox", { name: /accesscode/i }), {
       target: { value: "cd" },
     });
+
     fireEvent.change(screen.getByRole("spinbutton", { name: /attempts/i }), {
       target: { value: "3" },
     });
-    fireEvent.change(screen.getByLabelText(/startAt/i), {
+
+    fireEvent.change(screen.getByLabelText(/startat/i), {
       target: { value: "2026-05-01T10:00" },
     });
-    fireEvent.change(screen.getByLabelText(/endAt/i), {
+
+    fireEvent.change(screen.getByLabelText(/endat/i), {
       target: { value: "2026-05-01T12:00" },
     });
-    fireEvent.change(screen.getByRole("spinbutton", { name: /timeLimit/i }), {
+
+    fireEvent.change(screen.getByRole("spinbutton", { name: /timelimit/i }), {
       target: { value: "45" },
     });
+
     fireEvent.click(screen.getByRole("switch", { name: /shuffle/i }));
     fireEvent.click(screen.getByRole("switch", { name: /reveal/i }));
 

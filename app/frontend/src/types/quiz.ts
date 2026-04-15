@@ -11,6 +11,8 @@ export interface QuizQuestionItem {
   tags: string[];
   points: number;
   order: number;
+  quantity?: number;
+  toleranceOverride?: number | null;
 }
 
 export interface QuizItem {
@@ -43,6 +45,8 @@ export interface QuizItem {
 export interface QuizQuestionInput {
   questionId: string;
   points: number;
+  quantity?: number;
+  toleranceOverride?: number | null;
 }
 
 export interface CreateQuizInput {

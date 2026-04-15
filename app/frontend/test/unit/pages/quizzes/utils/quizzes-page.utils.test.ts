@@ -106,8 +106,22 @@ describe("quizzes page and editor utils", () => {
     expect(getInitialQuizEditorState(quiz as never)).toEqual(
       expect.objectContaining({
         quizTitle: "Quiz Cálculo",
+        quizDescription: "Integrales",
+        attemptsAllowed: "2",
+        startAt: "2026-04-12T12:00",
+        endAt: "2026-04-12T13:00",
+        timeLimitMinutes: "15",
+        shuffleQuestions: true,
+        revealAnswersAfterClose: false,
         accessCode: "ABCD",
-        selectedQuestions: [{ questionId: "q-1", points: 2 }],
+        selectedQuestions: [
+          expect.objectContaining({
+            questionId: "q-1",
+            points: 2,
+            quantity: 1,
+            toleranceOverride: "",
+          }),
+        ],
       }),
     );
 
@@ -239,7 +253,20 @@ describe("quizzes page and editor utils", () => {
           description: "Desc",
           accessCode: "ABCD",
           requiresAccessCode: true,
-          questions: [{ questionId: "q-1", points: 2 }],
+          attemptsAllowed: 2,
+          startAt: new Date(futureStartAt).toISOString(),
+          endAt: new Date(futureEndAt).toISOString(),
+          timeLimitMinutes: 20,
+          shuffleQuestions: true,
+          revealAnswersAfterClose: true,
+          questions: [
+            expect.objectContaining({
+              questionId: "q-1",
+              points: 2,
+              quantity: 1,
+              toleranceOverride: null,
+            }),
+          ],
         }),
       }),
     );

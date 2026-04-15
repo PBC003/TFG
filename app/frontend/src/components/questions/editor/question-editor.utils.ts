@@ -66,7 +66,6 @@ function normalizeOptionList(
 function buildDefaultParametricState(): FormState["parametric"] {
   return {
     templateId: PARAMETRIC_TEMPLATE_IDS[0],
-    tolerance: "0.01",
     sampleSeed: Date.now(),
   };
 }
@@ -111,10 +110,6 @@ export function buildInitialState(question: QuestionItem | null): FormState {
   const defaultParametric = buildDefaultParametricState();
   const resolvedParametric = {
     templateId: parametricConfig.templateId ?? defaultParametric.templateId,
-    tolerance:
-      parametricConfig.tolerance === undefined
-        ? defaultParametric.tolerance
-        : String(parametricConfig.tolerance),
     sampleSeed: Date.now(),
   };
 
@@ -201,14 +196,10 @@ export function buildQuestionConfig(form: FormState): QuestionTypeConfig {
         gradingMode: form.multipleChoice.gradingMode,
       };
     }
-    case "parametric": {
-      const parsedTolerance = Number.parseFloat(form.parametric.tolerance);
-
+    case "parametric":
       return {
         templateId: form.parametric.templateId,
-        tolerance: Number.isFinite(parsedTolerance) ? parsedTolerance : 0.01,
       };
-    }
   }
 }
 
@@ -248,14 +239,6 @@ export function validateForm(form: FormState, t: TFunction): string | null {
 
     if (!options.some((option) => option.isCorrect)) {
       return t("questions.dialogs.multipleChoiceValidation");
-    }
-  }
-
-  if (form.type === "parametric") {
-    const parsedTolerance = Number.parseFloat(form.parametric.tolerance);
-
-    if (!Number.isFinite(parsedTolerance) || parsedTolerance < 0) {
-      return t("questions.dialogs.parametricToleranceValidation");
     }
   }
 

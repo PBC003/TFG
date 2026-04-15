@@ -89,7 +89,9 @@ export const QuizEditorBasicSettingsSection = memo(
           <TextField
             label={fields.accessCode}
             helperText={fields.accessCodeHelp}
-            placeholder={fields.accessCodePlaceholder}
+            placeholder={
+              fields.accessCodePlaceholder ?? fields.accessCodeOptional ?? ""
+            }
             value={accessCode}
             onChange={(event) =>
               onAccessCodeChange(event.target.value.toUpperCase())

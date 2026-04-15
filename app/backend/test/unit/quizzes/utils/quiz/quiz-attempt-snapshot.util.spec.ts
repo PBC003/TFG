@@ -106,10 +106,16 @@ describe('quiz-attempt-snapshot.util', () => {
 
     expect(prepared).toEqual(
       expect.objectContaining({
-        statement: expect.stringContaining('\\sum_{n=2}^{\\infty} r^n'),
+        statement: expect.stringContaining('\\sum_{n=2}^{\\infty}'),
         questionConfig: expect.objectContaining({
-          templateId: ParametricQuestionTemplateId.SERIES_GEOMETRIC,
-          correctAnswerLatex: '\\frac{1}{2}',
+          templateId: 'series_geometric',
+          generatedValues: expect.objectContaining({
+            i: expect.any(Number),
+            r: expect.any(Number),
+          }),
+          correctAnswerLatex: expect.any(String),
+          correctAnswerNumeric: expect.any(Number),
+          tolerance: 0.01,
         }),
       }),
     );

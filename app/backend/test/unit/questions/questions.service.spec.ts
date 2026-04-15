@@ -326,18 +326,37 @@ describe('QuestionsService', () => {
     });
   });
 
-  it('deletes questions and normalizes not-found deletes', async () => {
-    questionModel.deleteOne.mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ deletedCount: 1 }),
+  it('archives questions instead of deleting them physically', async () => {
+    const save = jest.fn().mockResolvedValue(undefined);
+    const persistedQuestion = {
+      ...baseQuestion,
+      isArchived: false,
+      archivedAt: null,
+      archivedByUserId: null,
+      save,
+    };
+
+    questionModel.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue(persistedQuestion),
     });
 
-    await expect(service.deleteQuestion('question-1')).resolves.toBeUndefined();
+    await expect(
+      service.deleteQuestion('question-1', { id: 9 }),
+    ).resolves.toBeUndefined();
 
-    questionModel.deleteOne.mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ deletedCount: 0 }),
+    expect(persistedQuestion.isArchived).toBe(true);
+    expect(persistedQuestion.archivedByUserId).toBe(9);
+    expect(persistedQuestion.updatedByUserId).toBe(9);
+    expect(persistedQuestion.version).toBe(2);
+    expect(save).toHaveBeenCalled();
+
+    questionModel.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue(null),
     });
 
-    await expect(service.deleteQuestion('missing')).rejects.toMatchObject({
+    await expect(
+      service.deleteQuestion('missing', { id: 9 }),
+    ).rejects.toMatchObject({
       response: { code: 'question.not_found' },
       status: HttpStatus.NOT_FOUND,
     });

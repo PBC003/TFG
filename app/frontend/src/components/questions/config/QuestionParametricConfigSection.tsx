@@ -21,14 +21,12 @@ import type { FormState } from "../editor/question-editor.types";
 type QuestionParametricConfigSectionProps = {
   form: FormState;
   onTemplateChange: (templateId: FormState["parametric"]["templateId"]) => void;
-  onToleranceChange: (value: string) => void;
   onRegenerateSample: () => void;
 };
 
 export function QuestionParametricConfigSection({
   form,
   onTemplateChange,
-  onToleranceChange,
   onRegenerateSample,
 }: QuestionParametricConfigSectionProps) {
   const { t } = useTranslation();
@@ -38,13 +36,8 @@ export function QuestionParametricConfigSection({
 
     return generateParametricSampleInstance({
       templateId: form.parametric.templateId,
-      tolerance: Number.parseFloat(form.parametric.tolerance),
     });
-  }, [
-    form.parametric.sampleSeed,
-    form.parametric.templateId,
-    form.parametric.tolerance,
-  ]);
+  }, [form.parametric.sampleSeed, form.parametric.templateId]);
 
   return (
     <Stack spacing={2}>
@@ -68,16 +61,7 @@ export function QuestionParametricConfigSection({
         ))}
       </TextField>
 
-      <TextField
-        label={t("questions.fields.parametricTolerance")}
-        value={form.parametric.tolerance}
-        onChange={(event) => onToleranceChange(event.target.value)}
-        type="text"
-        inputProps={{ inputMode: "decimal" }}
-        helperText={t("questions.dialogs.parametricToleranceHelper")}
-      />
-
-      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2.5 }}>
+      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
         <Stack spacing={1.5}>
           <Typography variant="subtitle2" fontWeight={700}>
             {t("questions.dialogs.parametricCanonicalStatement")}
@@ -91,7 +75,7 @@ export function QuestionParametricConfigSection({
         </Stack>
       </Paper>
 
-      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2.5 }}>
+      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
         <Stack spacing={1.5}>
           <Stack
             direction={{ xs: "column", sm: "row" }}

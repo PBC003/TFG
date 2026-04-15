@@ -29,14 +29,26 @@ describe('quiz-mutation-payload.util', () => {
       } as never,
     );
 
-    expect(payload).toEqual(
-      expect.objectContaining({
-        title: 'Quiz',
-        description: 'Desc',
-        accessCode: 'N-abc',
-        questions: [{ questionId: 'q1', points: 2 }],
-      }),
-    );
+    expect(payload).toEqual({
+      title: 'Quiz',
+      description: 'Desc',
+      accessCode: 'N-abc',
+      requiresAccessCode: true,
+      attemptsAllowed: 2,
+      startAt: new Date('2026-04-12T10:00:00.000Z'),
+      endAt: new Date('2026-04-12T11:00:00.000Z'),
+      timeLimitMinutes: 20,
+      shuffleQuestions: true,
+      revealAnswersAfterClose: true,
+      questions: [
+        {
+          questionId: 'q1',
+          points: 2,
+          quantity: 1,
+          toleranceOverride: null,
+        },
+      ],
+    });
     expect(sharedService.assertAccessCodeIsAvailable).toHaveBeenCalledWith(
       'N-abc',
       undefined,

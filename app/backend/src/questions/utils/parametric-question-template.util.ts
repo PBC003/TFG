@@ -16,24 +16,39 @@ export type ParametricGeneratedQuestionInstance = {
 type ParametricTemplateDefinition = {
   templateId: ParametricQuestionTemplateId;
   defaultTolerance: number;
+  variantKeys: number[];
   buildCanonicalStatement: () => string;
-  generateInstance: () => Omit<
-    ParametricGeneratedQuestionInstance,
-    'templateId' | 'tolerance'
-  >;
+  buildInstanceFromVariantKey: (
+    variantKey: number,
+  ) => Omit<ParametricGeneratedQuestionInstance, 'templateId' | 'tolerance'>;
+};
+
+type GenerateInstanceOptions = {
+  toleranceOverride?: number | null;
 };
 
 const DEFAULT_INPUT_PLACEHOLDER = 'Ej.: 1/2, pi/4 o 0.7854';
 const INVERSE_QUADRATIC_ALLOWED_A_VALUES = [
   1, 4, 9, 16, 25, 36, 49, 64, 81, 100,
 ];
-
-function randomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+const A_VARIANTS = Array.from({ length: 25 }, (_, index) => index + 1);
+const I_VARIANTS = Array.from({ length: 24 }, (_, index) => index + 2);
 
 function randomPick<T>(values: T[]): T {
   return values[Math.floor(Math.random() * values.length)];
+}
+
+function shuffleItems<T>(items: T[]): T[] {
+  const clonedItems = [...items];
+
+  for (let index = clonedItems.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    const currentItem = clonedItems[index];
+    clonedItems[index] = clonedItems[swapIndex];
+    clonedItems[swapIndex] = currentItem;
+  }
+
+  return clonedItems;
 }
 
 function gcd(left: number, right: number): number {
@@ -98,15 +113,11 @@ function buildTrigCanonicalStatement(): string {
   ].join('\n');
 }
 
-function buildTrigInstance() {
-  const a = randomInt(1, 25);
+function buildTrigInstanceFromA(a: number) {
   const b = a + 1;
 
   return {
-    statement: [
-      `$$\\lim_{x \\to 0} \\frac{\\tan(x)-${a}x}{x-${b}\\sin(x)}$$`,
-      `$a = ${a}$, $b = ${b}$.`,
-    ].join('\n'),
+    statement: `$$\\lim_{x \\to 0} \\frac{\\tan(x)-${a}x}{x-${b}\\sin(x)}$$`,
     generatedValues: { a, b },
     correctAnswerNumeric: (a - 1) / (b - 1),
     correctAnswerLatex: formatFractionLatex(a - 1, b - 1),
@@ -121,16 +132,16 @@ function buildLogCanonicalStatement(): string {
   ].join('\n');
 }
 
-function buildLogInstance() {
-  const a = randomInt(1, 25);
+function buildLogInstanceFromA(a: number) {
   const bNumerator = a + 1;
   const b = bNumerator / 2;
 
   return {
-    statement: [
-      `$$\\lim_{x \\to 1} \\left[\\frac{${a}x}{\\left(\\frac{${bNumerator}}{2}\\right)(x-1)}-\\frac{${a}}{\\left(\\frac{${bNumerator}}{2}\\right)\\log(x)}\\right]$$`,
-      `$a = ${a}$, $b = \\frac{${bNumerator}}{2}$.`,
-    ].join('\n'),
+    statement:
+      `$$\\lim_{x \\to 1} \\left[` +
+      `\\frac{${a}x}{\\left(\\frac{${bNumerator}}{2}\\right)(x-1)}` +
+      `-\\frac{${a}}{\\left(\\frac{${bNumerator}}{2}\\right)\\log(x)}` +
+      `\\right]$$`,
     generatedValues: { a, b },
     correctAnswerNumeric: a / (2 * b),
     correctAnswerLatex: formatFractionLatex(a, bNumerator),
@@ -145,16 +156,15 @@ function buildIntegralLogCanonicalStatement(): string {
   ].join('\n');
 }
 
-function buildIntegralLogInstance() {
-  const a = randomInt(1, 25);
+function buildIntegralLogInstanceFromA(a: number) {
   const bNumerator = a + 1;
   const b = bNumerator / 2;
 
   return {
-    statement: [
-      `$$\\int_{1}^{e} \\frac{${a}\\log(x)}{\\left(\\frac{${bNumerator}}{2}\\right)x}\\,dx$$`,
-      `$a = ${a}$, $b = \\frac{${bNumerator}}{2}$.`,
-    ].join('\n'),
+    statement:
+      `$$\\int_{1}^{e} ` +
+      `\\frac{${a}\\log(x)}{\\left(\\frac{${bNumerator}}{2}\\right)x}` +
+      `\\,dx$$`,
     generatedValues: { a, b },
     correctAnswerNumeric: a / (2 * b),
     correctAnswerLatex: formatFractionLatex(a, bNumerator),
@@ -169,15 +179,11 @@ function buildInverseQuadraticCanonicalStatement(): string {
   ].join('\n');
 }
 
-function buildInverseQuadraticInstance() {
-  const a = randomPick(INVERSE_QUADRATIC_ALLOWED_A_VALUES);
+function buildInverseQuadraticInstanceFromA(a: number) {
   const sqrtA = Math.sqrt(a);
 
   return {
-    statement: [
-      `$$\\int_{0}^{${sqrtA}} \\frac{4}{${a}+x^2}\\,dx$$`,
-      `$a = ${a}$.`,
-    ].join('\n'),
+    statement: `$$\\int_{0}^{${sqrtA}} \\frac{4}{${a}+x^2}\\,dx$$`,
     generatedValues: { a },
     correctAnswerNumeric: Math.PI / sqrtA,
     correctAnswerLatex: formatPiOverIntegerLatex(sqrtA),
@@ -192,15 +198,11 @@ function buildSeriesCanonicalStatement(): string {
   ].join('\n');
 }
 
-function buildSeriesInstance() {
-  const i = randomInt(2, 25);
+function buildSeriesInstanceFromI(i: number) {
   const r = 1 / i;
 
   return {
-    statement: [
-      '$$\\sum_{n=2}^{\\infty} r^n$$',
-      `$r = \\frac{1}{${i}}$, $i = ${i}$.`,
-    ].join('\n'),
+    statement: `$$\\sum_{n=2}^{\\infty} \\left(\\frac{1}{${i}}\\right)^n$$`,
     generatedValues: { i, r },
     correctAnswerNumeric: r ** 2 / (1 - r),
     correctAnswerLatex: formatFractionLatex(1, i * (i - 1)),
@@ -215,34 +217,113 @@ const PARAMETRIC_TEMPLATE_DEFINITIONS: Record<
   [ParametricQuestionTemplateId.LIMIT_TRIGONOMETRIC]: {
     templateId: ParametricQuestionTemplateId.LIMIT_TRIGONOMETRIC,
     defaultTolerance: 0.01,
+    variantKeys: A_VARIANTS,
     buildCanonicalStatement: buildTrigCanonicalStatement,
-    generateInstance: buildTrigInstance,
+    buildInstanceFromVariantKey: buildTrigInstanceFromA,
   },
   [ParametricQuestionTemplateId.LIMIT_LOGARITHMIC]: {
     templateId: ParametricQuestionTemplateId.LIMIT_LOGARITHMIC,
     defaultTolerance: 0.01,
+    variantKeys: A_VARIANTS,
     buildCanonicalStatement: buildLogCanonicalStatement,
-    generateInstance: buildLogInstance,
+    buildInstanceFromVariantKey: buildLogInstanceFromA,
   },
   [ParametricQuestionTemplateId.INTEGRAL_LOGARITHMIC]: {
     templateId: ParametricQuestionTemplateId.INTEGRAL_LOGARITHMIC,
     defaultTolerance: 0.01,
+    variantKeys: A_VARIANTS,
     buildCanonicalStatement: buildIntegralLogCanonicalStatement,
-    generateInstance: buildIntegralLogInstance,
+    buildInstanceFromVariantKey: buildIntegralLogInstanceFromA,
   },
   [ParametricQuestionTemplateId.INTEGRAL_INVERSE_QUADRATIC]: {
     templateId: ParametricQuestionTemplateId.INTEGRAL_INVERSE_QUADRATIC,
     defaultTolerance: 0.01,
+    variantKeys: INVERSE_QUADRATIC_ALLOWED_A_VALUES,
     buildCanonicalStatement: buildInverseQuadraticCanonicalStatement,
-    generateInstance: buildInverseQuadraticInstance,
+    buildInstanceFromVariantKey: buildInverseQuadraticInstanceFromA,
   },
   [ParametricQuestionTemplateId.SERIES_GEOMETRIC]: {
     templateId: ParametricQuestionTemplateId.SERIES_GEOMETRIC,
     defaultTolerance: 0.01,
+    variantKeys: I_VARIANTS,
     buildCanonicalStatement: buildSeriesCanonicalStatement,
-    generateInstance: buildSeriesInstance,
+    buildInstanceFromVariantKey: buildSeriesInstanceFromI,
   },
 };
+
+function resolveTemplateDefinition(templateId: ParametricQuestionTemplateId) {
+  return PARAMETRIC_TEMPLATE_DEFINITIONS[templateId];
+}
+
+function resolveTolerance(
+  template: ParametricTemplateDefinition,
+  config: ParametricQuestionConfig,
+  options?: GenerateInstanceOptions,
+): number {
+  return Number(
+    (
+      options?.toleranceOverride ??
+      config.tolerance ??
+      template.defaultTolerance
+    ).toFixed(6),
+  );
+}
+
+function buildGeneratedInstance(
+  template: ParametricTemplateDefinition,
+  config: ParametricQuestionConfig,
+  variantKey: number,
+  options?: GenerateInstanceOptions,
+): ParametricGeneratedQuestionInstance {
+  return {
+    templateId: template.templateId,
+    tolerance: resolveTolerance(template, config, options),
+    ...template.buildInstanceFromVariantKey(variantKey),
+  };
+}
+
+export function getParametricTemplateVariantCount(
+  templateId: ParametricQuestionTemplateId,
+): number {
+  return resolveTemplateDefinition(templateId).variantKeys.length;
+}
+
+export function buildCanonicalParametricStatement(
+  templateId: ParametricQuestionTemplateId,
+): string {
+  return resolveTemplateDefinition(templateId).buildCanonicalStatement();
+}
+
+export function generateParametricQuestionInstance(
+  config: ParametricQuestionConfig,
+  options?: GenerateInstanceOptions,
+): ParametricGeneratedQuestionInstance {
+  const template = resolveTemplateDefinition(config.templateId);
+  const variantKey = randomPick(template.variantKeys);
+
+  return buildGeneratedInstance(template, config, variantKey, options);
+}
+
+export function generateDistinctParametricQuestionInstances(
+  config: ParametricQuestionConfig,
+  quantity: number,
+  options?: GenerateInstanceOptions,
+): ParametricGeneratedQuestionInstance[] | null {
+  const template = resolveTemplateDefinition(config.templateId);
+
+  if (quantity > template.variantKeys.length) {
+    return null;
+  }
+
+  const selectedVariantKeys = shuffleItems(template.variantKeys).slice(
+    0,
+    quantity,
+  );
+
+  return selectedVariantKeys.map((variantKey) =>
+    buildGeneratedInstance(template, config, variantKey, options),
+  );
+}
 
 export function isParametricQuestionTemplateId(
   value: unknown,
@@ -252,30 +333,8 @@ export function isParametricQuestionTemplateId(
   );
 }
 
-export function resolveParametricQuestionTolerance(
-  config: ParametricQuestionConfig,
-): number {
-  const definition = PARAMETRIC_TEMPLATE_DEFINITIONS[config.templateId];
-  return Number((config.tolerance ?? definition.defaultTolerance).toFixed(6));
-}
-
 export function buildCanonicalParametricQuestionStatement(
   config: ParametricQuestionConfig,
 ): string {
-  return PARAMETRIC_TEMPLATE_DEFINITIONS[
-    config.templateId
-  ].buildCanonicalStatement();
-}
-
-export function generateParametricQuestionInstance(
-  config: ParametricQuestionConfig,
-): ParametricGeneratedQuestionInstance {
-  const definition = PARAMETRIC_TEMPLATE_DEFINITIONS[config.templateId];
-  const generated = definition.generateInstance();
-
-  return {
-    ...generated,
-    templateId: definition.templateId,
-    tolerance: resolveParametricQuestionTolerance(config),
-  };
+  return buildCanonicalParametricStatement(config.templateId);
 }

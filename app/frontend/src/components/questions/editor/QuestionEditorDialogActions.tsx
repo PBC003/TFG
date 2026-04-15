@@ -20,7 +20,14 @@ export function QuestionEditorDialogActions({
   onSubmit,
 }: QuestionEditorDialogActionsProps) {
   return (
-    <DialogActions>
+    <DialogActions
+      sx={{
+        px: { xs: 2, sm: 3 },
+        pb: { xs: 2, sm: 2.5 },
+        pt: 2,
+        gap: 1,
+      }}
+    >
       <Button onClick={onClose} disabled={submitting}>
         {t("common.cancel")}
       </Button>

@@ -7,9 +7,13 @@ export function toPublicQuizCatalogItem(
   attemptsRemaining: number | null,
   nowMs: number,
 ): PublicQuizCatalogItem {
-  const totalQuestions = quiz.questions.length;
+  const totalQuestions = quiz.questions.reduce(
+    (sum, question) => sum + Number(question.quantity ?? 1),
+    0,
+  );
   const totalPoints = quiz.questions.reduce(
-    (sum, question) => sum + Number(question.points),
+    (sum, question) =>
+      sum + Number(question.points) * Number(question.quantity ?? 1),
     0,
   );
   const isAvailableNow =

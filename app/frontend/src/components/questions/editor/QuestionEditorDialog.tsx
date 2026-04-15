@@ -41,7 +41,7 @@ function QuestionEditorDialogBody({
       onClose={submitting ? undefined : onClose}
       fullWidth
       maxWidth="lg"
-      PaperProps={{ sx: { borderRadius: 3 } }}
+      PaperProps={{ sx: { borderRadius: 2, overflow: "hidden" } }}
     >
       <DialogTitle>
         {question

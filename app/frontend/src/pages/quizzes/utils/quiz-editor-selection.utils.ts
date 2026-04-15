@@ -1,12 +1,35 @@
-import type { QuestionItem } from "../../../types/question";
+import type {
+  ParametricQuestionConfig,
+  QuestionItem,
+} from "../../../types/question";
 import type { SelectedQuestionState } from "../components/quiz-editor/quiz-editor-dialog.types";
+import { resolveParametricTolerance } from "../../../utils/parametric-question.utils";
 import { normalizeForSearch } from "./quiz-editor-dialog.utils";
+
+function getDefaultParametricTolerance(question: QuestionItem): string {
+  if (question.type !== "parametric") {
+    return "";
+  }
+
+  const config = question.questionConfig as ParametricQuestionConfig;
+  return String(resolveParametricTolerance(config));
+}
 
 export function buildSelectedQuestionMap(
   selectedQuestions: SelectedQuestionState[],
 ) {
   return new Map(
     selectedQuestions.map((question) => [question.questionId, question]),
+  );
+}
+
+export function countSelectedQuizQuestionSlots(
+  selectedQuestions: SelectedQuestionState[],
+) {
+  return selectedQuestions.reduce(
+    (sum, question) =>
+      sum + (question.type === "parametric" ? (question.quantity ?? 1) : 1),
+    0,
   );
 }
 
@@ -57,8 +80,10 @@ export function paginateQuizEditorQuestions<T>(
 
 export function toggleQuizEditorQuestionSelection(
   current: SelectedQuestionState[],
-  questionId: string,
+  questionOrId: QuestionItem | string,
 ): SelectedQuestionState[] {
+  const questionId =
+    typeof questionOrId === "string" ? questionOrId : questionOrId.questionId;
   const existingQuestion = current.find(
     (candidate) => candidate.questionId === questionId,
   );
@@ -67,7 +92,29 @@ export function toggleQuizEditorQuestionSelection(
     return current.filter((candidate) => candidate.questionId !== questionId);
   }
 
-  return [...current, { questionId, points: 1 }];
+  if (typeof questionOrId === "string") {
+    return [
+      ...current,
+      {
+        questionId,
+        points: 1,
+      },
+    ];
+  }
+
+  return [
+    ...current,
+    {
+      questionId: questionOrId.questionId,
+      type: questionOrId.type,
+      points: 1,
+      quantity: 1,
+      toleranceOverride:
+        questionOrId.type === "parametric"
+          ? getDefaultParametricTolerance(questionOrId)
+          : "",
+    },
+  ];
 }
 
 export function updateQuizEditorQuestionPoints(
@@ -82,6 +129,38 @@ export function updateQuizEditorQuestionPoints(
       ? {
           ...question,
           points: Number.isNaN(numericValue) ? 0 : Math.max(0, numericValue),
+        }
+      : question,
+  );
+}
+
+export function updateQuizEditorQuestionQuantity(
+  current: SelectedQuestionState[],
+  questionId: string,
+  nextValue: string,
+): SelectedQuestionState[] {
+  const numericValue = Number.parseInt(nextValue, 10);
+
+  return current.map((question) =>
+    question.questionId === questionId
+      ? {
+          ...question,
+          quantity: Number.isNaN(numericValue) ? 0 : Math.max(0, numericValue),
+        }
+      : question,
+  );
+}
+
+export function updateQuizEditorQuestionToleranceOverride(
+  current: SelectedQuestionState[],
+  questionId: string,
+  nextValue: string,
+): SelectedQuestionState[] {
+  return current.map((question) =>
+    question.questionId === questionId
+      ? {
+          ...question,
+          toleranceOverride: nextValue,
         }
       : question,
   );

@@ -1,6 +1,6 @@
 import { QuestionType } from '../../../questions/enums/question-type.enum';
 import type { QuestionDocument } from '../../../questions/schemas/question.schema';
-import { generateParametricQuestionInstance } from '../../../questions/utils/parametric-question-template.util';
+import { generateDistinctParametricQuestionInstances } from '../../../questions/utils/parametric-question-template.util';
 import type {
   MultipleChoiceQuestionConfig,
   ParametricQuestionConfig,
@@ -25,6 +25,36 @@ function shuffleItems<T>(items: T[]): T[] {
   }
 
   return clonedItems;
+}
+
+function buildParametricAttemptQuestionConfig(
+  question: QuestionDocument,
+  toleranceOverride?: number | null,
+): {
+  questionConfig: ParametricAttemptQuestionConfig;
+  statement: string;
+} | null {
+  const config = question.questionConfig as ParametricQuestionConfig;
+  const [instance] =
+    generateDistinctParametricQuestionInstances(config, 1, {
+      toleranceOverride,
+    }) ?? [];
+
+  if (!instance) {
+    return null;
+  }
+
+  return {
+    statement: instance.statement,
+    questionConfig: {
+      templateId: instance.templateId,
+      tolerance: instance.tolerance,
+      generatedValues: instance.generatedValues,
+      correctAnswerNumeric: instance.correctAnswerNumeric,
+      correctAnswerLatex: instance.correctAnswerLatex,
+      inputPlaceholder: instance.inputPlaceholder,
+    },
+  };
 }
 
 export function createAttemptQuestionConfig(question: QuestionDocument): {
@@ -65,55 +95,92 @@ export function createAttemptQuestionConfig(question: QuestionDocument): {
         },
       };
     }
-    case QuestionType.PARAMETRIC: {
-      const config = question.questionConfig as ParametricQuestionConfig;
-      const instance = generateParametricQuestionInstance(config);
-
-      return {
-        statement: instance.statement,
-        questionConfig: {
-          templateId: instance.templateId,
-          tolerance: instance.tolerance,
-          generatedValues: instance.generatedValues,
-          correctAnswerNumeric: instance.correctAnswerNumeric,
-          correctAnswerLatex: instance.correctAnswerLatex,
-          inputPlaceholder: instance.inputPlaceholder,
-        },
-      };
-    }
+    case QuestionType.PARAMETRIC:
+      return buildParametricAttemptQuestionConfig(question);
     default:
       return null;
   }
+}
+
+function buildParametricAttemptQuestionSnapshots(
+  question: QuestionDocument,
+  quizQuestion: QuizDocument['questions'][number],
+): QuizAttemptDocument['questions'] | null {
+  const config = question.questionConfig as ParametricQuestionConfig;
+  const quantity = Number(quizQuestion.quantity ?? 1);
+  const instances = generateDistinctParametricQuestionInstances(
+    config,
+    quantity,
+    {
+      toleranceOverride: quizQuestion.toleranceOverride,
+    },
+  );
+
+  if (!instances) {
+    return null;
+  }
+
+  return instances.map((instance, index) => ({
+    questionId:
+      quantity > 1
+        ? `${question.questionId}::${index + 1}`
+        : question.questionId,
+    title: question.title,
+    type: question.type,
+    statement: instance.statement,
+    explanation: question.explanation,
+    tags: question.tags,
+    points: quizQuestion.points,
+    order: 0,
+    questionConfig: {
+      templateId: instance.templateId,
+      tolerance: instance.tolerance,
+      generatedValues: instance.generatedValues,
+      correctAnswerNumeric: instance.correctAnswerNumeric,
+      correctAnswerLatex: instance.correctAnswerLatex,
+      inputPlaceholder: instance.inputPlaceholder,
+    } satisfies ParametricAttemptQuestionConfig,
+  }));
 }
 
 export function buildAttemptQuestionSnapshots(
   quiz: QuizDocument,
   questionMap: Map<string, QuestionDocument>,
 ): QuizAttemptDocument['questions'] | null {
-  const orderedQuestions = quiz.questions.map((quizQuestion) => {
+  const orderedQuestions = quiz.questions.flatMap((quizQuestion) => {
     const question = questionMap.get(quizQuestion.questionId);
 
     if (!question) {
-      return null;
+      return [null];
+    }
+
+    if (question.type === QuestionType.PARAMETRIC) {
+      const snapshots = buildParametricAttemptQuestionSnapshots(
+        question,
+        quizQuestion,
+      );
+      return snapshots ?? [null];
     }
 
     const prepared = createAttemptQuestionConfig(question);
 
     if (!prepared) {
-      return null;
+      return [null];
     }
 
-    return {
-      questionId: question.questionId,
-      title: question.title,
-      type: question.type,
-      statement: prepared.statement,
-      explanation: question.explanation,
-      tags: question.tags,
-      points: quizQuestion.points,
-      order: 0,
-      questionConfig: prepared.questionConfig,
-    };
+    return [
+      {
+        questionId: question.questionId,
+        title: question.title,
+        type: question.type,
+        statement: prepared.statement,
+        explanation: question.explanation,
+        tags: question.tags,
+        points: quizQuestion.points,
+        order: 0,
+        questionConfig: prepared.questionConfig,
+      },
+    ];
   });
 
   if (orderedQuestions.some((question) => question === null)) {

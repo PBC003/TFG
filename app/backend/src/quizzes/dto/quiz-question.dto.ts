@@ -1,4 +1,4 @@
-import { IsNumber, IsString, Min } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class QuizQuestionDto {
   @IsString()
@@ -7,4 +7,14 @@ export class QuizQuestionDto {
   @IsNumber()
   @Min(0)
   points!: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  quantity?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  toleranceOverride?: number | null;
 }

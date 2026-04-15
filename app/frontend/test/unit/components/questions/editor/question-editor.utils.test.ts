@@ -67,7 +67,6 @@ describe("question-editor.utils", () => {
     expect(state.singleChoice.options[0]?.isCorrect).toBe(true);
     expect(state.multipleChoice.gradingMode).toBe("all_or_nothing");
     expect(state.parametric.templateId).toBe("limit_trigonometric");
-    expect(state.parametric.tolerance).toBe("0.01");
   });
 
   it("hydrates true/false, choice and parametric questions using safe fallbacks", () => {
@@ -93,7 +92,6 @@ describe("question-editor.utils", () => {
       statement: "texto libre que debe regenerarse",
       questionConfig: {
         templateId: "integral_logarithmic",
-        tolerance: 0.001,
       },
     };
     const tfState = buildInitialState(trueFalse);
@@ -105,7 +103,6 @@ describe("question-editor.utils", () => {
     expect(mcState.multipleChoice.options[0]?.isCorrect).toBe(true);
     expect(mcState.multipleChoice.randomizeOptions).toBe(true);
     expect(pState.parametric.templateId).toBe("integral_logarithmic");
-    expect(pState.parametric.tolerance).toBe("0.001");
     expect(pState.statement).toContain("\\int_{1}^{e}");
   });
 
@@ -153,7 +150,6 @@ describe("question-editor.utils", () => {
       },
       parametric: {
         templateId: "series_geometric" as const,
-        tolerance: "0.005",
         sampleSeed: 1,
       },
     };
@@ -183,7 +179,6 @@ describe("question-editor.utils", () => {
     );
     expect(buildQuestionConfig({ ...common, type: "parametric" })).toEqual({
       templateId: "series_geometric",
-      tolerance: 0.005,
     });
   });
 
@@ -209,14 +204,6 @@ describe("question-editor.utils", () => {
       option.text = `opcion-${index}`;
       option.isCorrect = false;
     });
-    const invalidParametric = buildInitialState(null);
-    invalidParametric.title = "Param válida";
-    invalidParametric.type = "parametric";
-    invalidParametric.statement = "stmt";
-    invalidParametric.parametric.tolerance = "-1";
-    expect(validateForm(invalidParametric, t)).toBe(
-      "questions.dialogs.parametricToleranceValidation",
-    );
     expect(validateForm(invalidTitle, t)).toBe(
       "questions.dialogs.titleValidation",
     );

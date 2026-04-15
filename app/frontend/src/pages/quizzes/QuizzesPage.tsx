@@ -10,6 +10,7 @@ export default function QuizzesPage() {
   const { t, i18n } = useTranslation();
   const {
     visibleQuizzes,
+    paginatedQuizzes,
     questionBank,
     loading,
     submitting,
@@ -18,8 +19,12 @@ export default function QuizzesPage() {
     statusFilter,
     editorOpen,
     editingQuiz,
+    page,
+    rowsPerPage,
     setSearch,
     setStatusFilter,
+    setPage,
+    setRowsPerPage,
     clearFeedback,
     openCreateDialog,
     openEditDialog,
@@ -58,8 +63,13 @@ export default function QuizzesPage() {
         <QuizzesTableCard
           loading={loading}
           submitting={submitting}
-          quizzes={visibleQuizzes}
+          quizzes={paginatedQuizzes}
+          totalQuizzes={visibleQuizzes.length}
+          page={page}
+          rowsPerPage={rowsPerPage}
           language={i18n.language}
+          onPageChange={setPage}
+          onRowsPerPageChange={setRowsPerPage}
           onEdit={openEditDialog}
           onCopyLink={copyAccessLink}
           onTogglePublishStatus={togglePublishStatus}
@@ -115,6 +125,16 @@ export default function QuizzesPage() {
               endAtHelper: t("quizzes.fields.endAtHelper"),
               invalidDateRange: t("quizzes.fields.invalidDateRange"),
               invalidEndDateInPast: t("quizzes.fields.invalidEndDateInPast"),
+              parametricQuantity: t("quizzes.fields.parametricQuantity"),
+              parametricToleranceOverride: t(
+                "quizzes.fields.parametricToleranceOverride",
+              ),
+              parametricQuantityHelper: t(
+                "quizzes.fields.parametricQuantityHelper",
+              ),
+              parametricToleranceOverrideHelper: t(
+                "quizzes.fields.parametricToleranceOverrideHelper",
+              ),
             }}
             onClose={closeEditor}
             onSubmit={submitEditor}

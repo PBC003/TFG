@@ -1,3 +1,4 @@
+import type { QuestionType } from "../../../../types/question";
 import type { QuestionItem } from "../../../../types/question";
 import type {
   CreateQuizInput,
@@ -25,8 +26,10 @@ export interface QuizEditorDialogProps {
     title: string;
     description: string;
     accessCode: string;
-    accessCodePlaceholder: string;
+    accessCodePlaceholder?: string;
     accessCodeHelp: string;
+    accessCodeOptional?: string;
+    accessCodeAuto?: string;
     attemptsAllowed: string;
     startAt: string;
     endAt: string;
@@ -40,6 +43,10 @@ export interface QuizEditorDialogProps {
     endAtHelper: string;
     invalidDateRange: string;
     invalidEndDateInPast: string;
+    parametricQuantity?: string;
+    parametricToleranceOverride?: string;
+    parametricQuantityHelper?: string;
+    parametricToleranceOverrideHelper?: string;
   };
   onClose: () => void;
   onSubmit: (payload: CreateQuizInput | UpdateQuizInput) => Promise<void>;
@@ -47,7 +54,10 @@ export interface QuizEditorDialogProps {
 
 export type SelectedQuestionState = {
   questionId: string;
+  type?: QuestionType;
   points: number;
+  quantity?: number;
+  toleranceOverride?: string;
 };
 
 export type QuizEditorInitialState = {

@@ -14,7 +14,12 @@ export type QuizMutationPayload = {
   timeLimitMinutes: number | null;
   shuffleQuestions: boolean;
   revealAnswersAfterClose: boolean;
-  questions: { questionId: string; points: number }[];
+  questions: {
+    questionId: string;
+    points: number;
+    quantity: number;
+    toleranceOverride: number | null;
+  }[];
 };
 
 export async function normalizeQuizMutationPayload(
@@ -96,6 +101,12 @@ export async function normalizeQuizMutationPayload(
     questions: questions.map((question) => ({
       questionId: question.questionId,
       points: Number(question.points),
+      quantity: Number(question.quantity ?? 1),
+      toleranceOverride:
+        question.toleranceOverride !== undefined &&
+        question.toleranceOverride !== null
+          ? Number(question.toleranceOverride)
+          : null,
     })),
   };
 }

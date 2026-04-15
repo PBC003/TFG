@@ -66,6 +66,8 @@ export function QuizEditorDialogContent({
     setQuestionRowsPerPage,
     toggleQuestion,
     updateQuestionPoints,
+    updateQuestionQuantity,
+    updateQuestionToleranceOverride,
     submit,
   } = useQuizEditorDialog({
     quiz,
@@ -141,6 +143,8 @@ export function QuizEditorDialogContent({
             }}
             onToggleQuestion={toggleQuestion}
             onUpdateQuestionPoints={updateQuestionPoints}
+            onUpdateQuestionQuantity={updateQuestionQuantity}
+            onUpdateQuestionToleranceOverride={updateQuestionToleranceOverride}
           />
         </Stack>
       </DialogContent>

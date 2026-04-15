@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { useEffect, useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -127,7 +127,6 @@ const baseForm: FormState = {
   },
   parametric: {
     templateId: "limit_trigonometric",
-    tolerance: "0.01",
     sampleSeed: 1,
   },
 };
@@ -418,7 +417,7 @@ describe("QuestionTypeSpecificConfig", () => {
     );
   });
 
-  it("renders the parametric branch and updates template, tolerance and sample seed", async () => {
+  it("renders the parametric branch and updates template and sample seed", async () => {
     const user = userEvent.setup();
     const dateNowSpy = vi.spyOn(Date, "now").mockReturnValue(202);
 
@@ -435,10 +434,6 @@ describe("QuestionTypeSpecificConfig", () => {
     expect(
       screen.getByLabelText("questions.fields.parametricTemplate"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByLabelText("questions.fields.parametricTolerance"),
-    ).toBeInTheDocument();
-
     await user.click(
       screen.getByRole("combobox", {
         name: "questions.fields.parametricTemplate",
@@ -448,13 +443,6 @@ describe("QuestionTypeSpecificConfig", () => {
       screen.getByRole("option", {
         name: "questions.parametricTemplates.integral_logarithmic",
       }),
-    );
-
-    fireEvent.change(
-      screen.getByLabelText("questions.fields.parametricTolerance"),
-      {
-        target: { value: "0.25" },
-      },
     );
 
     await user.click(
@@ -467,7 +455,6 @@ describe("QuestionTypeSpecificConfig", () => {
 
     expect(currentForm.parametric.templateId).toBe("integral_logarithmic");
     expect(currentForm.statement).toContain("\\int_{1}^{e}");
-    expect(currentForm.parametric.tolerance).toBe("0.25");
     expect(currentForm.parametric.sampleSeed).toBe(202);
 
     dateNowSpy.mockRestore();

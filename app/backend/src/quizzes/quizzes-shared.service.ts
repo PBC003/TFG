@@ -9,6 +9,8 @@ import {
   Question,
   type QuestionDocument,
 } from '../questions/schemas/question.schema';
+import type { ParametricQuestionConfig } from '../questions/types/question-type-config.type';
+import { getParametricTemplateVariantCount } from '../questions/utils/parametric-question-template.util';
 import { User } from '../users/entities/user.entity';
 import {
   QuizAttempt,
@@ -27,6 +29,13 @@ const SUPPORTED_QUIZ_QUESTION_TYPES = new Set<QuestionType>([
   QuestionType.MULTIPLE_CHOICE,
   QuestionType.PARAMETRIC,
 ]);
+
+type QuizQuestionReferenceInput = {
+  questionId: string;
+  points: number;
+  quantity?: number;
+  toleranceOverride?: number | null;
+};
 
 @Injectable()
 export class QuizzesSharedService {
@@ -73,7 +82,7 @@ export class QuizzesSharedService {
   }
 
   async assertQuestionReferencesAreValid(
-    quizQuestions: { questionId: string; points: number }[],
+    quizQuestions: QuizQuestionReferenceInput[],
   ): Promise<void> {
     const questions = await this.questionModel
       .find({
@@ -90,16 +99,84 @@ export class QuizzesSharedService {
       );
     }
 
-    const unsupportedQuestion = questions.find(
-      (question) => !SUPPORTED_QUIZ_QUESTION_TYPES.has(question.type),
+    const questionMap = new Map(
+      questions.map((question) => [question.questionId, question]),
     );
 
-    if (unsupportedQuestion) {
-      this.throwBadRequest(
-        'quiz.unsupported_question_type',
-        'The selected quiz includes a question type that is not supported in Sprint 3',
-        { type: unsupportedQuestion.type },
-      );
+    for (const quizQuestion of quizQuestions) {
+      const question = questionMap.get(quizQuestion.questionId);
+
+      if (!question) {
+        this.throwBadRequest(
+          'quiz.question_not_found',
+          'At least one referenced question does not exist',
+        );
+      }
+
+      if (!SUPPORTED_QUIZ_QUESTION_TYPES.has(question.type)) {
+        this.throwBadRequest(
+          'quiz.unsupported_question_type',
+          'The selected quiz includes a question type that is not supported in Sprint 3',
+          { type: question.type },
+        );
+      }
+
+      const quantity = Number(quizQuestion.quantity ?? 1);
+      const toleranceOverride = quizQuestion.toleranceOverride;
+
+      if (!Number.isInteger(quantity) || quantity < 1) {
+        this.throwBadRequest(
+          'common.bad_request',
+          'Quiz question quantity must be an integer greater than or equal to 1',
+        );
+      }
+
+      if (
+        toleranceOverride !== undefined &&
+        toleranceOverride !== null &&
+        (!Number.isFinite(Number(toleranceOverride)) ||
+          Number(toleranceOverride) < 0)
+      ) {
+        this.throwBadRequest(
+          'common.bad_request',
+          'Quiz parametric tolerance override must be a number greater than or equal to 0',
+        );
+      }
+
+      if (question.type === QuestionType.PARAMETRIC) {
+        const config = question.questionConfig as
+          | ParametricQuestionConfig
+          | undefined;
+
+        if (config?.templateId) {
+          const maxVariants = getParametricTemplateVariantCount(
+            config.templateId,
+          );
+
+          if (quantity > maxVariants) {
+            this.throwBadRequest(
+              'common.bad_request',
+              `The selected parametric question only supports ${maxVariants} distinct variants per quiz`,
+            );
+          }
+        }
+
+        continue;
+      }
+
+      if (quantity !== 1) {
+        this.throwBadRequest(
+          'common.bad_request',
+          'Only parametric questions can request more than one variant per quiz',
+        );
+      }
+
+      if (toleranceOverride !== undefined && toleranceOverride !== null) {
+        this.throwBadRequest(
+          'common.bad_request',
+          'Only parametric questions can override the grading tolerance inside a quiz',
+        );
+      }
     }
   }
 

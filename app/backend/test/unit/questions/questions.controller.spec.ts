@@ -114,9 +114,14 @@ describe('QuestionsController', () => {
   });
 
   it('delegates deletions without returning a body', async () => {
+    const request = { user } as Request & { user: PublicUser };
+
     await expect(
-      controller.deleteQuestion('question-1'),
+      controller.deleteQuestion('question-1', request),
     ).resolves.toBeUndefined();
-    expect(questionsService.deleteQuestion).toHaveBeenCalledWith('question-1');
+    expect(questionsService.deleteQuestion).toHaveBeenCalledWith(
+      'question-1',
+      request.user,
+    );
   });
 });

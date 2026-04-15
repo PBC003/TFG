@@ -135,15 +135,6 @@ export function QuestionTypeSpecificConfig({
               },
             }))
           }
-          onToleranceChange={(value) =>
-            onUpdateForm((current) => ({
-              ...current,
-              parametric: {
-                ...current.parametric,
-                tolerance: value,
-              },
-            }))
-          }
           onRegenerateSample={() =>
             onUpdateForm((current) => ({
               ...current,

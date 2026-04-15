@@ -42,7 +42,7 @@ export class QuestionsService {
 
   async listQuestions(): Promise<QuestionItem[]> {
     const questions = await this.questionModel
-      .find()
+      .find({ isArchived: { $ne: true } })
       .sort({ updatedAt: -1, createdAt: -1 })
       .exec();
 
@@ -50,7 +50,7 @@ export class QuestionsService {
   }
 
   async findQuestionById(questionId: string): Promise<QuestionItem> {
-    const question = await this.findQuestionDocumentOrThrow(questionId);
+    const question = await this.findActiveQuestionDocumentOrThrow(questionId);
 
     return toQuestionItem(question);
   }
@@ -60,7 +60,7 @@ export class QuestionsService {
     updateQuestionDto: UpdateQuestionDto,
     user: Pick<PublicUser, 'id'>,
   ): Promise<QuestionItem> {
-    const question = await this.findQuestionDocumentOrThrow(questionId);
+    const question = await this.findActiveQuestionDocumentOrThrow(questionId);
 
     this.assertUpdatePayloadHasChanges(updateQuestionDto);
 
@@ -81,20 +81,39 @@ export class QuestionsService {
     return toQuestionItem(question);
   }
 
-  async deleteQuestion(questionId: string): Promise<void> {
-    const deleteResult = await this.questionModel
-      .deleteOne({ questionId })
-      .exec();
+  async deleteQuestion(
+    questionId: string,
+    user: Pick<PublicUser, 'id'>,
+  ): Promise<void> {
+    const question = await this.findActiveQuestionDocumentOrThrow(questionId);
 
-    if (deleteResult.deletedCount === 0) {
-      this.throwQuestionNotFound();
-    }
+    question.isArchived = true;
+    question.archivedAt = new Date();
+    question.archivedByUserId = user.id;
+    question.updatedByUserId = user.id;
+    question.version += 1;
+
+    await question.save();
   }
 
   private async findQuestionDocumentOrThrow(
     questionId: string,
   ): Promise<QuestionDocument> {
     const question = await this.questionModel.findOne({ questionId }).exec();
+
+    if (!question) {
+      this.throwQuestionNotFound();
+    }
+
+    return question;
+  }
+
+  private async findActiveQuestionDocumentOrThrow(
+    questionId: string,
+  ): Promise<QuestionDocument> {
+    const question = await this.questionModel
+      .findOne({ questionId, isArchived: { $ne: true } })
+      .exec();
 
     if (!question) {
       this.throwQuestionNotFound();

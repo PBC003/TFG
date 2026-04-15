@@ -14,12 +14,20 @@ import {
 } from "@mui/material";
 import { memo } from "react";
 import { MathText } from "../../../../components/math/MathText";
-import type { QuestionItem } from "../../../../types/question";
+import {
+  DEFAULT_PARAMETRIC_TOLERANCE,
+  getParametricTemplateVariantCount,
+} from "../../../../utils/parametric-question.utils";
+import type {
+  ParametricQuestionConfig,
+  QuestionItem,
+} from "../../../../types/question";
 import type {
   QuizEditorDialogProps,
   SelectedQuestionState,
 } from "./quiz-editor-dialog.types";
 import { QUESTION_ROWS_PER_PAGE_OPTIONS } from "../../utils/quiz-editor-dialog.utils";
+import { countSelectedQuizQuestionSlots } from "../../utils/quiz-editor-selection.utils";
 
 type QuizEditorQuestionBankSectionProps = {
   submitting: boolean;
@@ -45,6 +53,11 @@ type QuizEditorQuestionBankSectionProps = {
   onRowsPerPageChange: (rowsPerPage: number) => void;
   onToggleQuestion: (question: QuestionItem) => void;
   onUpdateQuestionPoints: (questionId: string, value: string) => void;
+  onUpdateQuestionQuantity: (questionId: string, value: string) => void;
+  onUpdateQuestionToleranceOverride: (
+    questionId: string,
+    value: string,
+  ) => void;
 };
 
 export const QuizEditorQuestionBankSection = memo(
@@ -71,7 +84,12 @@ export const QuizEditorQuestionBankSection = memo(
     onRowsPerPageChange,
     onToggleQuestion,
     onUpdateQuestionPoints,
+    onUpdateQuestionQuantity,
+    onUpdateQuestionToleranceOverride,
   }: QuizEditorQuestionBankSectionProps) {
+    const totalSelectedSlots =
+      countSelectedQuizQuestionSlots(selectedQuestions);
+
     return (
       <Stack spacing={1.5}>
         <Stack
@@ -85,7 +103,7 @@ export const QuizEditorQuestionBankSection = memo(
             <Typography variant="body2" color="text.secondary">
               {fields.selectedQuestionsCount.replace(
                 "{{count}}",
-                String(selectedQuestions.length),
+                String(totalSelectedSlots),
               )}
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -118,6 +136,14 @@ export const QuizEditorQuestionBankSection = memo(
                   question.questionId,
                 );
                 const isSelected = Boolean(selectedQuestion);
+                const isParametric = question.type === "parametric";
+                const maxVariants = isParametric
+                  ? getParametricTemplateVariantCount(
+                      (question.questionConfig as ParametricQuestionConfig)
+                        .templateId,
+                    )
+                  : null;
+
                 return (
                   <ListItem
                     key={question.questionId}
@@ -168,20 +194,88 @@ export const QuizEditorQuestionBankSection = memo(
                           </Stack>
 
                           {isSelected ? (
-                            <TextField
-                              label={questionPointsLabel}
-                              value={selectedQuestion?.points ?? 1}
-                              onChange={(event) =>
-                                onUpdateQuestionPoints(
-                                  question.questionId,
-                                  event.target.value,
-                                )
-                              }
-                              disabled={submitting}
-                              type="number"
-                              inputProps={{ min: 1 }}
-                              sx={{ width: { xs: "100%", md: 160 } }}
-                            />
+                            <Stack
+                              direction={{ xs: "column", md: "row" }}
+                              spacing={1}
+                              sx={{ width: { xs: "100%", md: "auto" } }}
+                            >
+                              <TextField
+                                label={questionPointsLabel}
+                                value={selectedQuestion?.points ?? 1}
+                                onChange={(event) =>
+                                  onUpdateQuestionPoints(
+                                    question.questionId,
+                                    event.target.value,
+                                  )
+                                }
+                                disabled={submitting}
+                                type="number"
+                                inputProps={{ min: 1 }}
+                                sx={{ width: { xs: "100%", md: 140 } }}
+                              />
+
+                              {isParametric ? (
+                                <>
+                                  <TextField
+                                    label={
+                                      fields.parametricQuantity ?? "Cantidad"
+                                    }
+                                    value={selectedQuestion?.quantity ?? 1}
+                                    onChange={(event) =>
+                                      onUpdateQuestionQuantity(
+                                        question.questionId,
+                                        event.target.value,
+                                      )
+                                    }
+                                    disabled={submitting}
+                                    type="number"
+                                    inputProps={{
+                                      min: 1,
+                                      max: maxVariants ?? undefined,
+                                    }}
+                                    helperText={(
+                                      fields.parametricQuantityHelper ??
+                                      "Máximo disponible: {{max}}."
+                                    ).replace(
+                                      "{{max}}",
+                                      String(maxVariants ?? 1),
+                                    )}
+                                    sx={{ width: { xs: "100%", md: 160 } }}
+                                  />
+                                  <TextField
+                                    label={
+                                      fields.parametricToleranceOverride ??
+                                      "Tolerancia"
+                                    }
+                                    value={
+                                      selectedQuestion?.toleranceOverride ?? ""
+                                    }
+                                    onChange={(event) =>
+                                      onUpdateQuestionToleranceOverride(
+                                        question.questionId,
+                                        event.target.value,
+                                      )
+                                    }
+                                    onBlur={(event) => {
+                                      if (!event.target.value.trim()) {
+                                        onUpdateQuestionToleranceOverride(
+                                          question.questionId,
+                                          String(DEFAULT_PARAMETRIC_TOLERANCE),
+                                        );
+                                      }
+                                    }}
+                                    disabled={submitting}
+                                    type="text"
+                                    inputProps={{ inputMode: "decimal" }}
+                                    helperText={
+                                      fields.parametricToleranceOverrideHelper ??
+                                      ""
+                                    }
+                                    sx={{ width: { xs: "100%", md: 180 } }}
+                                  />
+                                </>
+                              ) : null}
+                            </Stack>
                           ) : null}
                         </Stack>
 

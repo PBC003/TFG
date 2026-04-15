@@ -33,7 +33,6 @@ export type FormState = {
   };
   parametric: {
     templateId: ParametricQuestionTemplateId;
-    tolerance: string;
     sampleSeed: number;
   };
 };

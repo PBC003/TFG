@@ -365,6 +365,11 @@ export const es = {
       endAtHelper: 'Si indicas fecha de fin, debe ser futura y posterior a la fecha de inicio.',
       invalidDateRange: 'La fecha de fin debe ser posterior a la fecha de inicio.',
       invalidEndDateInPast: 'La fecha de fin debe ser futura.',
+      parametricQuantity: 'Cantidad de variantes',
+      parametricToleranceOverride: 'Tolerancia en este cuestionario',
+      parametricQuantityHelper: 'Máximo disponible para esta familia: {{max}}.',
+      parametricToleranceOverrideHelper:
+        'Déjalo como está para reutilizar la tolerancia por defecto de esta familia en el cuestionario.',
     },
     actions: {
       publish: 'Publicar',
