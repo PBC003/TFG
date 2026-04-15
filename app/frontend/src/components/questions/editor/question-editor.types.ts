@@ -1,4 +1,7 @@
-import type { QuestionType } from "../../../types/question";
+import type {
+  ParametricQuestionTemplateId,
+  QuestionType,
+} from "../../../types/question";
 
 export type EditableOption = {
   key: string;
@@ -27,6 +30,11 @@ export type FormState = {
     options: EditableOption[];
     randomizeOptions: boolean;
     gradingMode: "all_or_nothing" | "partial_credit";
+  };
+  parametric: {
+    templateId: ParametricQuestionTemplateId;
+    tolerance: string;
+    sampleSeed: number;
   };
 };
 

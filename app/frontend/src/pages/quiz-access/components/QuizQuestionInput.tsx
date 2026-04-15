@@ -4,6 +4,8 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  TextField,
+  Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { MathText } from "../../../components/math/MathText";
@@ -68,40 +70,67 @@ export function QuizQuestionInput({
     );
   }
 
-  const selectedValues = Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : [];
+  if (question.type === "multiple_choice") {
+    const selectedValues = Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === "string")
+      : [];
+
+    return (
+      <Stack spacing={1}>
+        {options.map((option) => {
+          const checked = selectedValues.includes(option.key);
+
+          return (
+            <FormControlLabel
+              key={option.key}
+              control={
+                <Checkbox
+                  checked={checked}
+                  disabled={disabled}
+                  onChange={(event) => {
+                    if (event.target.checked) {
+                      onChange([...selectedValues, option.key]);
+                      return;
+                    }
+
+                    onChange(
+                      selectedValues.filter(
+                        (candidate) => candidate !== option.key,
+                      ),
+                    );
+                  }}
+                />
+              }
+              label={<MathText value={option.text} emptyText="—" />}
+            />
+          );
+        })}
+      </Stack>
+    );
+  }
+
+  const placeholder =
+    "inputPlaceholder" in question.questionConfig
+      ? question.questionConfig.inputPlaceholder
+      : "";
+  const tolerance =
+    "tolerance" in question.questionConfig
+      ? question.questionConfig.tolerance
+      : 0;
 
   return (
-    <Stack spacing={1}>
-      {options.map((option) => {
-        const checked = selectedValues.includes(option.key);
-
-        return (
-          <FormControlLabel
-            key={option.key}
-            control={
-              <Checkbox
-                checked={checked}
-                disabled={disabled}
-                onChange={(event) => {
-                  if (event.target.checked) {
-                    onChange([...selectedValues, option.key]);
-                    return;
-                  }
-
-                  onChange(
-                    selectedValues.filter(
-                      (candidate) => candidate !== option.key,
-                    ),
-                  );
-                }}
-              />
-            }
-            label={<MathText value={option.text} emptyText="—" />}
-          />
-        );
-      })}
+    <Stack spacing={1.25}>
+      <TextField
+        label={t("quizAccess.parametricAnswerLabel")}
+        value={typeof value === "string" ? value : ""}
+        onChange={(event) => onChange(event.target.value)}
+        disabled={disabled}
+        fullWidth
+        placeholder={placeholder}
+      />
+      <Typography variant="caption" color="text.secondary">
+        {t("quizAccess.parametricAnswerHelper", { tolerance })}
+      </Typography>
     </Stack>
   );
 }

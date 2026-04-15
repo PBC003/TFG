@@ -2,6 +2,7 @@ import { HttpStatus } from '@nestjs/common';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { QuestionType } from '../../../src/questions/enums/question-type.enum';
+import { ParametricQuestionTemplateId } from '../../../src/questions/types/question-type-config.type';
 import { Question } from '../../../src/questions/schemas/question.schema';
 import { QuestionsService } from '../../../src/questions/questions.service';
 
@@ -228,8 +229,8 @@ describe('QuestionsService', () => {
       ...baseQuestion,
       type: QuestionType.PARAMETRIC,
       questionConfig: {
-        variables: [{ name: 'x', min: 0, max: 1 }],
-        answerFormula: 'x',
+        templateId: ParametricQuestionTemplateId.LIMIT_TRIGONOMETRIC,
+        tolerance: 0.01,
       },
       save,
     };
@@ -242,19 +243,18 @@ describe('QuestionsService', () => {
       'question-1',
       {
         questionConfig: {
-          variables: [{ name: ' y ', min: 1, max: 3 }],
-          answerFormula: ' y^2 ',
-          sampleAnswer: ' 4 ',
+          templateId: ParametricQuestionTemplateId.SERIES_GEOMETRIC,
+          tolerance: 0.005,
         },
       },
       { id: 9 },
     );
 
     expect(persistedQuestion.questionConfig).toEqual({
-      variables: [{ name: 'y', min: 1, max: 3 }],
-      answerFormula: 'y^2',
-      sampleAnswer: '4',
+      templateId: ParametricQuestionTemplateId.SERIES_GEOMETRIC,
+      tolerance: 0.005,
     });
+    expect(persistedQuestion.statement).toContain('\\sum_{n=2}^{\\infty} r^n');
   });
 
   it('lists questions sorted by most recently updated and finds single questions', async () => {

@@ -39,15 +39,10 @@ function normalizeParametricConfig(
 ): ParametricQuestionConfig {
   return {
     ...config,
-    variables: config.variables.map((variable) => ({
-      ...variable,
-      name: variable.name.trim(),
-    })),
-    answerFormula: config.answerFormula.trim(),
-    sampleAnswer:
-      config.sampleAnswer === undefined
+    tolerance:
+      config.tolerance === undefined
         ? undefined
-        : config.sampleAnswer.trim(),
+        : Number(config.tolerance.toFixed(6)),
   };
 }
 

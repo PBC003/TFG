@@ -21,6 +21,7 @@ type QuestionMathFieldProps = {
   helperText?: string;
   required?: boolean;
   placeholder?: string;
+  disabled?: boolean;
 };
 
 export function QuestionMathField({
@@ -34,6 +35,7 @@ export function QuestionMathField({
   helperText,
   required,
   placeholder,
+  disabled,
 }: QuestionMathFieldProps) {
   const { t } = useTranslation();
   const actionLabel = isPreview
@@ -45,6 +47,7 @@ export function QuestionMathField({
       <IconButton
         size="small"
         onClick={() => onTogglePreview(fieldKey)}
+        disabled={disabled}
         aria-label={actionLabel}
       >
         {isPreview ? (
@@ -90,6 +93,7 @@ export function QuestionMathField({
         required={required}
         helperText={helperText}
         placeholder={placeholder}
+        disabled={disabled}
         inputProps={{ "aria-label": label }}
       />
     </Stack>

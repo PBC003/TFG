@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import type { TFunction } from "i18next";
 import type { QuestionType } from "../../../types/question";
+import { buildCanonicalParametricStatement } from "../../../utils/parametric-question.utils";
 import { QuestionMathField } from "./QuestionMathField";
 import { QuestionTagsEditor } from "./QuestionTagsEditor";
 import { QuestionTypeSpecificConfig } from "../config/QuestionTypeSpecificConfig";
@@ -93,10 +94,27 @@ export function QuestionEditorDialogContent({
           label={t("questions.fields.type")}
           value={form.type}
           onChange={(event) =>
-            onUpdateForm((current) => ({
-              ...current,
-              type: event.target.value as QuestionType,
-            }))
+            onUpdateForm((current) => {
+              const nextType = event.target.value as QuestionType;
+              const nextStatement =
+                nextType === "parametric"
+                  ? buildCanonicalParametricStatement(
+                      current.parametric.templateId,
+                    )
+                  : current.type === "parametric" &&
+                      current.statement ===
+                        buildCanonicalParametricStatement(
+                          current.parametric.templateId,
+                        )
+                    ? ""
+                    : current.statement;
+
+              return {
+                ...current,
+                type: nextType,
+                statement: nextStatement,
+              };
+            })
           }
           fullWidth
         >
@@ -118,7 +136,12 @@ export function QuestionEditorDialogContent({
           }
           minRows={4}
           required
-          helperText={t("questions.dialogs.latexFieldHelper")}
+          helperText={
+            form.type === "parametric"
+              ? t("questions.dialogs.parametricStatementHelper")
+              : t("questions.dialogs.latexFieldHelper")
+          }
+          disabled={form.type === "parametric"}
         />
 
         <QuestionMathField

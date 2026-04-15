@@ -62,11 +62,25 @@ export function QuizReviewCard({ review, index }: QuizReviewCardProps) {
           <Stack spacing={1}>
             <Typography variant="body2">
               <strong>{t("quizAccess.submittedAnswerLabel")}:</strong>{" "}
-              {formatQuizReviewAnswerValue(review, review.submittedValue, t)}
+              <MathText
+                value={formatQuizReviewAnswerValue(
+                  review,
+                  review.submittedValue,
+                  t,
+                )}
+                emptyText="—"
+              />
             </Typography>
             <Typography variant="body2">
               <strong>{t("quizAccess.correctAnswerLabel")}:</strong>{" "}
-              {formatQuizReviewAnswerValue(review, review.correctValue, t)}
+              <MathText
+                value={formatQuizReviewAnswerValue(
+                  review,
+                  review.correctValue,
+                  t,
+                )}
+                emptyText="—"
+              />
             </Typography>
             {review.feedback ? (
               <Box>

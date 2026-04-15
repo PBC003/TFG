@@ -25,6 +25,7 @@ const SUPPORTED_QUIZ_QUESTION_TYPES = new Set<QuestionType>([
   QuestionType.TRUE_FALSE,
   QuestionType.SINGLE_CHOICE,
   QuestionType.MULTIPLE_CHOICE,
+  QuestionType.PARAMETRIC,
 ]);
 
 @Injectable()

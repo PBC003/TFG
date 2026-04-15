@@ -48,21 +48,13 @@ export function validateQuestionMathContent(
     }
     case QuestionType.PARAMETRIC: {
       const config = questionConfig as ParametricQuestionConfig;
+
       errors.push(
         ...validateMathTextContent(
-          config.answerFormula,
-          'questionConfig.answerFormula',
+          statement,
+          `questionConfig.template.${config.templateId}`,
         ),
       );
-
-      if (config.sampleAnswer !== undefined) {
-        errors.push(
-          ...validateMathTextContent(
-            config.sampleAnswer,
-            'questionConfig.sampleAnswer',
-          ),
-        );
-      }
       break;
     }
     default:

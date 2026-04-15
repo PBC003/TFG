@@ -1,5 +1,6 @@
 import type { QuestionDocument } from '../../../../../src/questions/schemas/question.schema';
 import { QuestionType } from '../../../../../src/questions/enums/question-type.enum';
+import { ParametricQuestionTemplateId } from '../../../../../src/questions/types/question-type-config.type';
 import {
   buildAttemptQuestionSnapshots,
   createAttemptQuestionConfig,
@@ -47,10 +48,12 @@ describe('quiz-attempt-snapshot.util', () => {
     const config = createAttemptQuestionConfig(singleQuestion);
     expect(config).toEqual(
       expect.objectContaining({
-        options: [
-          { key: 'b', text: 'B' },
-          { key: 'a', text: 'A' },
-        ],
+        questionConfig: expect.objectContaining({
+          options: [
+            { key: 'b', text: 'B' },
+            { key: 'a', text: 'A' },
+          ],
+        }),
       }),
     );
 
@@ -75,7 +78,7 @@ describe('quiz-attempt-snapshot.util', () => {
     ]);
   });
 
-  it('returns null when a referenced question is missing or unsupported', () => {
+  it('returns null when a referenced question is missing and prepares parametric questions', () => {
     expect(
       buildAttemptQuestionSnapshots(
         {
@@ -86,12 +89,29 @@ describe('quiz-attempt-snapshot.util', () => {
       ),
     ).toBeNull();
 
-    expect(
-      createAttemptQuestionConfig({
-        questionId: 'param',
-        type: QuestionType.PARAMETRIC,
-        questionConfig: {},
-      } as never),
-    ).toBeNull();
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+
+    const prepared = createAttemptQuestionConfig({
+      questionId: 'param',
+      title: 'Param',
+      type: QuestionType.PARAMETRIC,
+      statement: 'base',
+      explanation: null,
+      tags: [],
+      questionConfig: {
+        templateId: ParametricQuestionTemplateId.SERIES_GEOMETRIC,
+        tolerance: 0.01,
+      },
+    } as never);
+
+    expect(prepared).toEqual(
+      expect.objectContaining({
+        statement: expect.stringContaining('\\sum_{n=2}^{\\infty} r^n'),
+        questionConfig: expect.objectContaining({
+          templateId: ParametricQuestionTemplateId.SERIES_GEOMETRIC,
+          correctAnswerLatex: '\\frac{1}{2}',
+        }),
+      }),
+    );
   });
 });

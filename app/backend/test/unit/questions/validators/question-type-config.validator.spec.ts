@@ -1,4 +1,5 @@
 import { QuestionType } from '../../../../src/questions/enums/question-type.enum';
+import { ParametricQuestionTemplateId } from '../../../../src/questions/types/question-type-config.type';
 import { isValidQuestionTypeConfig } from '../../../../src/questions/validators/question-type-config.validator';
 
 describe('isValidQuestionTypeConfig', () => {
@@ -36,14 +37,25 @@ describe('isValidQuestionTypeConfig', () => {
     ).toBe(true);
   });
 
-  it('rejects a parametric config with duplicate variable names', () => {
+  it('accepts and rejects parametric configs based on template and tolerance', () => {
     expect(
       isValidQuestionTypeConfig(QuestionType.PARAMETRIC, {
-        variables: [
-          { name: 'a', min: 1, max: 5 },
-          { name: 'a', min: 2, max: 8 },
-        ],
-        answerFormula: 'a + 1',
+        templateId: ParametricQuestionTemplateId.SERIES_GEOMETRIC,
+        tolerance: 0.01,
+      }),
+    ).toBe(true);
+
+    expect(
+      isValidQuestionTypeConfig(QuestionType.PARAMETRIC, {
+        templateId: 'nope',
+        tolerance: 0.01,
+      }),
+    ).toBe(false);
+
+    expect(
+      isValidQuestionTypeConfig(QuestionType.PARAMETRIC, {
+        templateId: ParametricQuestionTemplateId.SERIES_GEOMETRIC,
+        tolerance: -1,
       }),
     ).toBe(false);
   });

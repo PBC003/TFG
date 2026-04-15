@@ -1,6 +1,7 @@
 import type { TFunction } from "i18next";
 import type {
   MultipleChoiceQuestionConfig,
+  ParametricQuestionConfig,
   QuestionItem,
   QuestionOption,
   QuestionType,
@@ -8,6 +9,10 @@ import type {
   SingleChoiceQuestionConfig,
   TrueFalseQuestionConfig,
 } from "../../../types/question";
+import {
+  buildCanonicalParametricStatement,
+  PARAMETRIC_TEMPLATE_IDS,
+} from "../../../utils/parametric-question.utils";
 import type { EditableOption, FormState } from "./question-editor.types";
 
 export const QUESTION_TYPES: QuestionType[] = [
@@ -58,8 +63,18 @@ function normalizeOptionList(
   return normalized;
 }
 
+function buildDefaultParametricState(): FormState["parametric"] {
+  return {
+    templateId: PARAMETRIC_TEMPLATE_IDS[0],
+    tolerance: "0.01",
+    sampleSeed: Date.now(),
+  };
+}
+
 export function buildInitialState(question: QuestionItem | null): FormState {
   if (!question) {
+    const defaultParametric = buildDefaultParametricState();
+
     return {
       title: "",
       type: "true_false",
@@ -81,6 +96,7 @@ export function buildInitialState(question: QuestionItem | null): FormState {
         randomizeOptions: false,
         gradingMode: "all_or_nothing",
       },
+      parametric: defaultParametric,
     };
   }
 
@@ -90,11 +106,25 @@ export function buildInitialState(question: QuestionItem | null): FormState {
     question.questionConfig as Partial<SingleChoiceQuestionConfig>;
   const multipleChoiceConfig =
     question.questionConfig as Partial<MultipleChoiceQuestionConfig>;
+  const parametricConfig =
+    question.questionConfig as Partial<ParametricQuestionConfig>;
+  const defaultParametric = buildDefaultParametricState();
+  const resolvedParametric = {
+    templateId: parametricConfig.templateId ?? defaultParametric.templateId,
+    tolerance:
+      parametricConfig.tolerance === undefined
+        ? defaultParametric.tolerance
+        : String(parametricConfig.tolerance),
+    sampleSeed: Date.now(),
+  };
 
   return {
     title: question.title,
     type: question.type,
-    statement: question.statement,
+    statement:
+      question.type === "parametric"
+        ? buildCanonicalParametricStatement(resolvedParametric.templateId)
+        : question.statement,
     explanation: question.explanation ?? "",
     tags: question.tags,
     newTag: "",
@@ -120,6 +150,7 @@ export function buildInitialState(question: QuestionItem | null): FormState {
       randomizeOptions: Boolean(multipleChoiceConfig.randomizeOptions),
       gradingMode: multipleChoiceConfig.gradingMode ?? "all_or_nothing",
     },
+    parametric: resolvedParametric,
   };
 }
 
@@ -170,21 +201,18 @@ export function buildQuestionConfig(form: FormState): QuestionTypeConfig {
         gradingMode: form.multipleChoice.gradingMode,
       };
     }
-    case "parametric":
+    case "parametric": {
+      const parsedTolerance = Number.parseFloat(form.parametric.tolerance);
+
       return {
-        variables: [{ name: "a", min: 1, max: 5, step: 1 }],
-        answerFormula: "a",
-        tolerance: 0.01,
-        sampleAnswer: "a",
+        templateId: form.parametric.templateId,
+        tolerance: Number.isFinite(parsedTolerance) ? parsedTolerance : 0.01,
       };
+    }
   }
 }
 
 export function validateForm(form: FormState, t: TFunction): string | null {
-  if (form.type === "parametric") {
-    return t("questions.dialogs.parametricUnavailable");
-  }
-
   if (form.title.trim().length < 3) {
     return t("questions.dialogs.titleValidation");
   }
@@ -220,6 +248,14 @@ export function validateForm(form: FormState, t: TFunction): string | null {
 
     if (!options.some((option) => option.isCorrect)) {
       return t("questions.dialogs.multipleChoiceValidation");
+    }
+  }
+
+  if (form.type === "parametric") {
+    const parsedTolerance = Number.parseFloat(form.parametric.tolerance);
+
+    if (!Number.isFinite(parsedTolerance) || parsedTolerance < 0) {
+      return t("questions.dialogs.parametricToleranceValidation");
     }
   }
 

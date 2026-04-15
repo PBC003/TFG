@@ -1,11 +1,13 @@
-import { Alert, Stack, Typography } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { buildCanonicalParametricStatement } from "../../../utils/parametric-question.utils";
 import { QuestionTrueFalseEditor } from "../editor/QuestionTrueFalseEditor";
 import type {
   EditableOption,
   FormState,
 } from "../editor/question-editor.types";
 import { QuestionMultipleChoiceConfigSection } from "./QuestionMultipleChoiceConfigSection";
+import { QuestionParametricConfigSection } from "./QuestionParametricConfigSection";
 import { QuestionSingleChoiceConfigSection } from "./QuestionSingleChoiceConfigSection";
 
 type QuestionTypeSpecificConfigProps = {
@@ -120,9 +122,38 @@ export function QuestionTypeSpecificConfig({
       ) : null}
 
       {form.type === "parametric" ? (
-        <Alert severity="warning">
-          {t("questions.dialogs.parametricUnavailable")}
-        </Alert>
+        <QuestionParametricConfigSection
+          form={form}
+          onTemplateChange={(templateId) =>
+            onUpdateForm((current) => ({
+              ...current,
+              statement: buildCanonicalParametricStatement(templateId),
+              parametric: {
+                ...current.parametric,
+                templateId,
+                sampleSeed: Date.now(),
+              },
+            }))
+          }
+          onToleranceChange={(value) =>
+            onUpdateForm((current) => ({
+              ...current,
+              parametric: {
+                ...current.parametric,
+                tolerance: value,
+              },
+            }))
+          }
+          onRegenerateSample={() =>
+            onUpdateForm((current) => ({
+              ...current,
+              parametric: {
+                ...current.parametric,
+                sampleSeed: Date.now(),
+              },
+            }))
+          }
+        />
       ) : null}
     </Stack>
   );

@@ -6,6 +6,7 @@ import type {
 import type { QuizSubmissionQuestionReview } from '../../types/quiz.types';
 import { getReviewAvailableOptions } from './grade-attempt-feedback.util';
 import { gradeMultipleChoiceQuestion } from './grade-multiple-choice.util';
+import { gradeParametricQuestion } from './grade-parametric.util';
 import { gradeSingleChoiceQuestion } from './grade-single-choice.util';
 import { gradeTrueFalseQuestion } from './grade-true-false.util';
 import type {
@@ -67,6 +68,8 @@ function gradeQuestion(
       return gradeSingleChoiceQuestion(snapshot, submittedValue);
     case QuestionType.MULTIPLE_CHOICE:
       return gradeMultipleChoiceQuestion(snapshot, submittedValue);
+    case QuestionType.PARAMETRIC:
+      return gradeParametricQuestion(snapshot, submittedValue);
     default:
       return gradeUnsupportedQuestion(snapshot);
   }

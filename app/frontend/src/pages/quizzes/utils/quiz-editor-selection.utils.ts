@@ -2,8 +2,6 @@ import type { QuestionItem } from "../../../types/question";
 import type { SelectedQuestionState } from "../components/quiz-editor/quiz-editor-dialog.types";
 import { normalizeForSearch } from "./quiz-editor-dialog.utils";
 
-const UNSUPPORTED_QUIZ_TYPES = new Set(["parametric"]);
-
 export function buildSelectedQuestionMap(
   selectedQuestions: SelectedQuestionState[],
 ) {
@@ -89,15 +87,6 @@ export function updateQuizEditorQuestionPoints(
   );
 }
 
-export function hasUnsupportedQuizEditorQuestionType(
-  selectedQuestions: SelectedQuestionState[],
-  questionBank: QuestionItem[],
-) {
-  return selectedQuestions.some((selectedQuestion) => {
-    const question = questionBank.find(
-      (candidate) => candidate.questionId === selectedQuestion.questionId,
-    );
-
-    return question ? UNSUPPORTED_QUIZ_TYPES.has(question.type) : false;
-  });
+export function hasUnsupportedQuizEditorQuestionType() {
+  return false;
 }

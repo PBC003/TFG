@@ -1,6 +1,7 @@
 import { QuestionType } from '../../questions/enums/question-type.enum';
 import type {
   MultipleChoiceQuestionConfig,
+  ParametricQuestionConfig,
   SingleChoiceQuestionConfig,
   TrueFalseQuestionConfig,
 } from '../../questions/types/question-type-config.type';
@@ -77,10 +78,16 @@ export type PublicMultipleChoiceQuestionConfig = {
   options: PublicChoiceQuestionOption[];
 };
 
+export type PublicParametricQuestionConfig = {
+  tolerance: number;
+  inputPlaceholder: string;
+};
+
 export type PublicQuestionConfig =
   | PublicTrueFalseQuestionConfig
   | PublicSingleChoiceQuestionConfig
-  | PublicMultipleChoiceQuestionConfig;
+  | PublicMultipleChoiceQuestionConfig
+  | PublicParametricQuestionConfig;
 
 export type PublicAttemptQuestion = QuizQuestionItem & {
   explanation: string | null;
@@ -139,4 +146,14 @@ export type QuizSubmissionResult = {
 export type SupportedQuestionConfig =
   | TrueFalseQuestionConfig
   | SingleChoiceQuestionConfig
-  | MultipleChoiceQuestionConfig;
+  | MultipleChoiceQuestionConfig
+  | ParametricQuestionConfig;
+
+export type ParametricAttemptQuestionConfig = {
+  templateId: ParametricQuestionConfig['templateId'];
+  tolerance: number;
+  generatedValues: Record<string, number>;
+  correctAnswerNumeric: number;
+  correctAnswerLatex: string;
+  inputPlaceholder: string;
+};

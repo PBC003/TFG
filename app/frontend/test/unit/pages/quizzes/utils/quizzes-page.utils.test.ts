@@ -145,12 +145,7 @@ describe("quizzes page and editor utils", () => {
         "x",
       ),
     ).toEqual([{ questionId: "q-1", points: 0 }]);
-    expect(
-      hasUnsupportedQuizEditorQuestionType(
-        [{ questionId: "q-2", points: 1 }],
-        questionBank as never,
-      ),
-    ).toBe(true);
+    expect(hasUnsupportedQuizEditorQuestionType()).toBe(false);
 
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-12T10:00:00.000Z"));

@@ -1,4 +1,4 @@
-import type { QuestionType } from "./question";
+import type { ParametricQuestionTemplateId, QuestionType } from "./question";
 
 export type QuizStatus = "draft" | "published";
 export type QuizAttemptStatus = "in_progress" | "submitted" | "expired";
@@ -96,6 +96,11 @@ export interface PublicQuizCatalogItem {
   canStart: boolean;
 }
 
+export interface PublicParametricQuestionConfig {
+  tolerance: number;
+  inputPlaceholder: string;
+}
+
 export interface PublicAttemptQuestion {
   questionId: string;
   title: string;
@@ -105,7 +110,10 @@ export interface PublicAttemptQuestion {
   tags: string[];
   points: number;
   order: number;
-  questionConfig: Record<string, never> | { options: PublicChoiceOption[] };
+  questionConfig:
+    | Record<string, never>
+    | { options: PublicChoiceOption[] }
+    | PublicParametricQuestionConfig;
 }
 
 export interface QuizAttemptItem {
@@ -158,3 +166,8 @@ export interface QuizSubmissionResult {
 }
 
 export type QuizAnswerValue = boolean | string | string[] | null;
+
+export type ParametricReviewValue = {
+  templateId: ParametricQuestionTemplateId;
+  tolerance: number;
+};

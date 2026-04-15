@@ -226,10 +226,13 @@ export const es = {
       optionLabel: 'Respuesta {{index}}',
       randomizeOptions: 'Barajar respuestas al mostrar la pregunta',
       gradingMode: 'Modo de corrección',
+      parametricTemplate: 'Plantilla paramétrica',
+      parametricTolerance: 'Tolerancia de corrección',
     },
     actions: {
       addTag: 'Añadir etiqueta',
       addOption: 'Añadir respuesta',
+      regenerateParametricSample: 'Regenerar ejemplo',
     },
     table: {
       title: 'Pregunta',
@@ -264,6 +267,18 @@ export const es = {
       noTags: 'Todavía no hay etiquetas añadidas.',
       parametricUnavailable:
         'La pregunta paramétrica sigue en fase de spike y no está disponible en este editor por ahora.',
+      parametricHelper:
+        'Esta modalidad genera automáticamente una variante aleatoria de una de las cinco plantillas de Cálculo acordadas con el profesor. El alumno puede responder con un valor numérico o con una expresión aritmética equivalente.',
+      parametricToleranceHelper:
+        'Error absoluto máximo permitido al corregir la respuesta del alumno.',
+      parametricCanonicalStatement: 'Enunciado canónico almacenado',
+      parametricSampleTitle: 'Vista previa de una instancia aleatoria',
+      parametricReferenceAnswer: 'Respuesta esperada de referencia',
+      parametricSampleTolerance: 'Tolerancia aplicada en el ejemplo: ±{{tolerance}}',
+      parametricToleranceValidation:
+        'La tolerancia de la pregunta paramétrica debe ser un número mayor o igual que 0.',
+      parametricStatementHelper:
+        'El enunciado de las preguntas paramétricas se genera automáticamente a partir de la plantilla seleccionada.',
       titleValidation: 'El título debe tener al menos 3 caracteres.',
       statementValidation: 'El enunciado no puede quedar vacío.',
       optionsValidation: 'Debes definir al menos dos respuestas y rellenar el texto de todas ellas.',
@@ -283,6 +298,13 @@ export const es = {
       single_choice: 'Opción única',
       multiple_choice: 'Opción múltiple',
       parametric: 'Paramétrica',
+    },
+    parametricTemplates: {
+      limit_trigonometric: 'Límite trigonométrico con tangente y seno',
+      limit_logarithmic: 'Límite logarítmico en x → 1',
+      integral_logarithmic: 'Integral con log(x)/(bx)',
+      integral_inverse_quadratic: 'Integral de 4/(a+x²)',
+      series_geometric: 'Sumatorio geométrico desde n = 2',
     },
   },
 
@@ -365,7 +387,7 @@ export const es = {
       selectedQuestionsCount: 'Preguntas seleccionadas: {{count}}',
       questionPaginationLabel: 'Preguntas por página',
       validationMessage:
-        'Revisa el formulario: el título debe ser válido, debe haber al menos una pregunta, cada pregunta debe tener al menos 1 punto y no se admiten paramétricas en este sprint.',
+        'Revisa el formulario: el título debe ser válido, debe haber al menos una pregunta y cada pregunta debe tener al menos 1 punto.',
     },
     pagination: {
       rowsPerPage: 'Cuestionarios por página',
@@ -416,6 +438,9 @@ export const es = {
       startAnotherAttempt: 'Iniciar otro intento',
       viewBestResult: 'Ver mejor corrección',
     },
+    parametricAnswerLabel: 'Respuesta numérica o expresión equivalente',
+    parametricAnswerHelper:
+      'Se acepta un error absoluto de hasta ±{{tolerance}}. Puedes escribir valores como 1/2, pi/4 o 0.7854.',
     catalog: {
       title: 'Cuestionarios publicados disponibles',
       subtitleWithParticipant: 'Se muestran tus intentos restantes estimados para tu cuenta en cada cuestionario.',

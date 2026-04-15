@@ -66,9 +66,11 @@ describe("question-editor.utils", () => {
     expect(state.singleChoice.options).toHaveLength(2);
     expect(state.singleChoice.options[0]?.isCorrect).toBe(true);
     expect(state.multipleChoice.gradingMode).toBe("all_or_nothing");
+    expect(state.parametric.templateId).toBe("limit_trigonometric");
+    expect(state.parametric.tolerance).toBe("0.01");
   });
 
-  it("hydrates true/false and choice questions using safe fallbacks", () => {
+  it("hydrates true/false, choice and parametric questions using safe fallbacks", () => {
     const trueFalse: QuestionItem = {
       ...baseQuestion,
       type: "true_false",
@@ -85,13 +87,26 @@ describe("question-editor.utils", () => {
         correctOptionKey: "b",
       },
     };
+    const parametric: QuestionItem = {
+      ...baseQuestion,
+      type: "parametric",
+      statement: "texto libre que debe regenerarse",
+      questionConfig: {
+        templateId: "integral_logarithmic",
+        tolerance: 0.001,
+      },
+    };
     const tfState = buildInitialState(trueFalse);
     const scState = buildInitialState(singleChoice);
     const mcState = buildInitialState(baseQuestion);
+    const pState = buildInitialState(parametric);
     expect(tfState.trueFalse.correctAnswer).toBe(false);
     expect(scState.singleChoice.options[1]?.isCorrect).toBe(true);
     expect(mcState.multipleChoice.options[0]?.isCorrect).toBe(true);
     expect(mcState.multipleChoice.randomizeOptions).toBe(true);
+    expect(pState.parametric.templateId).toBe("integral_logarithmic");
+    expect(pState.parametric.tolerance).toBe("0.001");
+    expect(pState.statement).toContain("\\int_{1}^{e}");
   });
 
   it("normalizes tags and keeps at least one correct option", () => {
@@ -136,6 +151,11 @@ describe("question-editor.utils", () => {
         randomizeOptions: false,
         gradingMode: "partial_credit" as const,
       },
+      parametric: {
+        templateId: "series_geometric" as const,
+        tolerance: "0.005",
+        sampleSeed: 1,
+      },
     };
     expect(buildQuestionConfig({ ...common, type: "true_false" })).toEqual({
       correctAnswer: false,
@@ -162,10 +182,8 @@ describe("question-editor.utils", () => {
       },
     );
     expect(buildQuestionConfig({ ...common, type: "parametric" })).toEqual({
-      variables: [{ name: "a", min: 1, max: 5, step: 1 }],
-      answerFormula: "a",
-      tolerance: 0.01,
-      sampleAnswer: "a",
+      templateId: "series_geometric",
+      tolerance: 0.005,
     });
   });
 
@@ -191,10 +209,13 @@ describe("question-editor.utils", () => {
       option.text = `opcion-${index}`;
       option.isCorrect = false;
     });
-    const parametric = buildInitialState(null);
-    parametric.type = "parametric";
-    expect(validateForm(parametric, t)).toBe(
-      "questions.dialogs.parametricUnavailable",
+    const invalidParametric = buildInitialState(null);
+    invalidParametric.title = "Param válida";
+    invalidParametric.type = "parametric";
+    invalidParametric.statement = "stmt";
+    invalidParametric.parametric.tolerance = "-1";
+    expect(validateForm(invalidParametric, t)).toBe(
+      "questions.dialogs.parametricToleranceValidation",
     );
     expect(validateForm(invalidTitle, t)).toBe(
       "questions.dialogs.titleValidation",

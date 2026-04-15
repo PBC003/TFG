@@ -4,6 +4,13 @@ export type QuestionType =
   | "multiple_choice"
   | "parametric";
 
+export type ParametricQuestionTemplateId =
+  | "limit_trigonometric"
+  | "limit_logarithmic"
+  | "integral_logarithmic"
+  | "integral_inverse_quadratic"
+  | "series_geometric";
+
 export interface QuestionOption {
   key: string;
   text: string;
@@ -29,19 +36,9 @@ export interface MultipleChoiceQuestionConfig {
   gradingMode?: "all_or_nothing" | "partial_credit";
 }
 
-export interface ParametricQuestionVariable {
-  name: string;
-  min: number;
-  max: number;
-  step?: number;
-  precision?: number;
-}
-
 export interface ParametricQuestionConfig {
-  variables: ParametricQuestionVariable[];
-  answerFormula: string;
+  templateId: ParametricQuestionTemplateId;
   tolerance?: number;
-  sampleAnswer?: string;
 }
 
 export type QuestionTypeConfig =

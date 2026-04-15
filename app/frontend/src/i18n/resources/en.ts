@@ -226,10 +226,13 @@ export const en = {
       optionLabel: 'Answer {{index}}',
       randomizeOptions: 'Shuffle answers when showing the question',
       gradingMode: 'Grading mode',
+      parametricTemplate: 'Parametric template',
+      parametricTolerance: 'Grading tolerance',
     },
     actions: {
       addTag: 'Add tag',
       addOption: 'Add answer',
+      regenerateParametricSample: 'Regenerate sample',
     },
     table: {
       title: 'Question',
@@ -253,12 +256,26 @@ export const en = {
         'Text fields accept LaTeX notation. You can write expressions with delimiters such as $...$, $$...$$, \\(...\\) and \\[...\\].',
       latexFieldHelper:
         'You can write plain text and mathematical expressions with LaTeX in this field.',
+      perFieldPreviewHelper:
+        'Each LaTeX-capable field has its own preview button so you can inspect a formula without blocking the rest of the form.',
       feedbackRuleHelper:
         'This feedback acts as the general fallback. If a selected answer has specific feedback, that text should take priority.',
       tagPlaceholder: 'Example: derivatives',
       noTags: 'No tags have been added yet.',
       parametricUnavailable:
         'Parametric questions are still in spike mode and are not available in this editor yet.',
+      parametricHelper:
+        'This mode automatically generates a random variant of one of the five Calculus templates agreed with the teacher. Students may answer with a numeric value or an equivalent arithmetic expression.',
+      parametricToleranceHelper:
+        'Maximum absolute error allowed when grading the student answer.',
+      parametricCanonicalStatement: 'Stored canonical statement',
+      parametricSampleTitle: 'Random instance preview',
+      parametricReferenceAnswer: 'Reference expected answer',
+      parametricSampleTolerance: 'Tolerance applied in the sample: ±{{tolerance}}',
+      parametricToleranceValidation:
+        'The parametric question tolerance must be a number greater than or equal to 0.',
+      parametricStatementHelper:
+        'The statement of parametric questions is generated automatically from the selected template.',
       titleValidation: 'Title must contain at least 3 characters.',
       statementValidation: 'Statement cannot be empty.',
       optionsValidation: 'You must define at least two answers and provide text for all of them.',
@@ -278,6 +295,13 @@ export const en = {
       single_choice: 'Single choice',
       multiple_choice: 'Multiple choice',
       parametric: 'Parametric',
+    },
+    parametricTemplates: {
+      limit_trigonometric: 'Trigonometric limit with tangent and sine',
+      limit_logarithmic: 'Logarithmic limit at x → 1',
+      integral_logarithmic: 'Integral with log(x)/(bx)',
+      integral_inverse_quadratic: 'Integral of 4/(a+x²)',
+      series_geometric: 'Geometric series from n = 2',
     },
   },
 
@@ -360,7 +384,7 @@ export const en = {
       selectedQuestionsCount: 'Selected questions: {{count}}',
       questionPaginationLabel: 'Questions per page',
       validationMessage:
-        'Review the form: the title must be valid, at least one question is required, every selected question must have at least 1 point, and parametric questions are not supported in this sprint.',
+        'Review the form: the title must be valid, at least one question is required, and every selected question must have at least 1 point.',
     },
     pagination: {
       rowsPerPage: 'Quizzes per page',
@@ -411,6 +435,9 @@ export const en = {
       startAnotherAttempt: 'Start another attempt',
       viewBestResult: 'View best review',
     },
+    parametricAnswerLabel: 'Numeric answer or equivalent expression',
+    parametricAnswerHelper:
+      'An absolute error up to ±{{tolerance}} is accepted. You can write values such as 1/2, pi/4 or 0.7854.',
     catalog: {
       title: 'Available published quizzes',
       subtitleWithParticipant: 'Your estimated remaining attempts for your account are shown for each quiz.',

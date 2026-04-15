@@ -28,7 +28,7 @@ describe("QuestionEditorDialogActions", () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
-  it("disables the submit button for parametric and submitting states", () => {
+  it("keeps parametric submit enabled and still disables all actions while submitting", () => {
     const { rerender } = render(
       <QuestionEditorDialogActions
         questionId="q-1"
@@ -40,7 +40,7 @@ describe("QuestionEditorDialogActions", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "common.save" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "common.save" })).toBeEnabled();
 
     rerender(
       <QuestionEditorDialogActions

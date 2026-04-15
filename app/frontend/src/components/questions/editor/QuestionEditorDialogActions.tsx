@@ -14,7 +14,6 @@ type QuestionEditorDialogActionsProps = {
 
 export function QuestionEditorDialogActions({
   questionId,
-  form,
   submitting,
   t,
   onClose,
@@ -28,7 +27,7 @@ export function QuestionEditorDialogActions({
       <Button
         onClick={() => void onSubmit()}
         variant="contained"
-        disabled={submitting || form.type === "parametric"}
+        disabled={submitting}
       >
         {questionId ? t("common.save") : t("common.create")}
       </Button>

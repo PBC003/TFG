@@ -1,4 +1,5 @@
 import { QuestionType } from '../../../../src/questions/enums/question-type.enum';
+import { ParametricQuestionTemplateId } from '../../../../src/questions/types/question-type-config.type';
 import {
   normalizeQuestionTypeConfig,
   validateMathTextContent,
@@ -66,14 +67,12 @@ describe('question-math-content.util', () => {
 
     expect(
       normalizeQuestionTypeConfig(QuestionType.PARAMETRIC, {
-        variables: [{ name: ' x ', min: 1, max: 5 }],
-        answerFormula: ' x^2 + 1 ',
-        sampleAnswer: ' 5 ',
+        templateId: ParametricQuestionTemplateId.INTEGRAL_LOGARITHMIC,
+        tolerance: 0.0100004,
       }),
     ).toEqual({
-      variables: [{ name: 'x', min: 1, max: 5 }],
-      answerFormula: 'x^2 + 1',
-      sampleAnswer: '5',
+      templateId: ParametricQuestionTemplateId.INTEGRAL_LOGARITHMIC,
+      tolerance: 0.01,
     });
   });
 
@@ -95,12 +94,11 @@ describe('question-math-content.util', () => {
 
     const invalidResult = validateQuestionMathContent(
       QuestionType.PARAMETRIC,
-      'Calcula la integral.',
+      'Calcula $$\\int_0^1 x dx$ mal delimitado',
       'Explicación correcta.',
       {
-        variables: [{ name: 'x', min: 0, max: 1 }],
-        answerFormula: '$$\\int_0^1 x dx$',
-        sampleAnswer: 'Resultado <script>mal</script>',
+        templateId: ParametricQuestionTemplateId.INTEGRAL_LOGARITHMIC,
+        tolerance: 0.01,
       },
     );
 
@@ -108,14 +106,10 @@ describe('question-math-content.util', () => {
     expect(invalidResult.errors).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          field: 'questionConfig.answerFormula',
-          message:
-            'Inline dollar delimiters cannot appear inside $$...$$ blocks',
+          field: 'statement',
         }),
         expect.objectContaining({
-          field: 'questionConfig.sampleAnswer',
-          message:
-            'HTML executable content is not allowed in math-capable text fields',
+          field: `questionConfig.template.${ParametricQuestionTemplateId.INTEGRAL_LOGARITHMIC}`,
         }),
       ]),
     );

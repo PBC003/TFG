@@ -6,6 +6,7 @@ import type {
 } from '../../questions/types/question-type-config.type';
 import type { QuizAttemptDocument } from '../schemas/quiz-attempt.schema';
 import type {
+  ParametricAttemptQuestionConfig,
   PublicAttemptQuestion,
   QuizAttemptItem,
   QuizSubmissionQuestionReview,
@@ -35,6 +36,13 @@ function sanitizeQuestionConfig(
           key: option.key,
           text: option.text,
         })),
+      };
+    }
+    case QuestionType.PARAMETRIC: {
+      const config = questionConfig as ParametricAttemptQuestionConfig;
+      return {
+        tolerance: config.tolerance,
+        inputPlaceholder: config.inputPlaceholder,
       };
     }
     default:

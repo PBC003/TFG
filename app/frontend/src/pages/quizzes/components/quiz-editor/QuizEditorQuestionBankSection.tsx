@@ -52,7 +52,6 @@ export const QuizEditorQuestionBankSection = memo(
     submitting,
     loading,
     searchPlaceholder,
-    unsupportedTypeLabel,
     questionsSectionTitle,
     questionPointsLabel,
     noQuestionsLabel,
@@ -119,8 +118,6 @@ export const QuizEditorQuestionBankSection = memo(
                   question.questionId,
                 );
                 const isSelected = Boolean(selectedQuestion);
-                const isUnsupported = question.type === "parametric";
-
                 return (
                   <ListItem
                     key={question.questionId}
@@ -143,7 +140,7 @@ export const QuizEditorQuestionBankSection = memo(
                               <Checkbox
                                 checked={isSelected}
                                 onChange={() => onToggleQuestion(question)}
-                                disabled={submitting || isUnsupported}
+                                disabled={submitting}
                               />
                               <Typography variant="subtitle1" fontWeight={700}>
                                 {question.title}
@@ -158,16 +155,8 @@ export const QuizEditorQuestionBankSection = memo(
                               <Chip
                                 size="small"
                                 label={question.type}
-                                color={isUnsupported ? "warning" : "default"}
+                                color="default"
                               />
-                              {isUnsupported ? (
-                                <Chip
-                                  size="small"
-                                  label={unsupportedTypeLabel}
-                                  color="warning"
-                                  variant="outlined"
-                                />
-                              ) : null}
                               {question.tags.map((tag) => (
                                 <Chip
                                   key={`${question.questionId}-${tag}`}
@@ -203,7 +192,7 @@ export const QuizEditorQuestionBankSection = memo(
                             size="small"
                             variant={isSelected ? "outlined" : "contained"}
                             onClick={() => onToggleQuestion(question)}
-                            disabled={submitting || isUnsupported}
+                            disabled={submitting}
                             startIcon={
                               isSelected ? (
                                 <RemoveCircleOutlineRoundedIcon />

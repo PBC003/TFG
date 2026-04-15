@@ -140,7 +140,7 @@ describe('QuizzesSharedService', () => {
     });
   });
 
-  it('validates referenced questions and rejects unsupported types', async () => {
+  it('validates referenced questions and accepts supported parametric types', async () => {
     const { service, questionModel } = createService();
 
     questionModel.find.mockReturnValueOnce(
@@ -154,18 +154,9 @@ describe('QuizzesSharedService', () => {
     ).rejects.toMatchObject({ status: HttpStatus.BAD_REQUEST });
 
     questionModel.find.mockReturnValueOnce(
-      createExecChain([{ questionId: 'q-1', type: QuestionType.PARAMETRIC }]),
-    );
-    await expect(
-      service.assertQuestionReferencesAreValid([
-        { questionId: 'q-1', points: 1 },
-      ]),
-    ).rejects.toMatchObject({ status: HttpStatus.BAD_REQUEST });
-
-    questionModel.find.mockReturnValueOnce(
       createExecChain([
-        { questionId: 'q-1', type: QuestionType.TRUE_FALSE },
-        { questionId: 'q-2', type: QuestionType.MULTIPLE_CHOICE },
+        { questionId: 'q-1', type: QuestionType.PARAMETRIC },
+        { questionId: 'q-2', type: QuestionType.TRUE_FALSE },
       ]),
     );
     await expect(

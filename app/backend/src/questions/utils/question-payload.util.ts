@@ -2,8 +2,12 @@ import { CreateQuestionDto } from '../dto/create-question.dto';
 import { UpdateQuestionDto } from '../dto/update-question.dto';
 import { QuestionType } from '../enums/question-type.enum';
 import type { QuestionDocument } from '../schemas/question.schema';
-import type { QuestionTypeConfig } from '../types/question-type-config.type';
+import type {
+  ParametricQuestionConfig,
+  QuestionTypeConfig,
+} from '../types/question-type-config.type';
 import { normalizeQuestionTypeConfig } from './question-math-content.util';
+import { buildCanonicalParametricQuestionStatement } from './parametric-question-template.util';
 
 export type NormalizedCreateQuestionData = {
   title: string;
@@ -32,17 +36,25 @@ export type ValidatedQuestionSnapshot = {
 
 export const normalizeCreateQuestionData = (
   payload: CreateQuestionDto,
-): NormalizedCreateQuestionData => ({
-  title: payload.title.trim(),
-  type: payload.type,
-  statement: payload.statement.trim(),
-  explanation: normalizeOptionalExplanation(payload.explanation),
-  tags: normalizeTags(payload.tags),
-  questionConfig: normalizeQuestionTypeConfig(
+): NormalizedCreateQuestionData => {
+  const normalizedQuestionConfig = normalizeQuestionTypeConfig(
     payload.type,
     payload.questionConfig as QuestionTypeConfig,
-  ),
-});
+  );
+
+  return {
+    title: payload.title.trim(),
+    type: payload.type,
+    statement: resolveCanonicalStatement(
+      payload.type,
+      payload.statement.trim(),
+      normalizedQuestionConfig,
+    ),
+    explanation: normalizeOptionalExplanation(payload.explanation),
+    tags: normalizeTags(payload.tags),
+    questionConfig: normalizedQuestionConfig,
+  };
+};
 
 export const normalizeUpdateQuestionData = (
   payload: UpdateQuestionDto,
@@ -91,7 +103,11 @@ export const resolveValidatedQuestionSnapshot = (
 
   return {
     type: nextType,
-    statement: payload.statement ?? question.statement,
+    statement: resolveCanonicalStatement(
+      nextType,
+      payload.statement ?? question.statement,
+      nextQuestionConfig,
+    ),
     explanation:
       payload.explanation === undefined
         ? question.explanation
@@ -130,6 +146,26 @@ export const applyQuestionUpdate = (
       payload.questionConfig,
     );
   }
+
+  question.statement = resolveCanonicalStatement(
+    question.type,
+    question.statement,
+    question.questionConfig,
+  );
+};
+
+const resolveCanonicalStatement = (
+  type: QuestionType,
+  statement: string,
+  questionConfig: QuestionTypeConfig,
+): string => {
+  if (type !== QuestionType.PARAMETRIC) {
+    return statement;
+  }
+
+  return buildCanonicalParametricQuestionStatement(
+    questionConfig as ParametricQuestionConfig,
+  );
 };
 
 const normalizeOptionalExplanation = (

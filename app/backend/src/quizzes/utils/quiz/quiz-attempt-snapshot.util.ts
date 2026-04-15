@@ -1,13 +1,18 @@
 import { QuestionType } from '../../../questions/enums/question-type.enum';
 import type { QuestionDocument } from '../../../questions/schemas/question.schema';
+import { generateParametricQuestionInstance } from '../../../questions/utils/parametric-question-template.util';
 import type {
   MultipleChoiceQuestionConfig,
+  ParametricQuestionConfig,
   SingleChoiceQuestionConfig,
   TrueFalseQuestionConfig,
 } from '../../../questions/types/question-type-config.type';
 import type { QuizAttemptDocument } from '../../schemas/quiz-attempt.schema';
 import type { QuizDocument } from '../../schemas/quiz.schema';
-import type { SupportedQuestionConfig } from '../../types/quiz.types';
+import type {
+  ParametricAttemptQuestionConfig,
+  SupportedQuestionConfig,
+} from '../../types/quiz.types';
 
 function shuffleItems<T>(items: T[]): T[] {
   const clonedItems = [...items];
@@ -22,32 +27,58 @@ function shuffleItems<T>(items: T[]): T[] {
   return clonedItems;
 }
 
-export function createAttemptQuestionConfig(
-  question: QuestionDocument,
-): SupportedQuestionConfig | null {
+export function createAttemptQuestionConfig(question: QuestionDocument): {
+  questionConfig: SupportedQuestionConfig | ParametricAttemptQuestionConfig;
+  statement: string;
+} | null {
   switch (question.type) {
     case QuestionType.TRUE_FALSE: {
       const config = question.questionConfig as TrueFalseQuestionConfig;
-      return { ...config };
+      return {
+        statement: question.statement,
+        questionConfig: { ...config },
+      };
     }
     case QuestionType.SINGLE_CHOICE: {
       const config = question.questionConfig as SingleChoiceQuestionConfig;
 
       return {
-        ...config,
-        options: config.randomizeOptions
-          ? shuffleItems(config.options)
-          : [...config.options],
+        statement: question.statement,
+        questionConfig: {
+          ...config,
+          options: config.randomizeOptions
+            ? shuffleItems(config.options)
+            : [...config.options],
+        },
       };
     }
     case QuestionType.MULTIPLE_CHOICE: {
       const config = question.questionConfig as MultipleChoiceQuestionConfig;
 
       return {
-        ...config,
-        options: config.randomizeOptions
-          ? shuffleItems(config.options)
-          : [...config.options],
+        statement: question.statement,
+        questionConfig: {
+          ...config,
+          options: config.randomizeOptions
+            ? shuffleItems(config.options)
+            : [...config.options],
+        },
+      };
+    }
+    case QuestionType.PARAMETRIC: {
+      const config = question.questionConfig as ParametricQuestionConfig;
+      const instance = generateParametricQuestionInstance(config);
+
+      return {
+        statement: instance.statement,
+        questionConfig: {
+          templateId: instance.templateId,
+          tolerance: instance.tolerance,
+          generatedValues: instance.generatedValues,
+          correctAnswerNumeric: instance.correctAnswerNumeric,
+          correctAnswerLatex: instance.correctAnswerLatex,
+          inputPlaceholder: instance.inputPlaceholder,
+        },
       };
     }
     default:
@@ -66,9 +97,9 @@ export function buildAttemptQuestionSnapshots(
       return null;
     }
 
-    const orderedConfig = createAttemptQuestionConfig(question);
+    const prepared = createAttemptQuestionConfig(question);
 
-    if (!orderedConfig) {
+    if (!prepared) {
       return null;
     }
 
@@ -76,12 +107,12 @@ export function buildAttemptQuestionSnapshots(
       questionId: question.questionId,
       title: question.title,
       type: question.type,
-      statement: question.statement,
+      statement: prepared.statement,
       explanation: question.explanation,
       tags: question.tags,
       points: quizQuestion.points,
       order: 0,
-      questionConfig: orderedConfig,
+      questionConfig: prepared.questionConfig,
     };
   });
 

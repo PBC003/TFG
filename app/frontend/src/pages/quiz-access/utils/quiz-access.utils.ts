@@ -123,6 +123,14 @@ export function formatQuizReviewAnswerValue(
       .join(", ");
   }
 
+  if (review.type === "parametric") {
+    if (typeof value !== "string" || value.trim().length === 0) {
+      return t("quizAccess.notAnswered");
+    }
+
+    return value.trim();
+  }
+
   return t("quizAccess.notAnswered");
 }
 

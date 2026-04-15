@@ -114,7 +114,7 @@ describe("QuizEditorQuestionBankSection", () => {
     expect(screen.getByText("empty")).toBeInTheDocument();
   });
 
-  it("renders selected and unsupported questions and delegates callbacks", () => {
+  it("renders selected questions and delegates callbacks for supported parametric items too", () => {
     const onSearchChange = vi.fn();
     const onQuestionPageChange = vi.fn();
     const onRowsPerPageChange = vi.fn();
@@ -128,8 +128,8 @@ describe("QuizEditorQuestionBankSection", () => {
       type: "parametric",
       statement: "Statement 2",
       questionConfig: {
-        variables: [],
-        answerFormula: "x",
+        templateId: "series_geometric",
+        tolerance: 0.01,
       },
     };
 
@@ -183,8 +183,16 @@ describe("QuizEditorQuestionBankSection", () => {
     );
     fireEvent.click(questionOneWithin.getByRole("button", { name: "cancel" }));
 
-    expect(screen.getByText("unsupported")).toBeInTheDocument();
+    const questionTwoHeading = screen.getByRole("heading", {
+      name: "Question 2",
+    });
+    const questionTwoItem = questionTwoHeading.closest("li");
+    expect(questionTwoItem).not.toBeNull();
+    expect(
+      within(questionTwoItem as HTMLElement).getByText("parametric"),
+    ).toBeInTheDocument();
     expect(screen.getByText("Statement 1")).toBeInTheDocument();
+    expect(screen.getByText("Statement 2")).toBeInTheDocument();
     expect(onSearchChange).toHaveBeenCalledWith("nuevo");
     expect(onToggleQuestion).toHaveBeenCalledWith(baseQuestion);
     expect(onUpdateQuestionPoints).toHaveBeenCalledWith("q-1", "4");

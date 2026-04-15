@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { useEffect, useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { QuestionTypeSpecificConfig } from "../../../../../src/components/questions/config/QuestionTypeSpecificConfig";
@@ -124,6 +125,11 @@ const baseForm: FormState = {
     randomizeOptions: false,
     gradingMode: "all_or_nothing",
   },
+  parametric: {
+    templateId: "limit_trigonometric",
+    tolerance: "0.01",
+    sampleSeed: 1,
+  },
 };
 
 function renderConfig(
@@ -147,7 +153,7 @@ function renderConfig(
   const onTogglePreview = overrides.onTogglePreview ?? vi.fn();
   const isPreview = overrides.isPreview ?? vi.fn(() => false);
 
-  render(
+  const view = render(
     <QuestionTypeSpecificConfig
       form={form}
       latexFieldHelper="latex"
@@ -173,6 +179,60 @@ function renderConfig(
     onRemoveMultipleChoiceOption,
     onTogglePreview,
     isPreview,
+    rerender: (nextForm: FormState) =>
+      view.rerender(
+        <QuestionTypeSpecificConfig
+          form={nextForm}
+          latexFieldHelper="latex"
+          isPreview={isPreview}
+          onTogglePreview={onTogglePreview}
+          onUpdateForm={onUpdateForm}
+          onUpdateSingleChoiceOption={onUpdateSingleChoiceOption}
+          onUpdateMultipleChoiceOption={onUpdateMultipleChoiceOption}
+          onAddSingleChoiceOption={onAddSingleChoiceOption}
+          onAddMultipleChoiceOption={onAddMultipleChoiceOption}
+          onRemoveSingleChoiceOption={onRemoveSingleChoiceOption}
+          onRemoveMultipleChoiceOption={onRemoveMultipleChoiceOption}
+        />,
+      ),
+  };
+}
+
+function renderStatefulParametricConfig(initialForm: FormState) {
+  const state = {
+    latestForm: initialForm,
+  };
+
+  function Harness() {
+    const [form, setForm] = useState<FormState>(initialForm);
+
+    useEffect(() => {
+      state.latestForm = form;
+    }, [form]);
+
+    return (
+      <QuestionTypeSpecificConfig
+        form={form}
+        latexFieldHelper="latex"
+        isPreview={() => false}
+        onTogglePreview={vi.fn()}
+        onUpdateForm={(updater) => {
+          setForm((current) => updater(current));
+        }}
+        onUpdateSingleChoiceOption={vi.fn()}
+        onUpdateMultipleChoiceOption={vi.fn()}
+        onAddSingleChoiceOption={vi.fn()}
+        onAddMultipleChoiceOption={vi.fn()}
+        onRemoveSingleChoiceOption={vi.fn()}
+        onRemoveMultipleChoiceOption={vi.fn()}
+      />
+    );
+  }
+
+  render(<Harness />);
+
+  return {
+    getForm: () => state.latestForm,
   };
 }
 
@@ -281,7 +341,7 @@ describe("QuestionTypeSpecificConfig", () => {
     expect(onTogglePreview).toHaveBeenCalledWith("singleChoice.options.0.text");
   });
 
-  it("renders the multiple-choice branch, updates grading mode and shows the parametric warning", async () => {
+  it("renders the multiple-choice branch and updates grading mode", async () => {
     const user = userEvent.setup();
     const multipleChoiceForm: FormState = {
       ...baseForm,
@@ -356,11 +416,60 @@ describe("QuestionTypeSpecificConfig", () => {
     expect(onTogglePreview).toHaveBeenCalledWith(
       "multipleChoice.options.0.text",
     );
+  });
 
-    const parametricForm: FormState = { ...baseForm, type: "parametric" };
-    renderConfig(parametricForm);
+  it("renders the parametric branch and updates template, tolerance and sample seed", async () => {
+    const user = userEvent.setup();
+    const dateNowSpy = vi.spyOn(Date, "now").mockReturnValue(202);
+
+    const initialForm: FormState = {
+      ...structuredClone(baseForm),
+      type: "parametric",
+    };
+
+    const { getForm } = renderStatefulParametricConfig(initialForm);
+
     expect(
-      screen.getByText("questions.dialogs.parametricUnavailable"),
+      screen.getByText("questions.dialogs.parametricHelper"),
     ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("questions.fields.parametricTemplate"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("questions.fields.parametricTolerance"),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("combobox", {
+        name: "questions.fields.parametricTemplate",
+      }),
+    );
+    await user.click(
+      screen.getByRole("option", {
+        name: "questions.parametricTemplates.integral_logarithmic",
+      }),
+    );
+
+    fireEvent.change(
+      screen.getByLabelText("questions.fields.parametricTolerance"),
+      {
+        target: { value: "0.25" },
+      },
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "questions.actions.regenerateParametricSample",
+      }),
+    );
+
+    const currentForm = getForm();
+
+    expect(currentForm.parametric.templateId).toBe("integral_logarithmic");
+    expect(currentForm.statement).toContain("\\int_{1}^{e}");
+    expect(currentForm.parametric.tolerance).toBe("0.25");
+    expect(currentForm.parametric.sampleSeed).toBe(202);
+
+    dateNowSpy.mockRestore();
   });
 });

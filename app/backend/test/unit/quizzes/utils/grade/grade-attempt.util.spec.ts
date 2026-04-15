@@ -56,23 +56,30 @@ describe('grade-attempt.util', () => {
     },
   };
 
-  it('grades complete attempts ordered by question order and handles unsupported types', () => {
-    const unsupportedSnapshot = {
-      questionId: 'q-unsupported',
-      title: 'Unsupported',
+  it('grades complete attempts ordered by question order, including parametric questions', () => {
+    const parametricSnapshot = {
+      questionId: 'q-parametric',
+      title: 'Parametric',
       type: QuestionType.PARAMETRIC,
-      statement: 'x',
-      explanation: 'unsupported explanation',
+      statement: 'Calcula',
+      explanation: 'param explanation',
       tags: [],
       points: 3,
       order: 3,
-      questionConfig: {},
+      questionConfig: {
+        templateId: 'series_geometric',
+        tolerance: 0.01,
+        generatedValues: { i: 2, r: 0.5 },
+        correctAnswerNumeric: 0.5,
+        correctAnswerLatex: '\\frac{1}{2}',
+        inputPlaceholder: 'Ej.: 1/2',
+      },
     };
 
     const result = gradeAttempt(
       [
         singleChoiceSnapshot,
-        unsupportedSnapshot as never,
+        parametricSnapshot as never,
         trueFalseSnapshot,
         multipleChoiceSnapshot,
       ],
@@ -80,16 +87,17 @@ describe('grade-attempt.util', () => {
         ['q-single', 'a'],
         ['q-tf', true],
         ['q-multi', ['a', 'b']],
+        ['q-parametric', '1/2'],
       ]),
     );
 
     expect(result.maxPoints).toBe(10);
-    expect(result.earnedPoints).toBe(7);
+    expect(result.earnedPoints).toBe(10);
     expect(result.answers.map((answer) => answer.questionId)).toEqual([
       'q-tf',
       'q-multi',
       'q-single',
-      'q-unsupported',
+      'q-parametric',
     ]);
     expect(result.review[1]).toEqual(
       expect.objectContaining({
@@ -103,9 +111,9 @@ describe('grade-attempt.util', () => {
     );
     expect(result.review[3]).toEqual(
       expect.objectContaining({
-        questionId: 'q-unsupported',
-        isCorrect: false,
-        feedback: 'unsupported explanation',
+        questionId: 'q-parametric',
+        isCorrect: true,
+        correctValue: '$\\frac{1}{2}$',
       }),
     );
   });
