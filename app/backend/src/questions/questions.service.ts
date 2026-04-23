@@ -3,10 +3,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { type PublicUser } from '../auth/auth.service';
 import { createAppErrorBody } from '../common/errors/app-http.exception';
+import { Role } from '../users/enums/role.enum';
+import { QuestionType } from './enums/question-type.enum';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import { Question, type QuestionDocument } from './schemas/question.schema';
-import type { QuestionItem } from './types/question-item.type.ts';
+import type { QuestionItem } from './types/question-item.type';
 import { toQuestionItem } from './utils/question-item.util';
 import {
   applyQuestionUpdate,
@@ -16,6 +18,9 @@ import {
 } from './utils/question-payload.util';
 import { assertValidQuestionContent } from './utils/question-validation.util';
 export type { QuestionItem } from './types/question-item.type';
+
+export type AuthorizedQuestionUser = Pick<PublicUser, 'id' | 'role'>;
+
 @Injectable()
 export class QuestionsService {
   constructor(
@@ -25,10 +30,11 @@ export class QuestionsService {
 
   async createQuestion(
     createQuestionDto: CreateQuestionDto,
-    user: Pick<PublicUser, 'id'>,
+    user: AuthorizedQuestionUser,
   ): Promise<QuestionItem> {
     const normalizedPayload = normalizeCreateQuestionData(createQuestionDto);
 
+    this.assertParametricMutationIsAllowed(normalizedPayload.type, user);
     assertValidQuestionContent(normalizedPayload);
 
     const question = await this.questionModel.create({
@@ -40,7 +46,16 @@ export class QuestionsService {
     return toQuestionItem(question);
   }
 
-  async listQuestions(): Promise<QuestionItem[]> {
+  async listQuestions(user: AuthorizedQuestionUser): Promise<QuestionItem[]> {
+    const questions = await this.questionModel
+      .find(this.buildQuestionVisibilityFilter(user))
+      .sort({ updatedAt: -1, createdAt: -1 })
+      .exec();
+
+    return questions.map(toQuestionItem);
+  }
+
+  async listQuestionBank(): Promise<QuestionItem[]> {
     const questions = await this.questionModel
       .find({ isArchived: { $ne: true } })
       .sort({ updatedAt: -1, createdAt: -1 })
@@ -49,8 +64,14 @@ export class QuestionsService {
     return questions.map(toQuestionItem);
   }
 
-  async findQuestionById(questionId: string): Promise<QuestionItem> {
-    const question = await this.findActiveQuestionDocumentOrThrow(questionId);
+  async findQuestionById(
+    questionId: string,
+    user: AuthorizedQuestionUser,
+  ): Promise<QuestionItem> {
+    const question = await this.findVisibleQuestionDocumentOrThrow(
+      questionId,
+      user,
+    );
 
     return toQuestionItem(question);
   }
@@ -58,9 +79,12 @@ export class QuestionsService {
   async updateQuestion(
     questionId: string,
     updateQuestionDto: UpdateQuestionDto,
-    user: Pick<PublicUser, 'id'>,
+    user: AuthorizedQuestionUser,
   ): Promise<QuestionItem> {
-    const question = await this.findActiveQuestionDocumentOrThrow(questionId);
+    const question = await this.findVisibleQuestionDocumentOrThrow(
+      questionId,
+      user,
+    );
 
     this.assertUpdatePayloadHasChanges(updateQuestionDto);
 
@@ -70,6 +94,7 @@ export class QuestionsService {
       normalizedPayload,
     );
 
+    this.assertParametricMutationIsAllowed(nextQuestionSnapshot.type, user);
     assertValidQuestionContent(nextQuestionSnapshot);
 
     applyQuestionUpdate(question, normalizedPayload);
@@ -83,9 +108,12 @@ export class QuestionsService {
 
   async deleteQuestion(
     questionId: string,
-    user: Pick<PublicUser, 'id'>,
+    user: AuthorizedQuestionUser,
   ): Promise<void> {
-    const question = await this.findActiveQuestionDocumentOrThrow(questionId);
+    const question = await this.findVisibleQuestionDocumentOrThrow(
+      questionId,
+      user,
+    );
 
     question.isArchived = true;
     question.archivedAt = new Date();
@@ -96,23 +124,28 @@ export class QuestionsService {
     await question.save();
   }
 
-  private async findQuestionDocumentOrThrow(
-    questionId: string,
-  ): Promise<QuestionDocument> {
-    const question = await this.questionModel.findOne({ questionId }).exec();
-
-    if (!question) {
-      this.throwQuestionNotFound();
+  private buildQuestionVisibilityFilter(
+    user: AuthorizedQuestionUser,
+  ): Record<string, unknown> {
+    if (user.role === Role.ADMIN) {
+      return { isArchived: { $ne: true } };
     }
 
-    return question;
+    return {
+      isArchived: { $ne: true },
+      createdByUserId: user.id,
+    };
   }
 
-  private async findActiveQuestionDocumentOrThrow(
+  private async findVisibleQuestionDocumentOrThrow(
     questionId: string,
+    user: AuthorizedQuestionUser,
   ): Promise<QuestionDocument> {
     const question = await this.questionModel
-      .findOne({ questionId, isArchived: { $ne: true } })
+      .findOne({
+        questionId,
+        ...this.buildQuestionVisibilityFilter(user),
+      })
       .exec();
 
     if (!question) {
@@ -133,6 +166,27 @@ export class QuestionsService {
         'At least one field must be provided',
       ),
       HttpStatus.BAD_REQUEST,
+    );
+  }
+
+  private assertParametricMutationIsAllowed(
+    nextQuestionType: QuestionType,
+    user: AuthorizedQuestionUser,
+  ): void {
+    if (nextQuestionType !== QuestionType.PARAMETRIC) {
+      return;
+    }
+
+    if (user.role === Role.ADMIN) {
+      return;
+    }
+
+    throw new HttpException(
+      createAppErrorBody(
+        'question.parametric_admin_only',
+        'Only administrators can create or modify parametric questions',
+      ),
+      HttpStatus.FORBIDDEN,
     );
   }
 

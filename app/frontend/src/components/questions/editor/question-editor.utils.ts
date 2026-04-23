@@ -22,6 +22,19 @@ export const QUESTION_TYPES: QuestionType[] = [
   "parametric",
 ];
 
+export function buildAvailableQuestionTypes(
+  canManageParametricQuestions: boolean,
+  currentType?: QuestionType,
+): QuestionType[] {
+  if (canManageParametricQuestions) {
+    return QUESTION_TYPES;
+  }
+
+  return QUESTION_TYPES.filter(
+    (type) => type !== "parametric" || type === currentType,
+  );
+}
+
 export function buildOptionKey(index: number): string {
   return String.fromCharCode(97 + index);
 }

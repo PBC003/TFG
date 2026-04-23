@@ -11,6 +11,11 @@ export const questionsApi = {
       accessToken,
     });
   },
+  listQuestionBank(accessToken: string) {
+    return request<{ questions: QuestionItem[] }>("/questions/bank", {
+      accessToken,
+    });
+  },
   createQuestion(accessToken: string, payload: CreateQuestionInput) {
     return request<{ question: QuestionItem }>("/questions", {
       method: "POST",

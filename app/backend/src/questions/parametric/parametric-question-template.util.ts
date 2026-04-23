@@ -282,6 +282,11 @@ function buildGeneratedInstance(
   };
 }
 
+export const __parametricTemplateInternalsForTesting = {
+  simplifyFraction,
+  formatPiOverIntegerLatex,
+};
+
 export function getParametricTemplateVariantCount(
   templateId: ParametricQuestionTemplateId,
 ): number {

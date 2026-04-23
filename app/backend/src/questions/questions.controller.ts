@@ -40,17 +40,29 @@ export class QuestionsController {
     return { question };
   }
 
+  @Get('bank')
+  async findQuestionBank(): Promise<{ questions: QuestionItem[] }> {
+    const questions = await this.questionsService.listQuestionBank();
+    return { questions };
+  }
+
   @Get()
-  async findAll(): Promise<{ questions: QuestionItem[] }> {
-    const questions = await this.questionsService.listQuestions();
+  async findAll(
+    @Req() request: Request & { user: PublicUser },
+  ): Promise<{ questions: QuestionItem[] }> {
+    const questions = await this.questionsService.listQuestions(request.user);
     return { questions };
   }
 
   @Get(':questionId')
   async findOne(
     @Param('questionId') questionId: string,
+    @Req() request: Request & { user: PublicUser },
   ): Promise<{ question: QuestionItem }> {
-    const question = await this.questionsService.findQuestionById(questionId);
+    const question = await this.questionsService.findQuestionById(
+      questionId,
+      request.user,
+    );
     return { question };
   }
 

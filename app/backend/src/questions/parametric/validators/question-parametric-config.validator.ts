@@ -1,9 +1,9 @@
-import type { ParametricQuestionConfig } from '../types/question-type-config.type';
-import { isParametricQuestionTemplateId } from '../utils/parametric-question-template.util';
+import type { ParametricQuestionConfig } from '../../types/question-type-config.type';
+import { isParametricQuestionTemplateId } from '../parametric-question-template.util';
 import {
   isFiniteNumber,
   isPlainObject,
-} from './question-type-config-shared.validator';
+} from '../../validators/question-type-config-shared.validator';
 
 export function isValidParametricConfig(
   value: unknown,

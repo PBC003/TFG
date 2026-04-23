@@ -7,7 +7,7 @@ import type {
   QuestionTypeConfig,
 } from '../types/question-type-config.type';
 import { normalizeQuestionTypeConfig } from './question-math-content.util';
-import { buildCanonicalParametricQuestionStatement } from './parametric-question-template.util';
+import { buildCanonicalParametricQuestionStatement } from '../parametric/parametric-question-template.util';
 
 export type NormalizedCreateQuestionData = {
   title: string;
