@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { AuthContextValue } from "../../../context/AuthContext";
 import { quizAccessApi } from "../../../services/quizzes/quiz-access-api";
 import type { QuizAnswerValue } from "../../../types/quiz";
 import { getErrorMessage } from "../../../utils/error-code";
@@ -15,28 +16,25 @@ import {
   normalizeStartAttemptPayload,
   shouldAutoSubmitExpiredAttempt,
 } from "../utils/quiz-access-page.logic";
-import {
-  filterAndSortQuizCatalog,
-  paginateQuizCatalog,
-} from "../utils/quiz-access.utils";
+import { useQuizAccessCatalog } from "./useQuizAccessCatalog";
 
 type UseQuizAccessPageParams = {
   routeQuizId?: string;
-  participantIdentity: string;
+  isAuthenticated: boolean;
+  executeWithSession: AuthContextValue["executeWithSession"];
   t: TFunction;
 };
 
 export function useQuizAccessPage({
   routeQuizId,
-  participantIdentity,
+  isAuthenticated,
+  executeWithSession,
   t,
 }: UseQuizAccessPageParams): UseQuizAccessPageResult {
   const [accessCode, setAccessCode] = useState("");
-  const [catalogSearch, setCatalogSearch] = useState("");
   const [starting, setStarting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [reviewLoading, setReviewLoading] = useState(false);
-  const [catalogLoading, setCatalogLoading] = useState(true);
   const [feedback, setFeedback] = useState<QuizAccessFeedback>(null);
   const [activeAttempt, setActiveAttempt] =
     useState<UseQuizAccessPageResult["activeAttempt"]>(null);
@@ -44,41 +42,20 @@ export function useQuizAccessPage({
     {},
   );
   const [result, setResult] = useState<UseQuizAccessPageResult["result"]>(null);
-  const [publicQuizzes, setPublicQuizzes] = useState<
-    UseQuizAccessPageResult["publicQuizzes"]
-  >([]);
-  const [catalogPage, setCatalogPage] = useState(0);
-  const [catalogRowsPerPage, setCatalogRowsPerPage] = useState(5);
   const [nowMs, setNowMs] = useState(Date.now());
   const [autoSubmitTriggered, setAutoSubmitTriggered] = useState(false);
 
-  const refreshCatalog = useCallback(async () => {
-    setCatalogLoading(true);
+  const handleCatalogError = useCallback((message: string) => {
+    setFeedback({ severity: "error", message });
+  }, []);
 
-    try {
-      const response =
-        await quizAccessApi.listPublishedQuizzes(participantIdentity);
-      setPublicQuizzes(response.quizzes);
-    } catch (error) {
-      setFeedback({ severity: "error", message: getErrorMessage(t, error) });
-    } finally {
-      setCatalogLoading(false);
-    }
-  }, [participantIdentity, t]);
-
-  useEffect(() => {
-    if (!participantIdentity) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      void refreshCatalog();
-    }, 150);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [participantIdentity, refreshCatalog]);
+  const catalog = useQuizAccessCatalog({
+    routeQuizId,
+    isAuthenticated,
+    executeWithSession,
+    t,
+    onError: handleCatalogError,
+  });
 
   useEffect(() => {
     setActiveAttempt(null);
@@ -103,34 +80,12 @@ export function useQuizAccessPage({
     };
   }, [activeAttempt?.expiresAt]);
 
-  const selectedQuiz = useMemo(
-    () =>
-      routeQuizId
-        ? (publicQuizzes.find((quiz) => quiz.quizId === routeQuizId) ?? null)
-        : null,
-    [publicQuizzes, routeQuizId],
-  );
-
-  const filteredCatalog = useMemo(
-    () => filterAndSortQuizCatalog(publicQuizzes, catalogSearch, routeQuizId),
-    [catalogSearch, publicQuizzes, routeQuizId],
-  );
-
-  useEffect(() => {
-    setCatalogPage(0);
-  }, [catalogSearch, publicQuizzes, routeQuizId]);
-
-  const paginatedCatalog = useMemo(
-    () => paginateQuizCatalog(filteredCatalog, catalogPage, catalogRowsPerPage),
-    [catalogPage, catalogRowsPerPage, filteredCatalog],
-  );
-
   const handleStartAttempt = useCallback(
     async (options?: StartAttemptOptions) => {
       const { quizId: normalizedQuizId, accessCode: normalizedAccessCode } =
         normalizeStartAttemptPayload(options, routeQuizId, accessCode);
 
-      if (!participantIdentity) {
+      if (!isAuthenticated) {
         setFeedback({
           severity: "error",
           message: t("errors.codes.common.unauthorized"),
@@ -150,31 +105,33 @@ export function useQuizAccessPage({
       setFeedback(null);
 
       try {
-        const response = await quizAccessApi.startAttempt({
-          quizId: normalizedQuizId,
-          accessCode: normalizedAccessCode || null,
-          participantName: participantIdentity,
-        });
+        const response = await executeWithSession((token) =>
+          quizAccessApi.startAttempt(token, {
+            quizId: normalizedQuizId,
+            accessCode: normalizedAccessCode || null,
+          }),
+        );
         setActiveAttempt(response.attempt);
         setAnswers({});
         setResult(null);
         setAutoSubmitTriggered(false);
         setNowMs(Date.now());
-        await refreshCatalog();
+        await catalog.refreshCatalog();
       } catch (error) {
         setFeedback({ severity: "error", message: getErrorMessage(t, error) });
       } finally {
         setStarting(false);
       }
     },
-    [accessCode, participantIdentity, refreshCatalog, routeQuizId, t],
+    [accessCode, catalog, executeWithSession, isAuthenticated, routeQuizId, t],
   );
 
   const handleLoadBestResult = useCallback(
     async (quizId?: string) => {
-      const normalizedQuizId = quizId ?? routeQuizId ?? selectedQuiz?.quizId;
+      const normalizedQuizId =
+        quizId ?? routeQuizId ?? catalog.selectedQuiz?.quizId;
 
-      if (!normalizedQuizId || !participantIdentity) {
+      if (!normalizedQuizId || !isAuthenticated) {
         setFeedback({
           severity: "info",
           message: t("quizAccess.bestResultUnavailable"),
@@ -186,9 +143,8 @@ export function useQuizAccessPage({
       setFeedback(null);
 
       try {
-        const response = await quizAccessApi.getBestResult(
-          normalizedQuizId,
-          participantIdentity,
+        const response = await executeWithSession((token) =>
+          quizAccessApi.getBestResult(token, normalizedQuizId),
         );
 
         if (!response.result) {
@@ -208,7 +164,13 @@ export function useQuizAccessPage({
         setReviewLoading(false);
       }
     },
-    [participantIdentity, routeQuizId, selectedQuiz?.quizId, t],
+    [
+      catalog.selectedQuiz?.quizId,
+      executeWithSession,
+      isAuthenticated,
+      routeQuizId,
+      t,
+    ],
   );
 
   const handleSubmitAttempt = useCallback(async () => {
@@ -220,11 +182,10 @@ export function useQuizAccessPage({
     setFeedback(null);
 
     try {
-      const response = await quizAccessApi.submitAttempt(
-        activeAttempt.attemptId,
-        {
+      const response = await executeWithSession((token) =>
+        quizAccessApi.submitAttempt(token, activeAttempt.attemptId, {
           answers: buildSubmitAnswersPayload(answers),
-        },
+        }),
       );
       setResult(response.result);
       setActiveAttempt(null);
@@ -233,13 +194,13 @@ export function useQuizAccessPage({
         severity: "success",
         message: t("quizAccess.submitSuccess"),
       });
-      await refreshCatalog();
+      await catalog.refreshCatalog();
     } catch (error) {
       setFeedback({ severity: "error", message: getErrorMessage(t, error) });
     } finally {
       setSubmitting(false);
     }
-  }, [activeAttempt, answers, refreshCatalog, t]);
+  }, [activeAttempt, answers, catalog, executeWithSession, t]);
 
   useEffect(() => {
     if (
@@ -267,14 +228,14 @@ export function useQuizAccessPage({
 
   const selectedQuizStartDisabled = getSelectedQuizStartDisabled({
     starting,
-    participantIdentity,
-    selectedQuiz,
+    isAuthenticated,
+    selectedQuiz: catalog.selectedQuiz,
     accessCode,
   });
 
   const canRequestBestResult = getCanRequestBestResult(
-    selectedQuiz,
-    participantIdentity,
+    catalog.selectedQuiz,
+    isAuthenticated,
   );
 
   const updateAnswer = useCallback(
@@ -298,32 +259,32 @@ export function useQuizAccessPage({
 
   return {
     accessCode,
-    catalogSearch,
+    catalogSearch: catalog.catalogSearch,
     starting,
     submitting,
     reviewLoading,
-    catalogLoading,
+    catalogLoading: catalog.catalogLoading,
     feedback,
     activeAttempt,
     answers,
     result,
-    publicQuizzes,
-    catalogPage,
-    catalogRowsPerPage,
+    publicQuizzes: catalog.publicQuizzes,
+    catalogPage: catalog.catalogPage,
+    catalogRowsPerPage: catalog.catalogRowsPerPage,
     nowMs,
-    selectedQuiz,
-    filteredCatalog,
-    paginatedCatalog,
+    selectedQuiz: catalog.selectedQuiz,
+    filteredCatalog: catalog.filteredCatalog,
+    paginatedCatalog: catalog.paginatedCatalog,
     questionCount: activeAttempt?.questions.length ?? 0,
     selectedQuizStartDisabled,
     canRequestBestResult,
     setAccessCode,
-    setCatalogSearch,
-    setCatalogPage,
-    setCatalogRowsPerPage,
+    setCatalogSearch: catalog.setCatalogSearch,
+    setCatalogPage: catalog.setCatalogPage,
+    setCatalogRowsPerPage: catalog.setCatalogRowsPerPage,
     setFeedback,
     updateAnswer,
-    refreshCatalog,
+    refreshCatalog: catalog.refreshCatalog,
     handleStartAttempt,
     handleSubmitAttempt,
     handleLoadBestResult,

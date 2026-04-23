@@ -6,32 +6,37 @@ import type {
 import { request } from "../http/api-client";
 
 export const quizAccessApi = {
-  listPublishedQuizzes(participantName?: string) {
-    const query = participantName?.trim()
-      ? `?participantName=${encodeURIComponent(participantName.trim())}`
-      : "";
-
+  listPublishedQuizzes(accessToken: string) {
     return request<{ quizzes: PublicQuizCatalogItem[] }>(
-      `/quiz-access/quizzes${query}`,
+      "/quiz-access/quizzes",
+      {
+        accessToken,
+      },
     );
   },
-  getBestResult(quizId: string, participantName: string) {
-    const query = `?participantName=${encodeURIComponent(participantName.trim())}`;
+  getBestResult(accessToken: string, quizId: string) {
     return request<{ result: QuizSubmissionResult | null }>(
-      `/quiz-access/quizzes/${quizId}/best-result${query}`,
+      `/quiz-access/quizzes/${quizId}/best-result`,
+      {
+        accessToken,
+      },
     );
   },
-  startAttempt(payload: {
-    quizId?: string;
-    accessCode?: string | null;
-    participantName: string;
-  }) {
+  startAttempt(
+    accessToken: string,
+    payload: {
+      quizId?: string;
+      accessCode?: string | null;
+    },
+  ) {
     return request<{ attempt: QuizAttemptItem }>("/quiz-access/start", {
       method: "POST",
       body: payload,
+      accessToken,
     });
   },
   submitAttempt(
+    accessToken: string,
     attemptId: string,
     payload: { answers: Array<{ questionId: string; value: unknown }> },
   ) {
@@ -40,6 +45,7 @@ export const quizAccessApi = {
       {
         method: "POST",
         body: payload,
+        accessToken,
       },
     );
   },

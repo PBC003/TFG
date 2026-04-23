@@ -57,6 +57,7 @@ export function toQuizAttemptItem(
     description: string | null;
     attemptsAllowed: number;
     attemptsRemaining: number;
+    isPreview?: boolean;
   },
 ): QuizAttemptItem {
   const questions = [...attempt.questions]
@@ -77,6 +78,7 @@ export function toQuizAttemptItem(
     }));
 
   return {
+    isPreview: meta.isPreview === true,
     attemptId: attempt.attemptId,
     quizId: attempt.quizId,
     title: meta.title,
@@ -101,10 +103,12 @@ export function toQuizSubmissionResult(
     attemptsRemaining: number;
     canRevealFeedback: boolean;
     revealBlockedByEndDate: boolean;
+    isPreview?: boolean;
   },
   review: QuizSubmissionQuestionReview[],
 ): QuizSubmissionResult {
   return {
+    isPreview: meta.isPreview === true,
     attemptId: attempt.attemptId,
     quizId: attempt.quizId,
     title: meta.title,

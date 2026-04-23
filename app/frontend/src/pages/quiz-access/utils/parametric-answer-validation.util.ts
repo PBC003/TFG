@@ -1,32 +1,36 @@
 const MAX_PARAMETRIC_EXPRESSION_LENGTH = 120;
 const ALLOWED_CHARACTERS_REGEX = /^[0-9+\-*/^().,\sA-Za-zπ]+$/u;
 const IDENTIFIER_REGEX = /[A-Za-zπ]+/gu;
-const SUPPORTED_IDENTIFIERS = new Set(['pi', 'sqrt', 'π']);
+const SUPPORTED_IDENTIFIERS = new Set(["pi", "sqrt", "π"]);
+
+export type ParametricAnswerValidationReason =
+  | "empty"
+  | "too_long"
+  | "invalid_characters"
+  | "unsupported_identifier"
+  | "unbalanced_parentheses"
+  | "invalid_expression";
 
 export type ParametricAnswerValidationResult = {
   isValid: boolean;
   normalizedValue: string;
-  reason:
-    | 'empty'
-    | 'too_long'
-    | 'invalid_characters'
-    | 'unsupported_identifier'
-    | 'unbalanced_parentheses'
-    | 'invalid_expression'
-    | null;
+  reason: ParametricAnswerValidationReason | null;
 };
 
 class Parser {
   private index = 0;
+  private readonly source: string;
 
-  constructor(private readonly source: string) {}
+  constructor(source: string) {
+    this.source = source;
+  }
 
   parse(): number {
     const value = this.parseExpression();
     this.skipWhitespace();
 
     if (this.index < this.source.length) {
-      throw new Error('Unexpected token');
+      throw new Error("Unexpected token");
     }
 
     return value;
@@ -38,12 +42,12 @@ class Parser {
     while (true) {
       this.skipWhitespace();
 
-      if (this.consume('+')) {
+      if (this.consume("+")) {
         value += this.parseTerm();
         continue;
       }
 
-      if (this.consume('-')) {
+      if (this.consume("-")) {
         value -= this.parseTerm();
         continue;
       }
@@ -58,12 +62,12 @@ class Parser {
     while (true) {
       this.skipWhitespace();
 
-      if (this.consume('*')) {
+      if (this.consume("*")) {
         value *= this.parsePower();
         continue;
       }
 
-      if (this.consume('/')) {
+      if (this.consume("/")) {
         value /= this.parsePower();
         continue;
       }
@@ -76,7 +80,7 @@ class Parser {
     let value = this.parseUnary();
     this.skipWhitespace();
 
-    if (this.consume('^')) {
+    if (this.consume("^")) {
       value = value ** this.parsePower();
     }
 
@@ -86,11 +90,11 @@ class Parser {
   private parseUnary(): number {
     this.skipWhitespace();
 
-    if (this.consume('+')) {
+    if (this.consume("+")) {
       return this.parseUnary();
     }
 
-    if (this.consume('-')) {
+    if (this.consume("-")) {
       return -this.parseUnary();
     }
 
@@ -100,12 +104,12 @@ class Parser {
   private parsePrimary(): number {
     this.skipWhitespace();
 
-    if (this.consume('(')) {
+    if (this.consume("(")) {
       const value = this.parseExpression();
       this.skipWhitespace();
 
-      if (!this.consume(')')) {
-        throw new Error('Missing closing parenthesis');
+      if (!this.consume(")")) {
+        throw new Error("Missing closing parenthesis");
       }
 
       return value;
@@ -114,28 +118,28 @@ class Parser {
     const identifier = this.parseIdentifier();
 
     if (identifier) {
-      if (identifier === 'pi' || identifier === 'π') {
+      if (identifier === "pi" || identifier === "π") {
         return Math.PI;
       }
 
-      if (identifier === 'sqrt') {
+      if (identifier === "sqrt") {
         this.skipWhitespace();
 
-        if (!this.consume('(')) {
-          throw new Error('sqrt requires parentheses');
+        if (!this.consume("(")) {
+          throw new Error("sqrt requires parentheses");
         }
 
         const value = this.parseExpression();
         this.skipWhitespace();
 
-        if (!this.consume(')')) {
-          throw new Error('Missing closing parenthesis');
+        if (!this.consume(")")) {
+          throw new Error("Missing closing parenthesis");
         }
 
         return Math.sqrt(value);
       }
 
-      throw new Error('Unsupported identifier');
+      throw new Error("Unsupported identifier");
     }
 
     return this.parseNumber();
@@ -176,7 +180,7 @@ class Parser {
         continue;
       }
 
-      if ((current === '.' || current === ',') && !hasDecimalSeparator) {
+      if ((current === "." || current === ",") && !hasDecimalSeparator) {
         hasDecimalSeparator = true;
         this.index += 1;
         continue;
@@ -186,14 +190,14 @@ class Parser {
     }
 
     if (start === this.index) {
-      throw new Error('Expected number');
+      throw new Error("Expected number");
     }
 
-    const rawValue = this.source.slice(start, this.index).replace(',', '.');
+    const rawValue = this.source.slice(start, this.index).replace(",", ".");
     const parsedValue = Number(rawValue);
 
     if (!Number.isFinite(parsedValue)) {
-      throw new Error('Invalid number');
+      throw new Error("Invalid number");
     }
 
     return parsedValue;
@@ -222,12 +226,12 @@ function hasBalancedParentheses(value: string): boolean {
   let balance = 0;
 
   for (const character of value) {
-    if (character === '(') {
+    if (character === "(") {
       balance += 1;
       continue;
     }
 
-    if (character !== ')') {
+    if (character !== ")") {
       continue;
     }
 
@@ -242,47 +246,35 @@ function hasBalancedParentheses(value: string): boolean {
 }
 
 function hasOnlySupportedIdentifiers(value: string): boolean {
-  const identifiers: string[] = value.match(IDENTIFIER_REGEX) ?? [];
+  const identifiers = value.match(IDENTIFIER_REGEX) ?? [];
 
   return identifiers.every((identifier) =>
     SUPPORTED_IDENTIFIERS.has(identifier.toLowerCase()),
   );
 }
 
-export function validateParametricAnswerExpression(
+export function validateParametricAnswerInput(
   value: string,
 ): ParametricAnswerValidationResult {
   const normalizedValue = value.trim();
 
   if (!normalizedValue) {
-    return {
-      isValid: false,
-      normalizedValue,
-      reason: 'empty',
-    };
+    return { isValid: false, normalizedValue, reason: "empty" };
   }
 
   if (normalizedValue.length > MAX_PARAMETRIC_EXPRESSION_LENGTH) {
-    return {
-      isValid: false,
-      normalizedValue,
-      reason: 'too_long',
-    };
+    return { isValid: false, normalizedValue, reason: "too_long" };
   }
 
   if (!ALLOWED_CHARACTERS_REGEX.test(normalizedValue)) {
-    return {
-      isValid: false,
-      normalizedValue,
-      reason: 'invalid_characters',
-    };
+    return { isValid: false, normalizedValue, reason: "invalid_characters" };
   }
 
   if (!hasOnlySupportedIdentifiers(normalizedValue)) {
     return {
       isValid: false,
       normalizedValue,
-      reason: 'unsupported_identifier',
+      reason: "unsupported_identifier",
     };
   }
 
@@ -290,49 +282,31 @@ export function validateParametricAnswerExpression(
     return {
       isValid: false,
       normalizedValue,
-      reason: 'unbalanced_parentheses',
+      reason: "unbalanced_parentheses",
     };
   }
 
   try {
-    const parsedValue = new Parser(normalizedValue).parse();
+    const parsed = new Parser(normalizedValue).parse();
 
-    if (!Number.isFinite(parsedValue)) {
-      return {
-        isValid: false,
-        normalizedValue,
-        reason: 'invalid_expression',
-      };
+    if (!Number.isFinite(parsed)) {
+      return { isValid: false, normalizedValue, reason: "invalid_expression" };
     }
 
-    return {
-      isValid: true,
-      normalizedValue,
-      reason: null,
-    };
+    return { isValid: true, normalizedValue, reason: null };
   } catch {
-    return {
-      isValid: false,
-      normalizedValue,
-      reason: 'invalid_expression',
-    };
+    return { isValid: false, normalizedValue, reason: "invalid_expression" };
   }
 }
 
-export function evaluateParametricAnswerExpression(
+export function getParametricAnswerValidationMessage(
   value: string,
-): number | null {
-  const validation = validateParametricAnswerExpression(value);
+): string | null {
+  const validation = validateParametricAnswerInput(value);
 
-  if (!validation.isValid) {
+  if (validation.isValid || validation.reason === "empty") {
     return null;
   }
 
-  try {
-    const parsedValue = new Parser(validation.normalizedValue).parse();
-
-    return Number.isFinite(parsedValue) ? parsedValue : null;
-  } catch {
-    return null;
-  }
+  return validation.reason;
 }

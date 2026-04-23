@@ -14,7 +14,7 @@ export default function QuizAccessPage() {
   const auth = useAuth();
   const navigate = useNavigate();
   const { quizId: routeQuizId } = useParams();
-  const participantIdentity = auth.user ? `user:${auth.user.id}` : "";
+  const isAuthenticated = Boolean(auth.user);
   const {
     accessCode,
     catalogSearch,
@@ -46,7 +46,8 @@ export default function QuizAccessPage() {
     resetLookup,
   } = useQuizAccessPage({
     routeQuizId,
-    participantIdentity,
+    isAuthenticated,
+    executeWithSession: auth.executeWithSession,
     t,
   });
 
