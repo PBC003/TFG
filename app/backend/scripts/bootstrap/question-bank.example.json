@@ -1,0 +1,16 @@
+{
+  "bundleKey": "teacher-bank-v1",
+  "questions": [
+    {
+      "seedKey": "teacher-bank-v1-q001",
+      "title": "Example true/false question",
+      "type": "true_false",
+      "statement": "The derivative of x^2 is 2x.",
+      "explanation": "Basic derivative rule.",
+      "tags": ["derivatives", "examples"],
+      "questionConfig": {
+        "correctAnswer": true
+      }
+    }
+  ]
+}

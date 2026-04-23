@@ -1,0 +1,24 @@
+{
+  "bundleKey": "parametric-templates-v1",
+  "templates": [
+    {
+      "templateId": "limit_trigonometric",
+      "name": "Example trigonometric limit template",
+      "canonicalStatement": "$$\\lim_{x \\to 0} \\frac{\\tan(x)-a x}{x-b\\sin(x)}$$\n$a \\in \\{1,2,\\ldots,25\\}$, $b = a + 1$.",
+      "defaultTolerance": 0.01,
+      "inputPlaceholder": "Ej.: 1/2, pi/4 o 0.7854",
+      "variants": [
+        {
+          "variantKey": 1,
+          "statement": "$$\\lim_{x \\to 0} \\frac{\\tan(x)-2x}{x-3\\sin(x)}$$",
+          "correctAnswerNumeric": 0.5,
+          "correctAnswerLatex": "\\frac{1}{2}",
+          "generatedValues": {
+            "a": 2,
+            "b": 3
+          }
+        }
+      ]
+    }
+  ]
+}
