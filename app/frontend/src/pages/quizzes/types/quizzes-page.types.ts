@@ -1,4 +1,5 @@
 import type { AlertColor } from "@mui/material";
+import type { GroupItem } from "../../../types/group";
 import type { QuestionItem } from "../../../types/question";
 import type {
   CreateQuizInput,
@@ -16,8 +17,10 @@ export interface UseQuizzesPageResult {
   visibleQuizzes: QuizItem[];
   paginatedQuizzes: QuizItem[];
   questionBank: QuestionItem[];
+  groups: GroupItem[];
   loading: boolean;
   questionBankLoading: boolean;
+  groupsLoading: boolean;
   submitting: boolean;
   feedback: QuizzesPageFeedback;
   search: string;

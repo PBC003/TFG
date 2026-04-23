@@ -39,14 +39,19 @@ export class QuizzesController {
   }
 
   @Get()
-  async listQuizzes(): Promise<{ quizzes: QuizItem[] }> {
-    const quizzes = await this.quizzesService.listQuizzes();
+  async listQuizzes(
+    @Req() request: Request & { user: PublicUser },
+  ): Promise<{ quizzes: QuizItem[] }> {
+    const quizzes = await this.quizzesService.listQuizzes(request.user);
     return { quizzes };
   }
 
   @Get(':quizId')
-  async findQuiz(@Param('quizId') quizId: string): Promise<{ quiz: QuizItem }> {
-    const quiz = await this.quizzesService.findQuizById(quizId);
+  async findQuiz(
+    @Param('quizId') quizId: string,
+    @Req() request: Request & { user: PublicUser },
+  ): Promise<{ quiz: QuizItem }> {
+    const quiz = await this.quizzesService.findQuizById(quizId, request.user);
     return { quiz };
   }
 
@@ -86,8 +91,9 @@ export class QuizzesController {
   @Delete(':quizId')
   async deleteQuiz(
     @Param('quizId') quizId: string,
+    @Req() request: Request & { user: PublicUser },
   ): Promise<{ success: true }> {
-    await this.quizzesService.deleteQuiz(quizId);
+    await this.quizzesService.deleteQuiz(quizId, request.user);
     return { success: true };
   }
 }

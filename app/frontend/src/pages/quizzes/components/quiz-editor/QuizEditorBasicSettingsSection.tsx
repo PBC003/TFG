@@ -1,9 +1,20 @@
 import { memo } from "react";
-import { Box, FormControlLabel, Stack, Switch, TextField } from "@mui/material";
+import {
+  Autocomplete,
+  Box,
+  Chip,
+  FormControlLabel,
+  Stack,
+  Switch,
+  TextField,
+} from "@mui/material";
+import type { GroupItem } from "../../../../types/group";
 import type { QuizEditorDialogProps } from "./quiz-editor-dialog.types";
 
 type QuizEditorBasicSettingsSectionProps = {
   fields: QuizEditorDialogProps["fields"];
+  groupOptions: GroupItem[];
+  selectedGroups: GroupItem[];
   submitting: boolean;
   quizTitle: string;
   quizDescription: string;
@@ -23,11 +34,14 @@ type QuizEditorBasicSettingsSectionProps = {
   onTimeLimitMinutesChange: (value: string) => void;
   onShuffleQuestionsChange: (value: boolean) => void;
   onRevealAnswersAfterCloseChange: (value: boolean) => void;
+  onSelectedGroupsChange: (value: GroupItem[]) => void;
 };
 
 export const QuizEditorBasicSettingsSection = memo(
   function QuizEditorBasicSettingsSection({
     fields,
+    groupOptions,
+    selectedGroups,
     submitting,
     quizTitle,
     quizDescription,
@@ -47,6 +61,7 @@ export const QuizEditorBasicSettingsSection = memo(
     onTimeLimitMinutesChange,
     onShuffleQuestionsChange,
     onRevealAnswersAfterCloseChange,
+    onSelectedGroupsChange,
   }: QuizEditorBasicSettingsSectionProps) {
     return (
       <>
@@ -129,6 +144,35 @@ export const QuizEditorBasicSettingsSection = memo(
           minRows={3}
           multiline
           fullWidth
+        />
+
+        <Autocomplete
+          multiple
+          options={groupOptions}
+          value={selectedGroups}
+          onChange={(_, value) => onSelectedGroupsChange(value)}
+          getOptionLabel={(option) => option.name}
+          isOptionEqualToValue={(option, value) =>
+            option.groupId === value.groupId
+          }
+          renderTags={(value, getTagProps) =>
+            value.map((option, index) => (
+              <Chip
+                {...getTagProps({ index })}
+                key={option.groupId}
+                label={option.name}
+                size="small"
+              />
+            ))
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label={fields.assignedGroups ?? ""}
+              helperText={fields.assignedGroupsHelper}
+            />
+          )}
+          disabled={submitting}
         />
 
         <Stack direction={{ xs: "column", md: "row" }} spacing={1.5}>

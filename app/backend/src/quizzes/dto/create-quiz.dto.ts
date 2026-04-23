@@ -59,6 +59,12 @@ export class CreateQuizDto {
   @IsBoolean()
   revealAnswersAfterClose!: boolean;
 
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsString({ each: true })
+  assignedGroupIds?: string[];
+
   @IsArray()
   @ArrayMinSize(1)
   @ArrayUnique((value: QuizQuestionDto) => value.questionId)

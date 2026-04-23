@@ -1,0 +1,28 @@
+import {
+  ArrayUnique,
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  Length,
+  Min,
+} from 'class-validator';
+
+export class UpdateGroupDto {
+  @IsOptional()
+  @IsString()
+  @Length(3, 120)
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 2_000)
+  description?: string | null;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  memberUserIds?: number[];
+}

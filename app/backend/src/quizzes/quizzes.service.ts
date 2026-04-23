@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import type { PublicUser } from '../auth/auth.service';
+import { Role } from '../users/enums/role.enum';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { UpdateQuizDto } from './dto/update-quiz.dto';
 import { QuizStatus } from './enums/quiz-status.enum';
@@ -14,6 +15,8 @@ import {
 } from './utils/quiz/quiz-mutation-payload.util';
 import { QuizzesSharedService } from './quizzes-shared.service';
 
+export type AuthorizedQuizUser = Pick<PublicUser, 'id' | 'role'>;
+
 @Injectable()
 export class QuizzesService {
   constructor(
@@ -24,11 +27,12 @@ export class QuizzesService {
 
   async createQuiz(
     createQuizDto: CreateQuizDto,
-    user: Pick<PublicUser, 'id'>,
+    user: AuthorizedQuizUser,
   ): Promise<QuizItem> {
     const normalizedPayload = await normalizeQuizMutationPayload(
       this.quizzesSharedService,
       createQuizDto,
+      user,
     );
 
     const quiz = await this.quizModel.create({
@@ -46,9 +50,11 @@ export class QuizzesService {
     });
   }
 
-  async listQuizzes(): Promise<QuizItem[]> {
+  async listQuizzes(user: AuthorizedQuizUser): Promise<QuizItem[]> {
+    const query = user.role === Role.ADMIN ? {} : { createdByUserId: user.id };
+
     const quizzes = await this.quizModel
-      .find()
+      .find(query)
       .sort({ updatedAt: -1, createdAt: -1 })
       .exec();
 
@@ -61,13 +67,16 @@ export class QuizzesService {
       await this.quizzesSharedService.countAttemptsByQuizIds(
         quizzes.map((quiz) => quiz.quizId),
       );
+    const groupsById = await this.quizzesSharedService.loadGroupsMap(
+      quizzes.flatMap((quiz) => quiz.assignedGroupIds ?? []),
+    );
 
     return quizzes.map((quiz) => {
       const hasAttempts = (attemptCountByQuizId.get(quiz.quizId) ?? 0) > 0;
       const canEdit = quiz.status !== QuizStatus.PUBLISHED && !hasAttempts;
       const canDelete = !hasAttempts;
 
-      return toQuizItem(quiz, questionsById, {
+      return toQuizItem(quiz, questionsById, groupsById, {
         hasAttempts,
         canEdit,
         canDelete,
@@ -75,9 +84,14 @@ export class QuizzesService {
     });
   }
 
-  async findQuizById(quizId: string): Promise<QuizItem> {
-    const quiz =
-      await this.quizzesSharedService.findQuizDocumentOrThrow(quizId);
+  async findQuizById(
+    quizId: string,
+    user: AuthorizedQuizUser,
+  ): Promise<QuizItem> {
+    const quiz = await this.quizzesSharedService.findManagedQuizDocumentOrThrow(
+      quizId,
+      user,
+    );
     const hasAttempts = await this.quizzesSharedService.quizHasAttempts(
       quiz.quizId,
     );
@@ -92,10 +106,12 @@ export class QuizzesService {
   async updateQuiz(
     quizId: string,
     updateQuizDto: UpdateQuizDto,
-    user: Pick<PublicUser, 'id'>,
+    user: AuthorizedQuizUser,
   ): Promise<QuizItem> {
-    const quiz =
-      await this.quizzesSharedService.findQuizDocumentOrThrow(quizId);
+    const quiz = await this.quizzesSharedService.findManagedQuizDocumentOrThrow(
+      quizId,
+      user,
+    );
 
     if (Object.keys(updateQuizDto).length === 0) {
       this.quizzesSharedService.throwBadRequest(
@@ -121,6 +137,7 @@ export class QuizzesService {
     const normalizedPayload = await normalizeQuizMutationPayload(
       this.quizzesSharedService,
       updateQuizDto,
+      user,
       quiz,
     );
 
@@ -140,10 +157,12 @@ export class QuizzesService {
 
   async publishQuiz(
     quizId: string,
-    user: Pick<PublicUser, 'id'>,
+    user: AuthorizedQuizUser,
   ): Promise<QuizItem> {
-    const quiz =
-      await this.quizzesSharedService.findQuizDocumentOrThrow(quizId);
+    const quiz = await this.quizzesSharedService.findManagedQuizDocumentOrThrow(
+      quizId,
+      user,
+    );
 
     if (quiz.questions.length === 0) {
       this.quizzesSharedService.throwConflict(
@@ -154,6 +173,10 @@ export class QuizzesService {
 
     await this.quizzesSharedService.assertQuestionReferencesAreValid(
       quiz.questions,
+    );
+    await this.quizzesSharedService.assertGroupReferencesAreValid(
+      quiz.assignedGroupIds ?? [],
+      user,
     );
 
     quiz.status = QuizStatus.PUBLISHED;
@@ -176,10 +199,12 @@ export class QuizzesService {
 
   async unpublishQuiz(
     quizId: string,
-    user: Pick<PublicUser, 'id'>,
+    user: AuthorizedQuizUser,
   ): Promise<QuizItem> {
-    const quiz =
-      await this.quizzesSharedService.findQuizDocumentOrThrow(quizId);
+    const quiz = await this.quizzesSharedService.findManagedQuizDocumentOrThrow(
+      quizId,
+      user,
+    );
 
     quiz.status = QuizStatus.DRAFT;
     quiz.updatedByUserId = user.id;
@@ -199,25 +224,31 @@ export class QuizzesService {
     });
   }
 
-  async deleteQuiz(quizId: string): Promise<void> {
-    const quiz =
-      await this.quizzesSharedService.findQuizDocumentOrThrow(quizId);
+  async deleteQuiz(quizId: string, user: AuthorizedQuizUser): Promise<void> {
+    const quiz = await this.quizzesSharedService.findManagedQuizDocumentOrThrow(
+      quizId,
+      user,
+    );
 
-    if (await this.quizzesSharedService.quizHasAttempts(quiz.quizId)) {
+    const hasAttempts = await this.quizzesSharedService.quizHasAttempts(
+      quiz.quizId,
+    );
+
+    if (hasAttempts) {
       this.quizzesSharedService.throwConflict(
         'quiz.has_attempts_locked',
-        'Quizzes with attempts cannot be deleted anymore',
+        'Quizzes with attempts cannot be deleted',
       );
     }
 
-    await this.quizModel.deleteOne({ quizId: quiz.quizId }).exec();
+    await quiz.deleteOne();
   }
 
   private applyQuizMutationPayload(
     quiz: QuizDocument,
     payload: QuizMutationPayload,
     userId: number,
-  ) {
+  ): void {
     quiz.title = payload.title;
     quiz.description = payload.description;
     quiz.accessCode = payload.accessCode;
@@ -228,6 +259,7 @@ export class QuizzesService {
     quiz.timeLimitMinutes = payload.timeLimitMinutes;
     quiz.shuffleQuestions = payload.shuffleQuestions;
     quiz.revealAnswersAfterClose = payload.revealAnswersAfterClose;
+    quiz.assignedGroupIds = payload.assignedGroupIds;
     quiz.questions = payload.questions;
     quiz.updatedByUserId = userId;
     quiz.version += 1;
@@ -235,12 +267,19 @@ export class QuizzesService {
 
   private async mapQuizItem(
     quiz: QuizDocument,
-    flags: { hasAttempts: boolean; canEdit: boolean; canDelete: boolean },
+    flags: {
+      hasAttempts: boolean;
+      canEdit: boolean;
+      canDelete: boolean;
+    },
   ): Promise<QuizItem> {
     const questionsById = await this.quizzesSharedService.loadQuestionsMap(
       quiz.questions.map((question) => question.questionId),
     );
+    const groupsById = await this.quizzesSharedService.loadGroupsMap(
+      quiz.assignedGroupIds ?? [],
+    );
 
-    return toQuizItem(quiz, questionsById, flags);
+    return toQuizItem(quiz, questionsById, groupsById, flags);
   }
 }

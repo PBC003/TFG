@@ -11,6 +11,7 @@ import { UsersModule } from './users/users.module';
 import authConfig from './auth/auth.config';
 import { QuestionsModule } from './questions/questions.module';
 import { QuizzesModule } from './quizzes/quizzes.module';
+import { GroupsModule } from './groups/groups.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { QuizzesModule } from './quizzes/quizzes.module';
     AuthModule,
     QuestionsModule,
     QuizzesModule,
+    GroupsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
