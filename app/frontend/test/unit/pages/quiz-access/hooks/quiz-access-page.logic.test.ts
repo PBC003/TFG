@@ -26,6 +26,7 @@ const publicQuiz: PublicQuizCatalogItem = {
   endAt: null,
   timeLimitMinutes: 10,
   publishedAt: "2026-04-12T10:00:00.000Z",
+  audienceScope: "all",
   isAvailableNow: true,
   canStart: true,
 };
@@ -80,11 +81,11 @@ describe("quiz-access-page.logic", () => {
     });
   });
 
-  it("derives the catalog CTA states from the selected quiz and participant state", () => {
+  it("derives the catalog CTA states from the selected quiz and authentication state", () => {
     expect(
       getSelectedQuizStartDisabled({
         starting: false,
-        participantIdentity: "Pablo",
+        isAuthenticated: true,
         selectedQuiz: publicQuiz,
         accessCode: "ABCD",
       }),
@@ -93,15 +94,15 @@ describe("quiz-access-page.logic", () => {
     expect(
       getSelectedQuizStartDisabled({
         starting: false,
-        participantIdentity: "Pablo",
+        isAuthenticated: true,
         selectedQuiz: { ...publicQuiz, attemptsRemaining: 0 },
         accessCode: "ABCD",
       }),
     ).toBe(true);
 
-    expect(getCanRequestBestResult(publicQuiz, "Pablo")).toBe(false);
+    expect(getCanRequestBestResult(publicQuiz, true)).toBe(false);
     expect(
-      getCanRequestBestResult({ ...publicQuiz, attemptsRemaining: 0 }, "Pablo"),
+      getCanRequestBestResult({ ...publicQuiz, attemptsRemaining: 0 }, true),
     ).toBe(true);
   });
 

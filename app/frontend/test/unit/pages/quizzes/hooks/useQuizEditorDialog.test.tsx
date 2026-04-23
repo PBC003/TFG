@@ -46,6 +46,7 @@ describe("useQuizEditorDialog", () => {
       useQuizEditorDialog({
         quiz: quiz as never,
         questionBank: questionBank as never,
+        groupOptions: [],
         validationMessage: "invalid",
         fields: {
           invalidDateRange: "range",
@@ -152,6 +153,7 @@ describe("useQuizEditorDialog", () => {
       useQuizEditorDialog({
         quiz: null,
         questionBank: questionBank as never,
+        groupOptions: [],
         validationMessage: "invalid",
         fields: {
           invalidDateRange: "range",
@@ -172,5 +174,78 @@ describe("useQuizEditorDialog", () => {
 
     expect(result.current.localValidationMessage).toBe("invalid");
     expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("updates parametric selection details and selected groups", () => {
+    const onSubmit = vi.fn(async (...args: [unknown]) => {
+      void args;
+      return Promise.resolve();
+    });
+
+    const questionBank = [
+      {
+        questionId: "q-param",
+        title: "Paramétrica",
+        statement: "S1",
+        tags: ["param"],
+        type: "parametric",
+        questionConfig: {
+          templateId: "series_geometric",
+          tolerance: 0.25,
+        },
+      },
+    ];
+
+    const groupOptions = [
+      {
+        groupId: "g-1",
+        name: "Grupo 1",
+        description: null,
+        memberUserIds: [],
+        members: [],
+        memberCount: 0,
+        createdByUserId: 1,
+        updatedByUserId: 1,
+        version: 1,
+        createdAt: "2026-04-12T10:00:00.000Z",
+        updatedAt: "2026-04-12T10:00:00.000Z",
+      },
+    ];
+
+    const { result } = renderHook(() =>
+      useQuizEditorDialog({
+        quiz: null,
+        questionBank: questionBank as never,
+        groupOptions: groupOptions as never,
+        validationMessage: "invalid",
+        fields: {
+          invalidDateRange: "range",
+          invalidEndDateInPast: "past",
+        } as never,
+        onSubmit,
+      }),
+    );
+
+    act(() => {
+      result.current.toggleQuestion(questionBank[0] as never);
+      result.current.updateQuestionQuantity("q-param", "3");
+      result.current.updateQuestionToleranceOverride("q-param", "0.5");
+      result.current.updateSelectedGroups(groupOptions as never);
+    });
+
+    expect(result.current.selectedQuestionMap.get("q-param")).toEqual(
+      expect.objectContaining({
+        questionId: "q-param",
+        quantity: 3,
+        toleranceOverride: "0.5",
+      }),
+    );
+    expect(result.current.selectedGroups).toEqual(groupOptions);
+
+    act(() => {
+      result.current.toggleQuestion(questionBank[0] as never);
+    });
+
+    expect(result.current.selectedQuestionMap.has("q-param")).toBe(false);
   });
 });

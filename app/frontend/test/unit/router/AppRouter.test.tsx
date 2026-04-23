@@ -58,11 +58,27 @@ vi.mock("../../../src/pages/questions/QuestionsPage", () => ({
   default: () => null,
 }));
 
+vi.mock("../../../src/pages/groups/GroupsPage", () => ({
+  default: () => null,
+}));
+
 vi.mock("../../../src/pages/quizzes/QuizzesPage", () => ({
   default: () => null,
 }));
 
+vi.mock("../../../src/pages/quizzes/QuizSimulationPage", () => ({
+  default: () => null,
+}));
+
 vi.mock("../../../src/pages/quiz-access/QuizAccessPage", () => ({
+  default: () => null,
+}));
+
+vi.mock("../../../src/pages/quiz-history/QuizHistoryPage", () => ({
+  default: () => null,
+}));
+
+vi.mock("../../../src/pages/quizzes/QuizAnalyticsPage", () => ({
   default: () => null,
 }));
 
@@ -91,9 +107,19 @@ describe("router configuration", () => {
     expect(root.children[3].children[0]).toMatchObject({ path: "login" });
     expect(root.children[3].children[1]).toMatchObject({ path: "register" });
     expect(root.children[4].children[0]).toMatchObject({ path: "profile" });
+    expect(root.children[4].children[1]).toMatchObject({
+      path: "quiz-history",
+    });
     expect(root.children[5].children[0]).toMatchObject({ path: "admin" });
     expect(root.children[6].children[0]).toMatchObject({ path: "questions" });
-    expect(root.children[6].children[1]).toMatchObject({ path: "quizzes" });
+    expect(root.children[6].children[1]).toMatchObject({ path: "groups" });
+    expect(root.children[6].children[2]).toMatchObject({ path: "quizzes" });
+    expect(root.children[6].children[3]).toMatchObject({
+      path: "quizzes/:quizId/simulate",
+    });
+    expect(root.children[6].children[4]).toMatchObject({
+      path: "quizzes/:quizId/analytics",
+    });
     expect(root.children[7]).toMatchObject({ path: "unauthorized" });
     expect(root.children[8]).toMatchObject({ path: "*" });
   });

@@ -1,4 +1,5 @@
 import { fireEvent, screen } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 import { QuizAttemptQuestionCard } from "../../../../../src/pages/quiz-access/components/QuizAttemptQuestionCard";
 import type { PublicAttemptQuestion } from "../../../../../src/types/quiz";

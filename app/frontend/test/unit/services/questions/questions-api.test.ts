@@ -13,6 +13,7 @@ describe("questionsApi", () => {
 
   it("calls the expected questions endpoints with the right payloads", () => {
     questionsApi.listQuestions("token");
+    questionsApi.listQuestionBank("token");
     questionsApi.createQuestion("token", {
       title: "Integral",
       type: "true_false",
@@ -27,7 +28,10 @@ describe("questionsApi", () => {
     expect(request).toHaveBeenNthCalledWith(1, "/questions", {
       accessToken: "token",
     });
-    expect(request).toHaveBeenNthCalledWith(2, "/questions", {
+    expect(request).toHaveBeenNthCalledWith(2, "/questions/bank", {
+      accessToken: "token",
+    });
+    expect(request).toHaveBeenNthCalledWith(3, "/questions", {
       method: "POST",
       accessToken: "token",
       body: {
@@ -37,12 +41,12 @@ describe("questionsApi", () => {
         questionConfig: { correctAnswer: true },
       },
     });
-    expect(request).toHaveBeenNthCalledWith(3, "/questions/q-1", {
+    expect(request).toHaveBeenNthCalledWith(4, "/questions/q-1", {
       method: "PATCH",
       accessToken: "token",
       body: { title: "Nueva" },
     });
-    expect(request).toHaveBeenNthCalledWith(4, "/questions/q-2", {
+    expect(request).toHaveBeenNthCalledWith(5, "/questions/q-2", {
       method: "DELETE",
       accessToken: "token",
     });

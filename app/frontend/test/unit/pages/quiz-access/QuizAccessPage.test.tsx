@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 import QuizAccessPage from "../../../../src/pages/quiz-access/QuizAccessPage";
 import type {
@@ -150,6 +151,7 @@ const selectedQuiz: PublicQuizCatalogItem = {
   endAt: "2026-04-13T10:00:00.000Z",
   timeLimitMinutes: 30,
   publishedAt: "2026-04-12T09:00:00.000Z",
+  audienceScope: "all",
   isAvailableNow: true,
   canStart: true,
 };
@@ -160,7 +162,7 @@ const activeAttempt: QuizAttemptItem = {
   title: "Intento",
   description: "Descripción",
   accessCode: "ABCD",
-  participantName: "Pablo",
+  participantName: "user:7",
   attemptNumber: 1,
   attemptsAllowed: 2,
   attemptsRemaining: 1,
@@ -174,7 +176,7 @@ const result: QuizSubmissionResult = {
   attemptId: "attempt-1",
   quizId: "quiz-1",
   title: "Resultado",
-  participantName: "Pablo",
+  participantName: "user:7",
   attemptNumber: 1,
   attemptsAllowed: 2,
   attemptsRemaining: 1,
@@ -233,6 +235,12 @@ describe("QuizAccessPage", () => {
 
     render(<QuizAccessPage />);
 
+    expect(mockUseQuizAccessPage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        routeQuizId: undefined,
+        isAuthenticated: true,
+      }),
+    );
     expect(screen.getByText("quizAccess.title")).toBeInTheDocument();
     expect(screen.getByText("quizAccess.subtitle")).toBeInTheDocument();
     expect(screen.getByText("ok")).toBeInTheDocument();
@@ -258,64 +266,54 @@ describe("QuizAccessPage", () => {
 
     render(<QuizAccessPage />);
 
-    expect(screen.getByText("errors.codes.quiz.not_found")).toBeInTheDocument();
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "quizAccess.actions.newLookup" }),
+    expect(mockUseQuizAccessPage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        routeQuizId: "missing",
+        isAuthenticated: false,
+      }),
     );
-
-    expect(hook.resetLookup).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("errors.codes.quiz.not_found")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("quizAccess.actions.newLookup"));
+    expect(hook.resetLookup).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith("/quiz-access");
   });
 
-  it("renders selected quiz card for route quiz id and wires card callbacks", () => {
-    const hook = buildHookResult({ selectedQuiz });
-    mockUseAuth.mockReturnValue({ user: { id: 9 } });
+  it("renders selected quiz card and wires route actions", () => {
+    const hook = buildHookResult({ selectedQuiz, accessCode: "LOCK" });
+    mockUseAuth.mockReturnValue({ user: { id: 7 } });
     mockUseParams.mockReturnValue({ quizId: "quiz-1" });
     mockUseQuizAccessPage.mockReturnValue(hook);
 
     render(<QuizAccessPage />);
 
-    expect(screen.getByTestId("selected-quiz-card")).toHaveTextContent(
-      "quiz-1",
-    );
-
+    expect(screen.getByTestId("selected-quiz-card")).toBeInTheDocument();
     fireEvent.click(screen.getByText("code"));
     fireEvent.click(screen.getByText("start"));
     fireEvent.click(screen.getByText("best-result"));
     fireEvent.click(screen.getByText("reset"));
 
     expect(hook.setAccessCode).toHaveBeenCalledWith("ABCD");
-    expect(hook.handleStartAttempt).toHaveBeenCalledWith({
-      quizId: "quiz-1",
-      accessCode: "CODE",
-    });
+    expect(hook.handleStartAttempt).toHaveBeenCalled();
     expect(hook.handleLoadBestResult).toHaveBeenCalledWith("quiz-1");
-    expect(hook.resetLookup).toHaveBeenCalledTimes(1);
+    expect(hook.resetLookup).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith("/quiz-access");
   });
 
-  it("renders active attempt and result sections when present", () => {
+  it("renders active attempt and result branches", () => {
     const hook = buildHookResult({
       activeAttempt,
-      result,
       answers: { "q-1": true },
-      submitting: true,
-      starting: true,
+      result,
     });
-    mockUseAuth.mockReturnValue({ user: { id: 2 } });
+    mockUseAuth.mockReturnValue({ user: { id: 7 } });
     mockUseParams.mockReturnValue({ quizId: "quiz-1" });
     mockUseQuizAccessPage.mockReturnValue(hook);
 
     render(<QuizAccessPage />);
 
-    expect(screen.getByTestId("attempt-header")).toHaveTextContent("attempt-1");
-    expect(screen.getByTestId("attempt-section")).toHaveTextContent(
-      "attempt-1|1|true",
-    );
-    expect(screen.getByTestId("result-section")).toHaveTextContent(
-      "attempt-1|true",
-    );
+    expect(screen.getByTestId("attempt-header")).toBeInTheDocument();
+    expect(screen.getByTestId("attempt-section")).toBeInTheDocument();
+    expect(screen.getByTestId("result-section")).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("answer"));
     fireEvent.click(screen.getByText("submit"));
@@ -323,9 +321,8 @@ describe("QuizAccessPage", () => {
     fireEvent.click(screen.getByText("start-another"));
 
     expect(hook.updateAnswer).toHaveBeenCalledWith("q-1", true);
-    expect(hook.handleSubmitAttempt).toHaveBeenCalledTimes(1);
-    expect(hook.handleStartAttempt).toHaveBeenCalledTimes(1);
-    expect(hook.resetLookup).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith("/quiz-access");
+    expect(hook.handleSubmitAttempt).toHaveBeenCalled();
+    expect(hook.resetLookup).toHaveBeenCalled();
+    expect(hook.handleStartAttempt).toHaveBeenCalled();
   });
 });

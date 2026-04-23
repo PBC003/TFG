@@ -96,7 +96,7 @@ describe("LoginPage", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("forms.validation.unioviEmail"),
+        screen.getByText("forms.validation.unioviLogin"),
       ).toBeInTheDocument();
       expect(
         screen.getByText("forms.validation.passwordLength"),
@@ -116,7 +116,7 @@ describe("LoginPage", () => {
     renderLoginPage();
 
     fireEvent.change(screen.getByLabelText("auth.email"), {
-      target: { value: "  uo123456@uniovi.es  " },
+      target: { value: "  uo123456  " },
     });
     fireEvent.change(screen.getByLabelText("auth.password"), {
       target: { value: "12345678" },
@@ -141,7 +141,7 @@ describe("LoginPage", () => {
     renderLoginPage();
 
     fireEvent.change(screen.getByLabelText("auth.email"), {
-      target: { value: "uo123456@uniovi.es" },
+      target: { value: "uo123456" },
     });
     fireEvent.change(screen.getByLabelText("auth.password"), {
       target: { value: "12345678" },

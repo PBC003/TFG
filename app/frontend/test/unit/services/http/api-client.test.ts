@@ -1,119 +1,168 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError, request } from "../../../../src/services/http/api-client";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { API_BASE_URL } from "../../../../src/constants/app";
+import {
+  ApiError,
+  request,
+  requestText,
+} from "../../../../src/services/http/api-client";
 
-describe("request", () => {
-  beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn());
+describe("api-client", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
-  it("performs a default GET request with include credentials", async () => {
-    vi.mocked(fetch).mockResolvedValue(
+  it("sends JSON requests with auth headers and returns the parsed payload", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ ok: true }), {
         status: 200,
         headers: { "content-type": "application/json" },
       }),
     );
+    vi.stubGlobal("fetch", fetchMock);
 
-    await expect(request("/health")).resolves.toEqual({ ok: true });
-    expect(fetch).toHaveBeenCalledWith(
-      "http://localhost:3001/health",
-      expect.objectContaining({
-        method: "GET",
-        credentials: "include",
-        body: undefined,
+    await expect(
+      request<{ ok: boolean }>("/groups", {
+        method: "POST",
+        accessToken: "token-123",
+        body: { name: "Group" },
+        credentials: "same-origin",
       }),
-    );
-  });
+    ).resolves.toEqual({ ok: true });
 
-  it("sends json body and authorization header when provided", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ created: true }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
-    );
-
-    await request("/auth/login", {
+    expect(fetchMock).toHaveBeenCalledWith(`${API_BASE_URL}/groups`, {
       method: "POST",
-      body: { email: "uo289642@uniovi.es" },
-      accessToken: "token-123",
+      headers: expect.any(Headers),
+      body: JSON.stringify({ name: "Group" }),
       credentials: "same-origin",
     });
 
-    const options = vi.mocked(fetch).mock.calls[0]?.[1];
-    expect(options).toMatchObject({
-      method: "POST",
-      body: JSON.stringify({ email: "uo289642@uniovi.es" }),
-      credentials: "same-origin",
-    });
-
-    const headers = options?.headers as Headers;
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Headers;
     expect(headers.get("Content-Type")).toBe("application/json");
     expect(headers.get("Authorization")).toBe("Bearer token-123");
   });
 
   it("returns undefined for 204 responses", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(null, {
-        status: 204,
-      }),
-    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fetchMock);
 
-    await expect(request<void>("/logout", { method: "POST" })).resolves.toBe(
-      undefined,
-    );
+    await expect(
+      request<void>("/groups/group-1", { method: "DELETE" }),
+    ).resolves.toBeUndefined();
   });
 
-  it("throws a normalized ApiError from json responses", async () => {
-    vi.mocked(fetch).mockResolvedValue(
+  it("normalizes JSON error payloads into ApiError instances", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
       new Response(
-        JSON.stringify({ code: "auth.unauthorized", message: "No autorizado" }),
+        JSON.stringify({
+          code: "group.name_already_exists",
+          message: "Already exists",
+          details: [{ field: "name", message: "Duplicated" }],
+        }),
         {
-          status: 401,
-          statusText: "Unauthorized",
+          status: 409,
+          statusText: "Conflict",
           headers: { "content-type": "application/json" },
         },
       ),
     );
+    vi.stubGlobal("fetch", fetchMock);
 
-    await expect(request("/auth/me")).rejects.toMatchObject({
-      name: "ApiError",
-      status: 401,
-      code: "auth.unauthorized",
-      message: "No autorizado",
-    });
-  });
-
-  it("normalizes plain text error bodies", async () => {
-    const buildErrorResponse = () =>
-      new Response("Server exploded", {
-        status: 500,
-        statusText: "Server Error",
-        headers: { "content-type": "text/plain" },
-      });
-
-    vi.mocked(fetch).mockImplementation(async () => buildErrorResponse());
-
-    await expect(request("/boom")).rejects.toBeInstanceOf(ApiError);
-    await expect(request("/boom")).rejects.toMatchObject({
-      status: 500,
-      code: "common.internal_error",
-      message: "Server exploded",
-    });
-  });
-
-  it("falls back to the response status text when the error body is empty", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(null, {
-        status: 503,
-        statusText: "Service Unavailable",
+    await expect(request("/groups")).rejects.toEqual(
+      expect.objectContaining<ApiError>({
+        name: "ApiError",
+        status: 409,
+        code: "group.name_already_exists",
+        message: "Already exists",
+        details: expect.arrayContaining([
+          { field: "name", message: "Duplicated" },
+        ]),
       }),
     );
+  });
 
-    await expect(request("/downstream")).rejects.toMatchObject({
+  it("falls back to the response body for non-json failures when present", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response("Gateway failed", {
+        status: 502,
+        statusText: "Bad Gateway",
+        headers: { "content-type": "text/plain" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(request("/health")).rejects.toEqual(
+      expect.objectContaining<ApiError>({
+        name: "ApiError",
+        status: 502,
+        code: "common.internal_error",
+        message: "Gateway failed",
+      }),
+    );
+  });
+
+  it("reads text responses and preserves request defaults", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response("csv-content", {
+        status: 200,
+        headers: { "content-type": "text/csv" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      requestText("/quizzes/export", { accessToken: "token-456" }),
+    ).resolves.toBe("csv-content");
+
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Headers;
+    expect(fetchMock.mock.calls[0]?.[1]).toEqual(
+      expect.objectContaining({
+        method: "GET",
+        body: undefined,
+        credentials: "include",
+      }),
+    );
+    expect(headers.get("Authorization")).toBe("Bearer token-456");
+  });
+});
+
+it("falls back to the response status text when non-json failures have an empty body", async () => {
+  const fetchMock = vi.fn().mockResolvedValue(
+    new Response(null, {
+      status: 503,
+      statusText: "Service Unavailable",
+      headers: { "content-type": "text/plain" },
+    }),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+
+  await expect(request("/health")).rejects.toEqual(
+    expect.objectContaining<ApiError>({
+      name: "ApiError",
       status: 503,
       code: "common.internal_error",
       message: "Service Unavailable",
-    });
-  });
+    }),
+  );
+});
+
+it("normalizes object payloads without message/code using the response defaults", async () => {
+  const fetchMock = vi.fn().mockResolvedValue(
+    new Response(JSON.stringify({ details: { reason: "bad" } }), {
+      status: 400,
+      statusText: "Bad Request",
+      headers: { "content-type": "application/json" },
+    }),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+
+  await expect(request("/groups")).rejects.toEqual(
+    expect.objectContaining<ApiError>({
+      name: "ApiError",
+      status: 400,
+      code: "common.internal_error",
+      message: "Bad Request",
+    }),
+  );
 });
