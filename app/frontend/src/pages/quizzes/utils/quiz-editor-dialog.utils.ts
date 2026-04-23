@@ -60,5 +60,6 @@ export function getInitialQuizEditorState(
           ? ""
           : String(question.toleranceOverride),
     })),
+    selectedGroupIds: [...(quiz?.assignedGroupIds ?? [])],
   };
 }

@@ -24,7 +24,7 @@ import { AuthSession } from './entities/auth-session.entity';
 import type {
   AuthTokensResponse,
   PublicUser,
-} from './types/auth-response.type.ts';
+} from './types/auth-response.type';
 import type { RefreshTokenPayload } from './types/token-payload.type';
 import {
   findRefreshSessionForLogout,

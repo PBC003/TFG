@@ -1,5 +1,5 @@
-import type { QuestionType } from "../../../../types/question";
-import type { QuestionItem } from "../../../../types/question";
+import type { GroupItem } from "../../../../types/group";
+import type { QuestionItem, QuestionType } from "../../../../types/question";
 import type {
   CreateQuizInput,
   QuizItem,
@@ -10,6 +10,7 @@ export interface QuizEditorDialogProps {
   open: boolean;
   quiz: QuizItem | null;
   questionBank: QuestionItem[];
+  groupOptions?: GroupItem[];
   questionBankLoading?: boolean;
   submitting: boolean;
   title: string;
@@ -36,6 +37,8 @@ export interface QuizEditorDialogProps {
     timeLimitMinutes: string;
     shuffleQuestions: string;
     revealAnswersAfterClose: string;
+    assignedGroups?: string;
+    assignedGroupsHelper?: string;
     selectedQuestionsFirst: string;
     selectedQuestionsCount: string;
     questionPaginationLabel: string;
@@ -71,4 +74,5 @@ export type QuizEditorInitialState = {
   shuffleQuestions: boolean;
   revealAnswersAfterClose: boolean;
   selectedQuestions: SelectedQuestionState[];
+  selectedGroupIds: string[];
 };

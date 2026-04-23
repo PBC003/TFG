@@ -18,6 +18,7 @@ type QuizEditorDialogContentProps = Omit<QuizEditorDialogProps, "open">;
 export function QuizEditorDialogContent({
   quiz,
   questionBank,
+  groupOptions = [],
   questionBankLoading = false,
   submitting,
   title,
@@ -44,6 +45,7 @@ export function QuizEditorDialogContent({
     timeLimitMinutes,
     shuffleQuestions,
     revealAnswersAfterClose,
+    selectedGroups,
     search,
     selectedQuestions,
     selectedQuestionMap,
@@ -68,10 +70,12 @@ export function QuizEditorDialogContent({
     updateQuestionPoints,
     updateQuestionQuantity,
     updateQuestionToleranceOverride,
+    updateSelectedGroups,
     submit,
   } = useQuizEditorDialog({
     quiz,
     questionBank,
+    groupOptions,
     validationMessage,
     fields,
     onSubmit,
@@ -90,6 +94,8 @@ export function QuizEditorDialogContent({
 
           <QuizEditorBasicSettingsSection
             fields={fields}
+            groupOptions={groupOptions}
+            selectedGroups={selectedGroups}
             submitting={submitting}
             quizTitle={quizTitle}
             quizDescription={quizDescription}
@@ -109,6 +115,7 @@ export function QuizEditorDialogContent({
             onTimeLimitMinutesChange={setTimeLimitMinutes}
             onShuffleQuestionsChange={setShuffleQuestions}
             onRevealAnswersAfterCloseChange={setRevealAnswersAfterClose}
+            onSelectedGroupsChange={updateSelectedGroups}
           />
 
           <Divider />
