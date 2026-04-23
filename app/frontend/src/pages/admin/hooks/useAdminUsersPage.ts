@@ -4,8 +4,8 @@ import type { AuthContextValue } from "../../../context/AuthContext";
 import { adminApi } from "../../../services/admin/admin-api";
 import type { AdminUser } from "../../../types/auth";
 import { getErrorMessage } from "../../../utils/error-code";
-import type { UserEditFormValue } from "../../../components/admin/dialogs/UserEditDialog";
-import type { StatusFilter } from "../../../components/admin/AdminToolbar";
+import type { UserEditFormValue } from "../components/dialogs/UserEditDialog";
+import type { StatusFilter } from "../components/AdminToolbar";
 import type { ConfirmState, FeedbackState } from "../types/admin-page.types";
 
 type UseAdminUsersPageOptions = {

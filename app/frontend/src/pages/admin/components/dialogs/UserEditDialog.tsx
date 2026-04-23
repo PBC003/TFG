@@ -10,12 +10,12 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { AdminUser, Role } from "../../../types/auth";
+import type { AdminUser, Role } from "../../../../types/auth";
 import {
   validateFirstName,
   validateLastName,
   validateUniOviEmail,
-} from "../../../utils/validation";
+} from "../../../../utils/validation";
 
 export interface UserEditFormValue {
   firstName: string;

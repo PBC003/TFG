@@ -12,26 +12,68 @@ function buildNavItems(
   t: (key: string) => string,
 ): AppNavItem[] {
   const items: AppNavItem[] = [
-    { label: t("nav.home"), to: ROUTES.home },
-    { label: t("nav.about"), to: ROUTES.about },
-    { label: t("nav.quizAccess"), to: ROUTES.quizAccess },
+    { label: t("nav.home"), to: ROUTES.home, desktopPlacement: "visible" },
+    {
+      label: t("nav.about"),
+      to: ROUTES.about,
+      desktopPlacement: isAuthenticated ? "overflow" : "visible",
+    },
+    {
+      label: t("nav.quizAccess"),
+      to: ROUTES.quizAccess,
+      desktopPlacement: "visible",
+    },
   ];
 
   if (!isAuthenticated) {
-    items.push({ label: t("nav.login"), to: ROUTES.login });
-    items.push({ label: t("nav.register"), to: ROUTES.register });
+    items.push({
+      label: t("nav.login"),
+      to: ROUTES.login,
+      desktopPlacement: "visible",
+    });
+    items.push({
+      label: t("nav.register"),
+      to: ROUTES.register,
+      desktopPlacement: "visible",
+    });
     return items;
   }
 
-  items.push({ label: t("nav.profile"), to: ROUTES.profile });
+  items.push({
+    label: t("nav.profile"),
+    to: ROUTES.profile,
+    desktopPlacement: "overflow",
+  });
+  items.push({
+    label: t("nav.quizHistory"),
+    to: ROUTES.quizHistory,
+    desktopPlacement: "overflow",
+  });
 
   if (role === "ADMIN" || role === "TEACHER") {
-    items.push({ label: t("nav.questions"), to: ROUTES.questions });
-    items.push({ label: t("nav.quizzes"), to: ROUTES.quizzes });
+    items.push({
+      label: t("nav.questions"),
+      to: ROUTES.questions,
+      desktopPlacement: "visible",
+    });
+    items.push({
+      label: t("nav.groups"),
+      to: ROUTES.groups,
+      desktopPlacement: "overflow",
+    });
+    items.push({
+      label: t("nav.quizzes"),
+      to: ROUTES.quizzes,
+      desktopPlacement: "visible",
+    });
   }
 
   if (isAdmin) {
-    items.push({ label: t("nav.admin"), to: ROUTES.admin });
+    items.push({
+      label: t("nav.admin"),
+      to: ROUTES.admin,
+      desktopPlacement: "overflow",
+    });
   }
 
   return items;

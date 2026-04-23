@@ -10,8 +10,8 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { validatePassword } from "../../../utils/validation";
-import type { AdminUser } from "../../../types/auth";
+import { validatePassword } from "../../../../utils/validation";
+import type { AdminUser } from "../../../../types/auth";
 
 interface UserPasswordDialogProps {
   open: boolean;

@@ -9,10 +9,10 @@ import {
   Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { formatDateTime } from "../../utils/date.ts";
-import type { AdminUser } from "../../types/auth.ts";
-import { RoleChip } from "../common/RoleChip";
-import { StatusChip } from "../common/StatusChip";
+import { formatDateTime } from "../../../utils/date.ts";
+import type { AdminUser } from "../../../types/auth.ts";
+import { RoleChip } from "../../../components/common/RoleChip";
+import { StatusChip } from "../../../components/common/StatusChip";
 
 interface AdminUsersTableProps {
   currentUserId: number | null;

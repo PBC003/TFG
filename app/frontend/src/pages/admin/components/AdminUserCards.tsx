@@ -7,10 +7,10 @@ import {
   Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import type { AdminUser } from "../../types/auth.ts";
-import { formatDateTime } from "../../utils/date.ts";
-import { RoleChip } from "../common/RoleChip";
-import { StatusChip } from "../common/StatusChip";
+import type { AdminUser } from "../../../types/auth.ts";
+import { formatDateTime } from "../../../utils/date.ts";
+import { RoleChip } from "../../../components/common/RoleChip";
+import { StatusChip } from "../../../components/common/StatusChip";
 
 interface AdminUserCardsProps {
   currentUserId: number | null;
