@@ -1,4 +1,15 @@
 const uniOviEmailPattern = /^uo\d{6}@uniovi\.es$/i;
+const uniOviLoginPattern = /^(uo\d{6}|uo\d{6}@uniovi\.es)$/i;
+
+export function normalizeUniOviLoginIdentifier(value: string): string {
+  const trimmed = value.trim().toLowerCase();
+
+  if (/^uo\d{6}$/i.test(trimmed)) {
+    return `${trimmed}@uniovi.es`;
+  }
+
+  return trimmed;
+}
 
 export function validateFirstName(value: string): string | null {
   const trimmed = value.trim();
@@ -37,6 +48,20 @@ export function validateUniOviEmail(value: string): string | null {
 
   if (!uniOviEmailPattern.test(trimmed)) {
     return "forms.validation.unioviEmail";
+  }
+
+  return null;
+}
+
+export function validateUniOviLoginIdentifier(value: string): string | null {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return "forms.validation.required";
+  }
+
+  if (!uniOviLoginPattern.test(trimmed)) {
+    return "forms.validation.unioviLogin";
   }
 
   return null;

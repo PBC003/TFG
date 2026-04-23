@@ -14,7 +14,11 @@ import { ROUTES } from "../constants/routes";
 import { useAuth } from "../hooks/useAuth";
 import { ApiError } from "../services/http/api-client";
 import { getErrorMessage } from "../utils/error-code";
-import { validatePassword, validateUniOviEmail } from "../utils/validation";
+import {
+  normalizeUniOviLoginIdentifier,
+  validatePassword,
+  validateUniOviLoginIdentifier,
+} from "../utils/validation";
 
 interface LocationState {
   from?: {
@@ -42,7 +46,7 @@ export default function LoginPage() {
 
   const validate = () => {
     const nextErrors = {
-      email: validateUniOviEmail(email),
+      email: validateUniOviLoginIdentifier(email),
       password: validatePassword(password),
     };
 
@@ -60,7 +64,7 @@ export default function LoginPage() {
 
     try {
       await auth.login({
-        email: email.trim(),
+        email: normalizeUniOviLoginIdentifier(email),
         password,
       });
       navigate(target, { replace: true });
@@ -103,7 +107,11 @@ export default function LoginPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             error={Boolean(fieldErrors.email)}
-            helperText={fieldErrors.email ? t(fieldErrors.email) : " "}
+            helperText={
+              fieldErrors.email
+                ? t(fieldErrors.email)
+                : t("auth.loginIdentifierHint")
+            }
           />
           <TextField
             type="password"

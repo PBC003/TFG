@@ -1,7 +1,14 @@
+const UO_IDENTIFIER_REGEX = /^uo(\d{6})$/i;
 const UO_EMAIL_REGEX = /^uo(\d{6})@uniovi\.es$/i;
 
 export function normalizeInstitutionalEmail(email: string): string {
-  return email.trim().toLowerCase();
+  const normalizedValue = email.trim().toLowerCase();
+
+  if (UO_IDENTIFIER_REGEX.test(normalizedValue)) {
+    return `${normalizedValue}@uniovi.es`;
+  }
+
+  return normalizedValue;
 }
 
 export function isValidInstitutionalEmail(email: string): boolean {
