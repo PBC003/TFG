@@ -12,10 +12,10 @@ import {
 import {
   ParametricTemplate,
   ParametricTemplateSchema,
-} from '../src/questions/schemas/parametric-template.schema';
+} from '../src/questions/parametric/schemas/parametric-template.schema';
 import type { CreateQuestionDto } from '../src/questions/dto/create-question.dto';
 import type { QuestionTypeConfig } from '../src/questions/types/question-type-config.type';
-import type { ParametricTemplateDefinition } from '../src/questions/types/parametric-template-definition.type';
+import type { ParametricTemplateDefinition } from '../src/questions/parametric/types/parametric-template-definition.type';
 import { normalizeCreateQuestionData } from '../src/questions/utils/question-payload.util';
 import { assertValidQuestionContent } from '../src/questions/utils/question-validation.util';
 import { QuestionType } from '../src/questions/enums/question-type.enum';

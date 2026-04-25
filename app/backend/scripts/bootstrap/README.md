@@ -25,5 +25,5 @@ npm run bootstrap:content -- --dir ./private/bootstrap
 
 - The question bank import is **idempotent** and uses `seedKey` per question.
 - Parametric templates can also be imported and persisted in MongoDB as **private bootstrap artefacts** for traceability and future migrations.
-- **Current runtime note:** the backend still resolves parametric templates from the bundled registry in `src/questions/utils/parametric-question-template.util.ts`. Importing `parametric-templates.v1.json` does **not** switch runtime generation to MongoDB.
+- **Current runtime note:** the backend still resolves parametric templates from the bundled registry in `src/questions/parametric/parametric-question-template.util.ts`. Importing `parametric-templates.v1.json` does **not** switch runtime generation to MongoDB.
 - The JSON files are considered **private bootstrap artefacts** and should not be committed.
