@@ -1,8 +1,32 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { QuizCatalogSection } from "../../../../../src/pages/quiz-access/components/QuizCatalogSection";
 import type { PublicQuizCatalogItem } from "../../../../../src/types/quiz";
+import { QuizCatalogSection } from "../../../../../src/pages/quiz-access/components/QuizCatalogSection";
 import { renderWithProviders } from "../../../../utils/render";
+
+vi.mock("@mui/material", async () => {
+  const actual =
+    await vi.importActual<typeof import("@mui/material")>("@mui/material");
+
+  return {
+    ...actual,
+    TablePagination: (props: {
+      labelRowsPerPage: string;
+      onPageChange: (event: unknown, page: number) => void;
+      onRowsPerPageChange: (event: { target: { value: string } }) => void;
+    }) => (
+      <div data-testid="catalog-pagination">
+        <div>{props.labelRowsPerPage}</div>
+        <button onClick={() => props.onPageChange({}, 1)}>page</button>
+        <button
+          onClick={() => props.onRowsPerPageChange({ target: { value: "10" } })}
+        >
+          rows
+        </button>
+      </div>
+    ),
+  };
+});
 
 vi.mock(
   "../../../../../src/pages/quiz-access/components/QuizCatalogCard",
@@ -25,6 +49,7 @@ const quiz: PublicQuizCatalogItem = {
   title: "Quiz 1",
   description: "Desc",
   teacherName: "Teacher",
+  audienceScope: "PUBLIC" as PublicQuizCatalogItem["audienceScope"],
   requiresAccessCode: false,
   attemptsAllowed: 2,
   attemptsRemaining: 1,
@@ -77,7 +102,7 @@ describe("QuizCatalogSection", () => {
     expect(screen.getByText("quizAccess.catalog.empty")).toBeInTheDocument();
   });
 
-  it("renders visible catalog entries and forwards filters and pagination changes", () => {
+  it("renders visible catalog entries and forwards filters, pagination and open actions", () => {
     const onSearchChange = vi.fn();
     const onPageChange = vi.fn();
     const onRowsPerPageChange = vi.fn();
@@ -103,13 +128,15 @@ describe("QuizCatalogSection", () => {
       target: { value: "nuevo" },
     });
     fireEvent.click(screen.getByText("open-quiz-1"));
+    fireEvent.click(screen.getByText("page"));
+    fireEvent.click(screen.getByText("rows"));
 
     expect(onSearchChange).toHaveBeenCalledWith("nuevo");
     expect(onOpenQuiz).toHaveBeenCalledWith("quiz-1");
+    expect(onPageChange).toHaveBeenCalledWith(1);
+    expect(onRowsPerPageChange).toHaveBeenCalledWith(10);
     expect(
       screen.getByText("quizAccess.catalog.paginationLabel"),
     ).toBeInTheDocument();
-    expect(onPageChange).not.toHaveBeenCalled();
-    expect(onRowsPerPageChange).not.toHaveBeenCalled();
   });
 });

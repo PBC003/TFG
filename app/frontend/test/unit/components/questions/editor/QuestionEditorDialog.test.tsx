@@ -1,12 +1,18 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import "@testing-library/jest-dom";
 import { QuestionEditorDialog } from "../../../../../src/components/questions/editor/QuestionEditorDialog";
 import type { QuestionItem } from "../../../../../src/types/question";
 
 const mockUseQuestionEditorDialog = vi.fn();
+const mockUseAuth = vi.fn();
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
+}));
+
+vi.mock("../../../../../src/hooks/useAuth", () => ({
+  useAuth: () => mockUseAuth(),
 }));
 
 vi.mock(
@@ -56,6 +62,10 @@ const question: QuestionItem = {
 };
 
 describe("QuestionEditorDialog", () => {
+  beforeEach(() => {
+    mockUseAuth.mockReturnValue({ user: { role: "ADMIN" } });
+  });
+
   it("renders create and edit modes and delegates to the editor hook", () => {
     mockUseQuestionEditorDialog.mockReturnValue({
       form: {

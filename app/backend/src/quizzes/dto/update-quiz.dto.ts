@@ -66,6 +66,12 @@ export class UpdateQuizDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayUnique()
+  @IsString({ each: true })
+  assignedGroupIds?: string[];
+
+  @IsOptional()
+  @IsArray()
   @ArrayMinSize(1)
   @ArrayUnique((value: QuizQuestionDto) => value.questionId)
   @ValidateNested({ each: true })

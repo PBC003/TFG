@@ -11,7 +11,8 @@ export class StartQuizAttemptDto {
   @Length(1, 120)
   quizId?: string | null;
 
+  @IsOptional()
   @IsString()
   @Length(2, 120)
-  participantName!: string;
+  participantName?: string;
 }

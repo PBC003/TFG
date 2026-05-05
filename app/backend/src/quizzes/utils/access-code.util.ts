@@ -1,7 +1,10 @@
 const ACCESS_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 export function normalizeAccessCode(value?: string | null): string {
-  return (value ?? '').trim().toUpperCase();
+  return (value ?? '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '');
 }
 
 export function generateAccessCode(length = 6): string {

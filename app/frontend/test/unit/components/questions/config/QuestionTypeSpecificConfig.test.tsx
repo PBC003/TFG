@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { useEffect, useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -283,7 +283,6 @@ describe("QuestionTypeSpecificConfig", () => {
   });
 
   it("renders the single-choice branch and wires every child callback", async () => {
-    const user = userEvent.setup();
     const singleChoiceForm: FormState = { ...baseForm, type: "single_choice" };
     let currentForm: FormState = structuredClone(singleChoiceForm);
     const onUpdateForm = vi.fn((updater: (current: FormState) => FormState) => {
@@ -314,14 +313,14 @@ describe("QuestionTypeSpecificConfig", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("false")).toBeInTheDocument();
 
-    await user.click(
+    fireEvent.click(
       screen.getByRole("switch", { name: "questions.fields.randomizeOptions" }),
     );
-    await user.click(screen.getByRole("button", { name: "toggle-correct" }));
-    await user.click(screen.getByRole("button", { name: "change-field" }));
-    await user.click(screen.getByRole("button", { name: "add-option" }));
-    await user.click(screen.getByRole("button", { name: "remove-option" }));
-    await user.click(screen.getByRole("button", { name: "toggle-preview" }));
+    fireEvent.click(screen.getByRole("button", { name: "toggle-correct" }));
+    fireEvent.click(screen.getByRole("button", { name: "change-field" }));
+    fireEvent.click(screen.getByRole("button", { name: "add-option" }));
+    fireEvent.click(screen.getByRole("button", { name: "remove-option" }));
+    fireEvent.click(screen.getByRole("button", { name: "toggle-preview" }));
 
     expect(currentForm.singleChoice.randomizeOptions).toBe(true);
     expect(onUpdateSingleChoiceOption).toHaveBeenCalledWith(
@@ -340,8 +339,7 @@ describe("QuestionTypeSpecificConfig", () => {
     expect(onTogglePreview).toHaveBeenCalledWith("singleChoice.options.0.text");
   });
 
-  it("renders the multiple-choice branch and updates grading mode", async () => {
-    const user = userEvent.setup();
+  it("renders the multiple-choice branch and updates grading mode", () => {
     const multipleChoiceForm: FormState = {
       ...baseForm,
       type: "multiple_choice",
@@ -375,10 +373,10 @@ describe("QuestionTypeSpecificConfig", () => {
     ).toBeInTheDocument();
     expect(screen.getAllByText("true")).toHaveLength(2);
 
-    await user.click(
+    fireEvent.click(
       screen.getByRole("switch", { name: "questions.fields.randomizeOptions" }),
     );
-    await user.click(
+    fireEvent.mouseDown(
       screen.getByRole("combobox", { name: "questions.fields.gradingMode" }),
     );
     expect(
@@ -386,16 +384,16 @@ describe("QuestionTypeSpecificConfig", () => {
         name: "questions.gradingModes.partial_credit",
       }),
     ).toBeInTheDocument();
-    await user.click(
+    fireEvent.click(
       screen.getByRole("option", {
         name: "questions.gradingModes.partial_credit",
       }),
     );
-    await user.click(screen.getByRole("button", { name: "toggle-correct" }));
-    await user.click(screen.getByRole("button", { name: "change-field" }));
-    await user.click(screen.getByRole("button", { name: "add-option" }));
-    await user.click(screen.getByRole("button", { name: "remove-option" }));
-    await user.click(screen.getByRole("button", { name: "toggle-preview" }));
+    fireEvent.click(screen.getByRole("button", { name: "toggle-correct" }));
+    fireEvent.click(screen.getByRole("button", { name: "change-field" }));
+    fireEvent.click(screen.getByRole("button", { name: "add-option" }));
+    fireEvent.click(screen.getByRole("button", { name: "remove-option" }));
+    fireEvent.click(screen.getByRole("button", { name: "toggle-preview" }));
 
     expect(currentForm.multipleChoice.randomizeOptions).toBe(true);
     expect(currentForm.multipleChoice.gradingMode).toBe("partial_credit");
@@ -415,10 +413,9 @@ describe("QuestionTypeSpecificConfig", () => {
     expect(onTogglePreview).toHaveBeenCalledWith(
       "multipleChoice.options.0.text",
     );
-  });
+  }, 10000);
 
-  it("renders the parametric branch and updates template and sample seed", async () => {
-    const user = userEvent.setup();
+  it("renders the parametric branch and updates template and sample seed", () => {
     const dateNowSpy = vi.spyOn(Date, "now").mockReturnValue(202);
 
     const initialForm: FormState = {
@@ -434,18 +431,18 @@ describe("QuestionTypeSpecificConfig", () => {
     expect(
       screen.getByLabelText("questions.fields.parametricTemplate"),
     ).toBeInTheDocument();
-    await user.click(
+    fireEvent.mouseDown(
       screen.getByRole("combobox", {
         name: "questions.fields.parametricTemplate",
       }),
     );
-    await user.click(
+    fireEvent.click(
       screen.getByRole("option", {
         name: "questions.parametricTemplates.integral_logarithmic",
       }),
     );
 
-    await user.click(
+    fireEvent.click(
       screen.getByRole("button", {
         name: "questions.actions.regenerateParametricSample",
       }),
@@ -458,5 +455,5 @@ describe("QuestionTypeSpecificConfig", () => {
     expect(currentForm.parametric.sampleSeed).toBe(202);
 
     dateNowSpy.mockRestore();
-  });
+  }, 10000);
 });

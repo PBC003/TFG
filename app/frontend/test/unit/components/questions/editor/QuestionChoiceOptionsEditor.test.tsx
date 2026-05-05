@@ -1,5 +1,4 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { QuestionChoiceOptionsEditor } from "../../../../../src/components/questions/editor/QuestionChoiceOptionsEditor";
 import type { EditableOption } from "../../../../../src/components/questions/editor/question-editor.types";
@@ -36,7 +35,6 @@ const options: EditableOption[] = [
 
 describe("QuestionChoiceOptionsEditor", () => {
   it("delegates option edits, toggles and collection actions", async () => {
-    const user = userEvent.setup();
     const onToggleCorrect = vi.fn();
     const onChangeOptionField = vi.fn();
     const onRemoveOption = vi.fn();
@@ -63,20 +61,20 @@ describe("QuestionChoiceOptionsEditor", () => {
       />,
     );
 
-    await user.click(screen.getAllByRole("switch", { name: "Correcta" })[1]!);
-    await user.click(
+    fireEvent.click(screen.getAllByRole("switch", { name: "Correcta" })[1]!);
+    fireEvent.click(
       screen.getByRole("button", { name: "change-optionText.0" }),
     );
-    await user.click(
+    fireEvent.click(
       screen.getByRole("button", { name: "change-optionFeedback.0" }),
     );
-    await user.click(
+    fireEvent.click(
       screen.getByRole("button", { name: "preview-optionText.0" }),
     );
-    await user.click(
+    fireEvent.click(
       screen.getAllByRole("button", { name: "Borrar opción" })[0]!,
     );
-    await user.click(screen.getByRole("button", { name: "Añadir opción" }));
+    fireEvent.click(screen.getByRole("button", { name: "Añadir opción" }));
 
     expect(onToggleCorrect).toHaveBeenCalledWith(1, true);
     expect(onChangeOptionField).toHaveBeenCalledWith(
@@ -92,6 +90,34 @@ describe("QuestionChoiceOptionsEditor", () => {
     expect(onTogglePreview).toHaveBeenCalledWith("optionText.0");
     expect(onRemoveOption).toHaveBeenCalledWith(0);
     expect(onAddOption).toHaveBeenCalledTimes(1);
+  }, 10000);
+
+  it("passes the actual checked state when multiple correct answers are allowed", () => {
+    const onToggleCorrect = vi.fn();
+
+    render(
+      <QuestionChoiceOptionsEditor
+        deleteLabel="Borrar opción"
+        options={options}
+        correctLabel="Correcta"
+        optionTextLabel="Texto"
+        optionFeedbackLabel="Feedback"
+        optionLabel={(index) => `Opción ${index + 1}`}
+        addOptionLabel="Añadir opción"
+        latexFieldHelper="latex"
+        canSelectMultipleCorrect
+        onToggleCorrect={onToggleCorrect}
+        onChangeOptionField={vi.fn()}
+        onRemoveOption={vi.fn()}
+        onAddOption={vi.fn()}
+        isOptionPreview={() => false}
+        onTogglePreview={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole("switch", { name: "Correcta" })[0]!);
+
+    expect(onToggleCorrect).toHaveBeenCalledWith(0, false);
   });
 
   it("disables delete buttons when there are only two options", () => {

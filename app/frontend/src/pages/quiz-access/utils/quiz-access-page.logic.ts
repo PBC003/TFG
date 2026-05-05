@@ -24,15 +24,15 @@ export function normalizeStartAttemptPayload(
 
 export function getSelectedQuizStartDisabled(params: {
   starting: boolean;
-  participantIdentity: string;
+  isAuthenticated: boolean;
   selectedQuiz: PublicQuizCatalogItem | null;
   accessCode: string;
 }): boolean {
-  const { starting, participantIdentity, selectedQuiz, accessCode } = params;
+  const { starting, isAuthenticated, selectedQuiz, accessCode } = params;
 
   return (
     starting ||
-    !participantIdentity ||
+    !isAuthenticated ||
     !selectedQuiz ||
     !selectedQuiz.isAvailableNow ||
     selectedQuiz.attemptsRemaining === 0 ||
@@ -42,10 +42,10 @@ export function getSelectedQuizStartDisabled(params: {
 
 export function getCanRequestBestResult(
   selectedQuiz: PublicQuizCatalogItem | null,
-  participantIdentity: string,
+  isAuthenticated: boolean,
 ): boolean {
   return Boolean(
-    selectedQuiz && participantIdentity && selectedQuiz.attemptsRemaining === 0,
+    selectedQuiz && isAuthenticated && selectedQuiz.attemptsRemaining === 0,
   );
 }
 

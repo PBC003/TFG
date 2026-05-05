@@ -48,6 +48,12 @@ export class Question {
   @Prop({ type: Number, default: 1 })
   version!: number;
 
+  @Prop({ type: String, trim: true, required: false })
+  externalSeedKey?: string;
+
+  @Prop({ type: String, trim: true, required: false })
+  sourceSeedBundle?: string;
+
   @Prop({ type: Boolean, default: false, index: true })
   isArchived!: boolean;
 
@@ -77,3 +83,6 @@ export const QuestionSchema = SchemaFactory.createForClass(Question);
 
 QuestionSchema.index({ createdByUserId: 1, type: 1 });
 QuestionSchema.index({ tags: 1 });
+
+QuestionSchema.index({ externalSeedKey: 1 }, { unique: true, sparse: true });
+QuestionSchema.index({ sourceSeedBundle: 1 });

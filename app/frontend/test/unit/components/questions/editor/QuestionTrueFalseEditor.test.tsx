@@ -1,5 +1,4 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { QuestionTrueFalseEditor } from "../../../../../src/components/questions/editor/QuestionTrueFalseEditor";
 
@@ -28,8 +27,7 @@ vi.mock(
 );
 
 describe("QuestionTrueFalseEditor", () => {
-  it("changes the correct answer and delegates feedback handlers", async () => {
-    const user = userEvent.setup();
+  it("changes the correct answer and delegates feedback handlers", () => {
     const onCorrectAnswerChange = vi.fn();
     const onFeedbackForTrueChange = vi.fn();
     const onFeedbackForFalseChange = vi.fn();
@@ -53,15 +51,15 @@ describe("QuestionTrueFalseEditor", () => {
       />,
     );
 
-    await user.click(screen.getByRole("combobox", { name: "Respuesta" }));
-    await user.click(screen.getByRole("option", { name: "Falso" }));
-    await user.click(
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Respuesta" }));
+    fireEvent.click(screen.getByRole("option", { name: "Falso" }));
+    fireEvent.click(
       screen.getByRole("button", { name: "toggle-feedbackForTrue" }),
     );
-    await user.click(
+    fireEvent.click(
       screen.getByRole("button", { name: "change-feedbackForTrue" }),
     );
-    await user.click(
+    fireEvent.click(
       screen.getByRole("button", { name: "change-feedbackForFalse" }),
     );
 

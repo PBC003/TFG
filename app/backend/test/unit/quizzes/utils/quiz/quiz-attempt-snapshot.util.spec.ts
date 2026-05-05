@@ -1,3 +1,4 @@
+import * as parametricTemplateUtils from '../../../../../src/questions/parametric/parametric-question-template.util';
 import type { QuestionDocument } from '../../../../../src/questions/schemas/question.schema';
 import { QuestionType } from '../../../../../src/questions/enums/question-type.enum';
 import { ParametricQuestionTemplateId } from '../../../../../src/questions/types/question-type-config.type';
@@ -119,5 +120,136 @@ describe('quiz-attempt-snapshot.util', () => {
         }),
       }),
     );
+  });
+
+  it('keeps non-randomized multiple-choice options stable and preserves order without shuffle', () => {
+    const multipleChoiceQuestion = {
+      questionId: 'q-multi',
+      title: 'Multiple',
+      type: QuestionType.MULTIPLE_CHOICE,
+      statement: 'Select',
+      explanation: null,
+      tags: ['multi'],
+      questionConfig: {
+        options: [
+          { key: 'a', text: 'A' },
+          { key: 'b', text: 'B' },
+        ],
+        correctOptionKeys: ['a'],
+        randomizeOptions: false,
+      },
+    } as unknown as QuestionDocument;
+
+    const config = createAttemptQuestionConfig(multipleChoiceQuestion);
+    expect(config).toEqual({
+      statement: 'Select',
+      questionConfig: {
+        options: [
+          { key: 'a', text: 'A' },
+          { key: 'b', text: 'B' },
+        ],
+        correctOptionKeys: ['a'],
+        randomizeOptions: false,
+      },
+    });
+
+    const snapshots = buildAttemptQuestionSnapshots(
+      {
+        questions: [{ questionId: 'q-multi', points: 2 }],
+        shuffleQuestions: false,
+      } as never,
+      new Map([['q-multi', multipleChoiceQuestion]]),
+    );
+
+    expect(snapshots).toEqual([
+      expect.objectContaining({
+        questionId: 'q-multi',
+        order: 0,
+        points: 2,
+      }),
+    ]);
+  });
+
+  it('builds multiple parametric snapshots with tolerance override and quantity suffixes', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+
+    const parametricQuestion = {
+      questionId: 'q-param',
+      title: 'Parametric',
+      type: QuestionType.PARAMETRIC,
+      statement: 'base',
+      explanation: 'explanation',
+      tags: ['param'],
+      questionConfig: {
+        templateId: ParametricQuestionTemplateId.SERIES_GEOMETRIC,
+        tolerance: 0.01,
+      },
+    } as unknown as QuestionDocument;
+
+    const snapshots = buildAttemptQuestionSnapshots(
+      {
+        questions: [
+          {
+            questionId: 'q-param',
+            points: 3,
+            quantity: 2,
+            toleranceOverride: 0.25,
+          },
+        ],
+        shuffleQuestions: false,
+      } as never,
+      new Map([['q-param', parametricQuestion]]),
+    );
+
+    expect(snapshots).toHaveLength(2);
+    expect(snapshots?.[0]).toEqual(
+      expect.objectContaining({
+        questionId: 'q-param::1',
+        order: 0,
+        points: 3,
+        questionConfig: expect.objectContaining({ tolerance: 0.25 }),
+      }),
+    );
+    expect(snapshots?.[1]).toEqual(
+      expect.objectContaining({
+        questionId: 'q-param::2',
+        order: 1,
+      }),
+    );
+  });
+
+  it('returns null when parametric instance generation fails and for unsupported question types', () => {
+    const parametricQuestion = {
+      questionId: 'q-param',
+      title: 'Parametric',
+      type: QuestionType.PARAMETRIC,
+      statement: 'base',
+      explanation: null,
+      tags: [],
+      questionConfig: {
+        templateId: ParametricQuestionTemplateId.SERIES_GEOMETRIC,
+        tolerance: 0.01,
+      },
+    } as unknown as QuestionDocument;
+
+    expect(
+      buildAttemptQuestionSnapshots(
+        {
+          questions: [{ questionId: 'q-param', points: 1, quantity: 30 }],
+          shuffleQuestions: false,
+        } as never,
+        new Map([['q-param', parametricQuestion]]),
+      ),
+    ).toBeNull();
+
+    jest
+      .spyOn(
+        parametricTemplateUtils,
+        'generateDistinctParametricQuestionInstances',
+      )
+      .mockReturnValueOnce(null as never);
+
+    expect(createAttemptQuestionConfig(parametricQuestion)).toBeNull();
+    expect(createAttemptQuestionConfig({ type: 'essay' } as never)).toBeNull();
   });
 });

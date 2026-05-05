@@ -27,7 +27,10 @@ export default function AppLayout() {
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <AppBar position="sticky" elevation={0}>
         <Container maxWidth="lg">
-          <Toolbar disableGutters sx={{ gap: 2, minHeight: 76 }}>
+          <Toolbar
+            disableGutters
+            sx={{ gap: { xs: 1.5, md: 1.25 }, minHeight: 76 }}
+          >
             <AppLayoutBrand appName={appName} />
 
             <AppDesktopNavigation
@@ -43,6 +46,7 @@ export default function AppLayout() {
                 display: { xs: "inline-flex", md: "none" },
                 color: "common.white",
                 border: `1px solid ${alpha("#FFFFFF", 0.18)}`,
+                ml: "auto",
               }}
               onClick={toggleMobileNavigation}
               edge="end"

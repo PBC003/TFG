@@ -9,7 +9,7 @@ describe('access-code.util', () => {
   });
 
   it('normalizes access codes', () => {
-    expect(normalizeAccessCode(' ab-1 ')).toBe('AB-1');
+    expect(normalizeAccessCode(' ab-1 ')).toBe('AB1');
     expect(normalizeAccessCode(null)).toBe('');
   });
 

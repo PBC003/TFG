@@ -1,9 +1,24 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
-import QuizzesPage from "../../../../src/pages/quizzes/QuizzesPage";
 import type { QuestionItem } from "../../../../src/types/question";
+import type { GroupItem } from "../../../../src/types/group";
 import type { QuizItem } from "../../../../src/types/quiz";
+import QuizzesPage from "../../../../src/pages/quizzes/QuizzesPage";
 import { useQuizzesPage } from "../../../../src/pages/quizzes/hooks/useQuizzesPage";
+
+const mockNavigate = vi.fn();
+
+vi.mock("react-router-dom", async () => {
+  const actual =
+    await vi.importActual<typeof import("react-router-dom")>(
+      "react-router-dom",
+    );
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 vi.mock("../../../../src/pages/quizzes/hooks/useQuizzesPage", () => ({
   useQuizzesPage: vi.fn(),
@@ -55,6 +70,8 @@ vi.mock("../../../../src/pages/quizzes/components/QuizzesTableCard", () => ({
     onCopyLink: (quiz: QuizItem) => Promise<void>;
     onTogglePublishStatus: (quiz: QuizItem) => Promise<void>;
     onDelete: (quiz: QuizItem) => Promise<void>;
+    onOpenAnalytics: (quiz: QuizItem) => void;
+    onStartSimulation: (quiz: QuizItem) => void;
   }) => (
     <div data-testid="table-card">
       <div>{`${props.quizzes.length}|${props.totalQuizzes ?? 0}|${props.page ?? 0}|${props.rowsPerPage ?? 0}`}</div>
@@ -70,6 +87,12 @@ vi.mock("../../../../src/pages/quizzes/components/QuizzesTableCard", () => ({
       <button onClick={() => void props.onDelete(props.quizzes[0]!)}>
         delete
       </button>
+      <button onClick={() => props.onOpenAnalytics(props.quizzes[0]!)}>
+        analytics
+      </button>
+      <button onClick={() => props.onStartSimulation(props.quizzes[0]!)}>
+        simulate
+      </button>
     </div>
   ),
 }));
@@ -77,11 +100,17 @@ vi.mock("../../../../src/pages/quizzes/components/QuizzesTableCard", () => ({
 vi.mock("../../../../src/pages/quizzes/components/QuizEditorDialog", () => ({
   QuizEditorDialog: (props: {
     title: string;
+    saveLabel: string;
+    groupOptions?: GroupItem[];
+    questionBankLoading?: boolean;
     onClose: () => void;
     onSubmit: (payload: unknown) => void;
   }) => (
     <div data-testid="editor-dialog">
       <div>{props.title}</div>
+      <div>{props.saveLabel}</div>
+      <div>{props.groupOptions?.map((group) => group.name).join(",")}</div>
+      <div>{String(props.questionBankLoading)}</div>
       <button onClick={props.onClose}>close</button>
       <button onClick={() => props.onSubmit({ payload: true })}>submit</button>
     </div>
@@ -95,6 +124,9 @@ const quiz: QuizItem = {
   accessCode: "ABCD",
   requiresAccessCode: true,
   status: "draft",
+  audienceScope: "all",
+  assignedGroupIds: [],
+  assignedGroups: [],
   hasAttempts: false,
   canEdit: true,
   canDelete: true,
@@ -142,6 +174,22 @@ const questionBank: QuestionItem[] = [
   },
 ];
 
+const groups: GroupItem[] = [
+  {
+    groupId: "group-1",
+    name: "Grupo A",
+    description: "",
+    memberUserIds: [],
+    members: [],
+    memberCount: 0,
+    createdByUserId: 1,
+    updatedByUserId: 1,
+    version: 1,
+    createdAt: "2026-04-12T10:00:00.000Z",
+    updatedAt: "2026-04-12T10:00:00.000Z",
+  } as GroupItem,
+];
+
 function buildHookResult(
   overrides: Partial<ReturnType<typeof useQuizzesPage>> = {},
 ) {
@@ -150,8 +198,10 @@ function buildHookResult(
     visibleQuizzes: [quiz],
     paginatedQuizzes: [quiz],
     questionBank,
+    groups,
     loading: false,
     questionBankLoading: false,
+    groupsLoading: false,
     submitting: false,
     feedback: null,
     search: "",
@@ -174,7 +224,7 @@ function buildHookResult(
     deleteQuiz: vi.fn(async () => undefined),
     refreshQuizzes: vi.fn(async () => undefined),
     ...overrides,
-  };
+  } as ReturnType<typeof useQuizzesPage>;
 }
 
 describe("QuizzesPage", () => {
@@ -184,7 +234,11 @@ describe("QuizzesPage", () => {
     });
     vi.mocked(useQuizzesPage).mockReturnValue(hook);
 
-    render(<QuizzesPage />);
+    render(
+      <MemoryRouter>
+        <QuizzesPage />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByTestId("header-card")).toBeInTheDocument();
     expect(screen.getByText("ok")).toBeInTheDocument();
@@ -199,6 +253,8 @@ describe("QuizzesPage", () => {
     fireEvent.click(screen.getByText("copy"));
     fireEvent.click(screen.getByText("toggle"));
     fireEvent.click(screen.getByText("delete"));
+    fireEvent.click(screen.getByText("analytics"));
+    fireEvent.click(screen.getByText("simulate"));
 
     expect(hook.refreshQuizzes).toHaveBeenCalledWith("quizzes.refreshSuccess");
     expect(hook.openCreateDialog).toHaveBeenCalledTimes(1);
@@ -208,16 +264,25 @@ describe("QuizzesPage", () => {
     expect(hook.copyAccessLink).toHaveBeenCalledWith(quiz);
     expect(hook.togglePublishStatus).toHaveBeenCalledWith(quiz);
     expect(hook.deleteQuiz).toHaveBeenCalledWith(quiz);
+    expect(mockNavigate).toHaveBeenCalledWith("/quizzes/quiz-1/analytics");
+    expect(mockNavigate).toHaveBeenCalledWith("/quizzes/quiz-1/simulate");
   });
 
   it("renders editor dialog in edit mode and forwards dialog callbacks", () => {
     const hook = buildHookResult({ editorOpen: true, editingQuiz: quiz });
     vi.mocked(useQuizzesPage).mockReturnValue(hook);
 
-    render(<QuizzesPage />);
+    render(
+      <MemoryRouter>
+        <QuizzesPage />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByTestId("editor-dialog")).toHaveTextContent(
       "quizzes.dialogs.editTitle",
+    );
+    expect(screen.getByTestId("editor-dialog")).toHaveTextContent(
+      "common.save",
     );
 
     fireEvent.click(screen.getByText("close"));
@@ -225,5 +290,30 @@ describe("QuizzesPage", () => {
 
     expect(hook.closeEditor).toHaveBeenCalledTimes(1);
     expect(hook.submitEditor).toHaveBeenCalledWith({ payload: true });
+  });
+
+  it("renders editor dialog in create mode with group options and combined loading state", () => {
+    const hook = buildHookResult({
+      editorOpen: true,
+      editingQuiz: null,
+      questionBankLoading: true,
+      groupsLoading: true,
+    });
+    vi.mocked(useQuizzesPage).mockReturnValue(hook);
+
+    render(
+      <MemoryRouter>
+        <QuizzesPage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId("editor-dialog")).toHaveTextContent(
+      "quizzes.dialogs.createTitle",
+    );
+    expect(screen.getByTestId("editor-dialog")).toHaveTextContent(
+      "common.create",
+    );
+    expect(screen.getByTestId("editor-dialog")).toHaveTextContent("Grupo A");
+    expect(screen.getByTestId("editor-dialog")).toHaveTextContent("true");
   });
 });

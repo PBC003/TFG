@@ -88,4 +88,41 @@ describe("QuizAttemptSection", () => {
     expect(onAnswerChange).toHaveBeenCalledWith("q-1", true);
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
+
+  it("disables submit while there are invalid parametric answers", () => {
+    const onAnswerChange = vi.fn();
+    const onSubmit = vi.fn();
+
+    renderWithProviders(
+      <QuizAttemptSection
+        attempt={{
+          ...attempt,
+          questions: [
+            {
+              questionId: "q-param",
+              title: "Param",
+              type: "parametric",
+              statement: "Param",
+              explanation: null,
+              tags: [],
+              points: 1,
+              order: 1,
+              questionConfig: { inputPlaceholder: "", tolerance: 0.1 },
+            },
+          ],
+        }}
+        answers={{ "q-param": "sin(2)" }}
+        submitting={false}
+        onAnswerChange={onAnswerChange}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    expect(
+      screen.getByText("quizAccess.parametricAnswerValidation.summary"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "quizAccess.actions.submitAttempt" }),
+    ).toBeDisabled();
+  });
 });

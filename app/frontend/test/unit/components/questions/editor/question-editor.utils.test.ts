@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { QuestionItem } from "../../../../../src/types/question";
 import {
   QUESTION_TYPES,
+  buildAvailableQuestionTypes,
   buildInitialState,
   buildOptionKey,
   buildQuestionConfig,
@@ -47,6 +48,21 @@ describe("question-editor.utils", () => {
     ]);
     expect(buildOptionKey(0)).toBe("a");
     expect(buildOptionKey(2)).toBe("c");
+  });
+
+  it("builds the list of available types depending on parametric permissions", () => {
+    expect(buildAvailableQuestionTypes(true)).toEqual(QUESTION_TYPES);
+    expect(buildAvailableQuestionTypes(false)).toEqual([
+      "true_false",
+      "single_choice",
+      "multiple_choice",
+    ]);
+    expect(buildAvailableQuestionTypes(false, "parametric")).toEqual([
+      "true_false",
+      "single_choice",
+      "multiple_choice",
+      "parametric",
+    ]);
   });
 
   it("creates empty options with predictable defaults", () => {

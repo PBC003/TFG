@@ -23,6 +23,7 @@ describe("quizzesApi", () => {
       timeLimitMinutes: null,
       shuffleQuestions: false,
       revealAnswersAfterClose: false,
+      assignedGroupIds: ["group-1"],
       questions: [{ questionId: "q-1", points: 2 }],
     };
 
@@ -32,6 +33,7 @@ describe("quizzesApi", () => {
     quizzesApi.publishQuiz("token", "quiz-1");
     quizzesApi.unpublishQuiz("token", "quiz-1");
     quizzesApi.deleteQuiz("token", "quiz-1");
+    quizzesApi.startPreview("token", "quiz-1");
 
     expect(request).toHaveBeenNthCalledWith(1, "/quizzes", {
       accessToken: "token",
@@ -58,5 +60,13 @@ describe("quizzesApi", () => {
       method: "DELETE",
       accessToken: "token",
     });
+    expect(request).toHaveBeenNthCalledWith(
+      7,
+      "/quizzes/quiz-1/preview/start",
+      {
+        method: "POST",
+        accessToken: "token",
+      },
+    );
   });
 });

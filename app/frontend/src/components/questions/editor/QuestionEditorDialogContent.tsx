@@ -14,7 +14,7 @@ import { buildCanonicalParametricStatement } from "../../../utils/parametric-que
 import { QuestionMathField } from "./QuestionMathField";
 import { QuestionTagsEditor } from "./QuestionTagsEditor";
 import { QuestionTypeSpecificConfig } from "../config/QuestionTypeSpecificConfig";
-import { QUESTION_TYPES } from "./question-editor.utils";
+import { buildAvailableQuestionTypes } from "./question-editor.utils";
 import type { FormState, PreviewState } from "./question-editor.types";
 import type { EditableOption } from "./question-editor.types";
 
@@ -23,6 +23,7 @@ type QuestionEditorDialogContentProps = {
   formError: string | null;
   previewFields: PreviewState;
   t: TFunction;
+  canManageParametricQuestions: boolean;
   onUpdateForm: (updater: (current: FormState) => FormState) => void;
   onTogglePreviewField: (fieldKey: string) => void;
   onAddTag: () => void;
@@ -47,6 +48,7 @@ export function QuestionEditorDialogContent({
   formError,
   previewFields,
   t,
+  canManageParametricQuestions,
   onUpdateForm,
   onTogglePreviewField,
   onAddTag,
@@ -57,6 +59,11 @@ export function QuestionEditorDialogContent({
   onRemoveSingleChoiceOption,
   onRemoveMultipleChoiceOption,
 }: QuestionEditorDialogContentProps) {
+  const availableQuestionTypes = buildAvailableQuestionTypes(
+    canManageParametricQuestions,
+    form.type,
+  );
+
   return (
     <DialogContent dividers>
       <Stack spacing={3} sx={{ pt: 0.5 }}>
@@ -118,7 +125,7 @@ export function QuestionEditorDialogContent({
           }
           fullWidth
         >
-          {QUESTION_TYPES.map((type) => (
+          {availableQuestionTypes.map((type) => (
             <MenuItem key={type} value={type}>
               {t(`questions.types.${type}`)}
             </MenuItem>

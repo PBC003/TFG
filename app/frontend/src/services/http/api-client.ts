@@ -91,3 +91,32 @@ export async function request<T>(
 
   return (await readBody(response)) as T;
 }
+
+export async function requestText(
+  path: string,
+  options: RequestOptions = {},
+): Promise<string> {
+  const headers = new Headers();
+  const hasBody = options.body !== undefined;
+
+  if (hasBody) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  if (options.accessToken) {
+    headers.set("Authorization", `Bearer ${options.accessToken}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: options.method ?? "GET",
+    headers,
+    body: hasBody ? JSON.stringify(options.body) : undefined,
+    credentials: options.credentials ?? "include",
+  });
+
+  if (!response.ok) {
+    throw new ApiError(normalizeError(await readBody(response), response));
+  }
+
+  return response.text();
+}

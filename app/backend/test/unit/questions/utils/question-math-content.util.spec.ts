@@ -48,6 +48,51 @@ describe('question-math-content.util', () => {
     );
   });
 
+  it('detects mismatched delimiters, nested dollars and escaped markers correctly', () => {
+    expect(
+      validateMathTextContent(
+        String.raw`Escapado \\$x\\$ sin abrir math`,
+        'statement',
+      ),
+    ).toEqual([]);
+
+    expect(
+      validateMathTextContent(
+        String.raw`Cierre inválido \) y también \]`,
+        'statement',
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: String.raw`Found \) without a matching \(`,
+        }),
+        expect.objectContaining({
+          message: String.raw`Found \] without a matching \[`,
+        }),
+      ]),
+    );
+
+    expect(
+      validateMathTextContent('Texto $$ bloque con $ inline $$', 'statement'),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message:
+            'Inline dollar delimiters cannot appear inside $$...$$ blocks',
+        }),
+      ]),
+    );
+
+    expect(validateMathTextContent('javascript:alert(1)', 'statement')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message:
+            'HTML executable content is not allowed in math-capable text fields',
+        }),
+      ]),
+    );
+  });
+
   it('normalizes question config text fields by type', () => {
     expect(
       normalizeQuestionTypeConfig(QuestionType.SINGLE_CHOICE, {
@@ -110,6 +155,19 @@ describe('question-math-content.util', () => {
         }),
         expect.objectContaining({
           field: `questionConfig.template.${ParametricQuestionTemplateId.INTEGRAL_LOGARITHMIC}`,
+        }),
+      ]),
+    );
+  });
+
+  it('accepts empty values and reports unclosed parenthesis-style delimiters', () => {
+    expect(validateMathTextContent('   ', 'statement')).toEqual([]);
+    expect(
+      validateMathTextContent(String.raw`Texto con \(x+1`, 'statement'),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: String.raw`Unclosed inline math delimiter \(`,
         }),
       ]),
     );

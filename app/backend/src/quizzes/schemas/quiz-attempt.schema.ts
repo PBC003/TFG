@@ -96,6 +96,9 @@ export class QuizAttempt {
   @Prop({ required: true, trim: true, index: true })
   participantName!: string;
 
+  @Prop({ required: true, default: false, index: true })
+  isPreview!: boolean;
+
   @Prop({ required: true, min: 1 })
   attemptNumber!: number;
 
@@ -131,3 +134,4 @@ export const QuizAttemptSchema = SchemaFactory.createForClass(QuizAttempt);
 
 QuizAttemptSchema.index({ quizId: 1, participantName: 1, startedAt: -1 });
 QuizAttemptSchema.index({ attemptId: 1, status: 1 });
+QuizAttemptSchema.index({ quizId: 1, isPreview: 1, startedAt: -1 });

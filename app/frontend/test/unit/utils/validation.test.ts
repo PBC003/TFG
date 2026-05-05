@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  normalizeUniOviLoginIdentifier,
   validateFirstName,
   validateLastName,
   validatePassword,
   validateUniOviEmail,
+  validateUniOviLoginIdentifier,
 } from "../../../src/utils/validation";
 
 describe("validation utils", () => {
@@ -32,6 +34,17 @@ describe("validation utils", () => {
     );
     expect(validateUniOviEmail("uo289642@uniovi.es")).toBeNull();
     expect(validateUniOviEmail("UO289642@UNIOVI.ES")).toBeNull();
+  });
+
+  it("validates and normalizes login identifiers", () => {
+    expect(validateUniOviLoginIdentifier("uo289642")).toBeNull();
+    expect(validateUniOviLoginIdentifier("UO289642@UNIOVI.ES")).toBeNull();
+    expect(validateUniOviLoginIdentifier("pablo@gmail.com")).toBe(
+      "forms.validation.unioviLogin",
+    );
+    expect(normalizeUniOviLoginIdentifier(" UO289642 ")).toBe(
+      "uo289642@uniovi.es",
+    );
   });
 
   it("validates password boundaries", () => {

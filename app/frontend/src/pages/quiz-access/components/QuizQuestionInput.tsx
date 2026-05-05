@@ -14,12 +14,14 @@ import type {
   QuizAnswerValue,
 } from "../../../types/quiz";
 import { getPublicQuestionOptions } from "../utils/quiz-access.utils";
+import { getParametricAnswerValidationMessage } from "../utils/parametric-answer-validation.util.ts";
 
 type QuizQuestionInputProps = {
   question: PublicAttemptQuestion;
   value: QuizAnswerValue;
   onChange: (nextValue: QuizAnswerValue) => void;
   disabled: boolean;
+  parametricValidationMessage?: string | null;
 };
 
 export function QuizQuestionInput({
@@ -27,6 +29,7 @@ export function QuizQuestionInput({
   value,
   onChange,
   disabled,
+  parametricValidationMessage,
 }: QuizQuestionInputProps) {
   const { t } = useTranslation();
 
@@ -118,19 +121,32 @@ export function QuizQuestionInput({
       ? question.questionConfig.tolerance
       : 0;
 
+  const rawValue = typeof value === "string" ? value : "";
+  const validationReason =
+    parametricValidationMessage ??
+    getParametricAnswerValidationMessage(rawValue);
+
   return (
     <Stack spacing={1.25}>
       <TextField
         label={t("quizAccess.parametricAnswerLabel")}
-        value={typeof value === "string" ? value : ""}
+        value={rawValue}
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
         fullWidth
         placeholder={placeholder}
+        error={Boolean(validationReason)}
+        helperText={
+          validationReason
+            ? t(`quizAccess.parametricAnswerValidation.${validationReason}`)
+            : undefined
+        }
       />
-      <Typography variant="caption" color="text.secondary">
-        {t("quizAccess.parametricAnswerHelper", { tolerance })}
-      </Typography>
+      {validationReason ? null : (
+        <Typography variant="caption" color="text.secondary">
+          {t("quizAccess.parametricAnswerHelper", { tolerance })}
+        </Typography>
+      )}
     </Stack>
   );
 }

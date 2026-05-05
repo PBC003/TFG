@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Role } from '../../../src/users/enums/role.enum';
 import { UsersController } from '../../../src/users/users.controller';
 import { UsersService } from '../../../src/users/users.service';
+import { loadModuleWithoutReflect } from '../helpers/load-without-reflect';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -74,5 +75,15 @@ describe('UsersController', () => {
       'password123',
     );
     expect(usersService.deleteUser).toHaveBeenCalledWith(1);
+  });
+
+  it('loads the module without Reflect decorator helpers', () => {
+    const { UsersController: ReloadedController } = loadModuleWithoutReflect<
+      typeof import('../../../src/users/users.controller')
+    >('../../../src/users/users.controller');
+
+    expect(new ReloadedController({} as never)).toBeInstanceOf(
+      ReloadedController,
+    );
   });
 });

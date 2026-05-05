@@ -22,7 +22,8 @@
     "migration:create": "npm run typeorm -- migration:create src/database/migrations/ManualMigration",
     "migration:generate": "npm run typeorm -- migration:generate src/database/migrations/GeneratedMigration",
     "migration:run": "npm run typeorm -- migration:run",
-    "migration:revert": "npm run typeorm -- migration:revert"
+    "migration:revert": "npm run typeorm -- migration:revert",
+    "bootstrap:content": "ts-node scripts/bootstrap-content.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.17",
@@ -84,15 +85,31 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
+    "rootDir": ".",
+    "testMatch": [
+      "<rootDir>/src/**/*.spec.ts",
+      "<rootDir>/test/unit/**/*.spec.ts"
+    ],
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "<rootDir>/src/**/*.(t|j)s",
+      "!<rootDir>/src/**/*.d.ts",
+      "!<rootDir>/src/main.ts",
+      "!<rootDir>/src/**/*.module.ts",
+      "!<rootDir>/src/database/**",
+      "!<rootDir>/src/**/*.dto.ts",
+      "!<rootDir>/src/**/*.entity.ts",
+      "!<rootDir>/src/**/*.schema.ts"
     ],
-    "coverageDirectory": "../coverage",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/dist/",
+      "<rootDir>/coverage/",
+      "<rootDir>/test/"
+    ],
+    "coverageDirectory": "<rootDir>/coverage",
     "testEnvironment": "node"
   }
 }

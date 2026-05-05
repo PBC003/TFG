@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { QuestionsPageContent } from "../../../../src/pages/questions/components/QuestionsPageContent";
 import type { QuestionItem } from "../../../../src/types/question";
@@ -55,7 +55,7 @@ const baseProps = {
   lastUpdatedLabel: (value: string) => value,
   page: 0,
   rowsPerPage: 10,
-  totalQuestions: 1,
+  totalQuestions: 6,
   rowsPerPageLabel: "rows per page",
   displayedRowsLabel: (from: number, to: number, count: number) =>
     `${from}-${to}-${count}`,
@@ -99,6 +99,7 @@ describe("QuestionsPageContent", () => {
         loading={false}
         isMobile
         questions={[question]}
+        totalQuestions={1}
       />,
     );
 
@@ -111,9 +112,37 @@ describe("QuestionsPageContent", () => {
         loading={false}
         isMobile={false}
         questions={[question]}
+        totalQuestions={1}
       />,
     );
 
     expect(screen.getByTestId("table-view")).toHaveTextContent("q-1");
+  });
+
+  it("delegates pagination changes", () => {
+    const onPageChange = vi.fn();
+    const onRowsPerPageChange = vi.fn();
+
+    render(
+      <QuestionsPageContent
+        {...baseProps}
+        loading={false}
+        isMobile={false}
+        questions={[question]}
+        totalQuestions={11}
+        onPageChange={onPageChange}
+        onRowsPerPageChange={onRowsPerPageChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByLabelText("Go to next page"));
+    const rowsSelect = screen.getByRole("combobox", {
+      name: "rows per page",
+    });
+    fireEvent.mouseDown(rowsSelect);
+    fireEvent.click(screen.getByRole("option", { name: "25" }));
+
+    expect(onPageChange).toHaveBeenCalledWith(1);
+    expect(onRowsPerPageChange).toHaveBeenCalledWith(25);
   });
 });

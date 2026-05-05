@@ -5,6 +5,7 @@ import { QuestionType } from '../../../src/questions/enums/question-type.enum';
 import { ParametricQuestionTemplateId } from '../../../src/questions/types/question-type-config.type';
 import { Question } from '../../../src/questions/schemas/question.schema';
 import { QuestionsService } from '../../../src/questions/questions.service';
+import { Role } from '../../../src/users/enums/role.enum';
 
 describe('QuestionsService', () => {
   let service: QuestionsService;
@@ -70,7 +71,7 @@ describe('QuestionsService', () => {
           tags: [' limites ', 'continuidad', 'limites'],
           questionConfig: { correctAnswer: true },
         },
-        { id: 7 },
+        { id: 7, role: Role.TEACHER },
       ),
     ).resolves.toEqual(
       expect.objectContaining({
@@ -110,7 +111,7 @@ describe('QuestionsService', () => {
             correctOptionKey: 'c',
           },
         },
-        { id: 7 },
+        { id: 7, role: Role.TEACHER },
       ),
     ).rejects.toMatchObject({
       response: { code: 'question.invalid_type_config' },
@@ -130,7 +131,7 @@ describe('QuestionsService', () => {
         {
           type: QuestionType.MULTIPLE_CHOICE,
         },
-        { id: 8 },
+        { id: 8, role: Role.TEACHER },
       ),
     ).rejects.toMatchObject({
       response: { code: 'question.invalid_type_config' },
@@ -147,7 +148,7 @@ describe('QuestionsService', () => {
           statement: 'Resultado <script>alert(1)</script>',
           questionConfig: { correctAnswer: true },
         },
-        { id: 7 },
+        { id: 7, role: Role.TEACHER },
       ),
     ).rejects.toMatchObject({
       response: {
@@ -175,7 +176,7 @@ describe('QuestionsService', () => {
         {
           statement: 'Texto con $x^2',
         },
-        { id: 8 },
+        { id: 8, role: Role.TEACHER },
       ),
     ).rejects.toMatchObject({
       response: { code: 'question.invalid_math_content' },
@@ -209,7 +210,7 @@ describe('QuestionsService', () => {
           correctOptionKey: ' a ',
         },
       },
-      { id: 7 },
+      { id: 7, role: Role.TEACHER },
     );
 
     expect(questionModel.create).toHaveBeenCalledWith(
@@ -247,7 +248,7 @@ describe('QuestionsService', () => {
           tolerance: 0.005,
         },
       },
-      { id: 9 },
+      { id: 9, role: Role.ADMIN },
     );
 
     expect(persistedQuestion.questionConfig).toEqual({
@@ -255,6 +256,76 @@ describe('QuestionsService', () => {
       tolerance: 0.005,
     });
     expect(persistedQuestion.statement).toContain('\\sum_{n=2}^{\\infty} r^n');
+  });
+
+  it('allows parametric questions only for administrators', async () => {
+    questionModel.create.mockResolvedValue({
+      ...baseQuestion,
+      type: QuestionType.PARAMETRIC,
+      questionConfig: {
+        templateId: ParametricQuestionTemplateId.LIMIT_TRIGONOMETRIC,
+      },
+    });
+
+    await expect(
+      service.createQuestion(
+        {
+          title: 'Parametric question',
+          type: QuestionType.PARAMETRIC,
+          statement: 'placeholder',
+          questionConfig: {
+            templateId: ParametricQuestionTemplateId.LIMIT_TRIGONOMETRIC,
+          },
+        },
+        { id: 7, role: Role.TEACHER },
+      ),
+    ).rejects.toMatchObject({
+      response: { code: 'question.parametric_admin_only' },
+      status: HttpStatus.FORBIDDEN,
+    });
+
+    await expect(
+      service.createQuestion(
+        {
+          title: 'Parametric question',
+          type: QuestionType.PARAMETRIC,
+          statement: 'placeholder',
+          questionConfig: {
+            templateId: ParametricQuestionTemplateId.LIMIT_TRIGONOMETRIC,
+          },
+        },
+        { id: 1, role: Role.ADMIN },
+      ),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        type: QuestionType.PARAMETRIC,
+      }),
+    );
+
+    const save = jest.fn().mockResolvedValue(undefined);
+    questionModel.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        ...baseQuestion,
+        type: QuestionType.PARAMETRIC,
+        questionConfig: {
+          templateId: ParametricQuestionTemplateId.LIMIT_TRIGONOMETRIC,
+        },
+        save,
+      }),
+    });
+
+    await expect(
+      service.updateQuestion(
+        'question-1',
+        {
+          explanation: 'Nuevo feedback',
+        },
+        { id: 9, role: Role.TEACHER },
+      ),
+    ).rejects.toMatchObject({
+      response: { code: 'question.parametric_admin_only' },
+      status: HttpStatus.FORBIDDEN,
+    });
   });
 
   it('lists questions sorted by most recently updated and finds single questions', async () => {
@@ -265,10 +336,12 @@ describe('QuestionsService', () => {
       exec: jest.fn().mockResolvedValue(baseQuestion),
     });
 
-    await expect(service.listQuestions()).resolves.toEqual([baseQuestion]);
-    await expect(service.findQuestionById('question-1')).resolves.toEqual(
-      baseQuestion,
-    );
+    await expect(
+      service.listQuestions({ id: 7, role: Role.TEACHER }),
+    ).resolves.toEqual([baseQuestion]);
+    await expect(
+      service.findQuestionById('question-1', { id: 7, role: Role.TEACHER }),
+    ).resolves.toEqual(baseQuestion);
     expect(sort).toHaveBeenCalledWith({ updatedAt: -1, createdAt: -1 });
   });
 
@@ -290,7 +363,7 @@ describe('QuestionsService', () => {
           title: '  Límite actualizado  ',
           tags: [' limites ', 'derivadas', 'limites'],
         },
-        { id: 9 },
+        { id: 9, role: Role.TEACHER },
       ),
     ).resolves.toEqual(
       expect.objectContaining({
@@ -310,7 +383,7 @@ describe('QuestionsService', () => {
     });
 
     await expect(
-      service.updateQuestion('question-1', {}, { id: 7 }),
+      service.updateQuestion('question-1', {}, { id: 7, role: Role.TEACHER }),
     ).rejects.toMatchObject({
       response: { code: 'question.update_requires_field' },
       status: HttpStatus.BAD_REQUEST,
@@ -320,7 +393,9 @@ describe('QuestionsService', () => {
       exec: jest.fn().mockResolvedValue(null),
     });
 
-    await expect(service.findQuestionById('missing')).rejects.toMatchObject({
+    await expect(
+      service.findQuestionById('missing', { id: 7, role: Role.TEACHER }),
+    ).rejects.toMatchObject({
       response: { code: 'question.not_found' },
       status: HttpStatus.NOT_FOUND,
     });
@@ -341,7 +416,7 @@ describe('QuestionsService', () => {
     });
 
     await expect(
-      service.deleteQuestion('question-1', { id: 9 }),
+      service.deleteQuestion('question-1', { id: 9, role: Role.TEACHER }),
     ).resolves.toBeUndefined();
 
     expect(persistedQuestion.isArchived).toBe(true);
@@ -355,7 +430,7 @@ describe('QuestionsService', () => {
     });
 
     await expect(
-      service.deleteQuestion('missing', { id: 9 }),
+      service.deleteQuestion('missing', { id: 9, role: Role.TEACHER }),
     ).rejects.toMatchObject({
       response: { code: 'question.not_found' },
       status: HttpStatus.NOT_FOUND,

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "imports": [
+    {
+      "type": "question-bank",
+      "file": "question-bank.v1.json",
+      "createdByUserEmail": "uo000001@uniovi.es"
+    },
+    {
+      "type": "parametric-templates",
+      "file": "parametric-templates.v1.json"
+    }
+  ]
+}

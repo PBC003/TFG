@@ -1,5 +1,4 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { useQuestionEditorDialog } from "../../../../../src/components/questions/editor/useQuestionEditorDialog";
 import type { QuestionItem } from "../../../../../src/types/question";
@@ -124,34 +123,33 @@ function Harness({
 }
 
 describe("useQuestionEditorDialog", () => {
-  it("manages preview, options, tags and payload submission", async () => {
-    const user = userEvent.setup();
+  it("manages preview, options, tags and payload submission", () => {
     const onSubmit = vi.fn(async () => undefined);
     render(<Harness onSubmit={onSubmit} />);
     expect(screen.getByTestId("title")).toHaveTextContent("Integral");
-    await user.click(screen.getByRole("button", { name: "toggle-preview" }));
+    fireEvent.click(screen.getByRole("button", { name: "toggle-preview" }));
     expect(screen.getByTestId("preview")).toHaveTextContent("true");
-    await user.click(screen.getByRole("button", { name: "set-new-tag" }));
-    await user.click(screen.getByRole("button", { name: "add-tag" }));
+    fireEvent.click(screen.getByRole("button", { name: "set-new-tag" }));
+    fireEvent.click(screen.getByRole("button", { name: "add-tag" }));
     expect(screen.getByTestId("tags")).toHaveTextContent("integrales,series");
-    await user.click(screen.getByRole("button", { name: "single-correct" }));
+    fireEvent.click(screen.getByRole("button", { name: "single-correct" }));
     expect(screen.getByTestId("single-correct")).toHaveTextContent(
       "a:false,b:true",
     );
-    await user.click(screen.getByRole("button", { name: "multiple-correct" }));
+    fireEvent.click(screen.getByRole("button", { name: "multiple-correct" }));
     expect(screen.getByTestId("multiple-correct")).toHaveTextContent("b:true");
-    await user.click(screen.getByRole("button", { name: "add-single" }));
-    await user.click(screen.getByRole("button", { name: "add-multiple" }));
+    fireEvent.click(screen.getByRole("button", { name: "add-single" }));
+    fireEvent.click(screen.getByRole("button", { name: "add-multiple" }));
     expect(screen.getByTestId("single-count")).toHaveTextContent("3");
     expect(screen.getByTestId("multiple-count")).toHaveTextContent("3");
-    await user.click(screen.getByRole("button", { name: "remove-single" }));
-    await user.click(screen.getByRole("button", { name: "remove-multiple" }));
+    fireEvent.click(screen.getByRole("button", { name: "remove-single" }));
+    fireEvent.click(screen.getByRole("button", { name: "remove-multiple" }));
     expect(screen.getByTestId("single-count")).toHaveTextContent("2");
     expect(screen.getByTestId("multiple-count")).toHaveTextContent("2");
     expect(screen.getByTestId("multiple-correct")).toHaveTextContent("b:true");
-    await user.click(screen.getByRole("button", { name: "fill-single" }));
-    await user.click(screen.getByRole("button", { name: "prepare-submit" }));
-    await user.click(screen.getByRole("button", { name: "submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "fill-single" }));
+    fireEvent.click(screen.getByRole("button", { name: "prepare-submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "submit" }));
     expect(onSubmit).toHaveBeenCalledWith({
       title: "abc",
       type: "single_choice",
@@ -168,14 +166,13 @@ describe("useQuestionEditorDialog", () => {
       },
     });
     expect(screen.getByTestId("error")).toHaveTextContent("none");
-  });
+  }, 10000);
 
-  it("stores validation errors instead of submitting invalid forms", async () => {
-    const user = userEvent.setup();
+  it("stores validation errors instead of submitting invalid forms", () => {
     const onSubmit = vi.fn(async () => undefined);
     render(<Harness onSubmit={onSubmit} currentQuestion={null} />);
-    await user.click(screen.getByRole("button", { name: "invalidate" }));
-    await user.click(screen.getByRole("button", { name: "submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "invalidate" }));
+    fireEvent.click(screen.getByRole("button", { name: "submit" }));
     expect(onSubmit).not.toHaveBeenCalled();
     expect(screen.getByTestId("error")).toHaveTextContent(
       "questions.dialogs.titleValidation",

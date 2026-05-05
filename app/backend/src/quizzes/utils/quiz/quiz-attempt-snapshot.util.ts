@@ -1,6 +1,6 @@
 import { QuestionType } from '../../../questions/enums/question-type.enum';
 import type { QuestionDocument } from '../../../questions/schemas/question.schema';
-import { generateDistinctParametricQuestionInstances } from '../../../questions/utils/parametric-question-template.util';
+import { generateDistinctParametricQuestionInstances } from '../../../questions/parametric/parametric-question-template.util';
 import type {
   MultipleChoiceQuestionConfig,
   ParametricQuestionConfig,

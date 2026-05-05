@@ -1,16 +1,10 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsString,
-  Length,
-  Matches,
-} from 'class-validator';
+import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
 
 export class LoginDto {
-  @IsEmail()
+  @IsString()
   @IsNotEmpty()
-  @Matches(/^uo\d{6}@uniovi\.es$/i, {
-    message: 'Email must be a valid UniOvi institutional email',
+  @Matches(/^(uo\d{6}|uo\d{6}@uniovi\.es)$/i, {
+    message: 'Login must use a valid UniOvi email or UO identifier',
   })
   email!: string;
 

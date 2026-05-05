@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useAuth } from "../../../../../src/hooks/useAuth";
 import { useQuizzesPage } from "../../../../../src/pages/quizzes/hooks/useQuizzesPage";
 import { questionsApi } from "../../../../../src/services/questions/questions-api";
+import { groupsApi } from "../../../../../src/services/groups/groups-api";
 import { quizzesApi } from "../../../../../src/services/quizzes/quizzes-api";
 import type { QuestionItem } from "../../../../../src/types/question";
 import type { QuizItem, QuizQuestionItem } from "../../../../../src/types/quiz";
@@ -12,7 +13,10 @@ import { createT } from "../../../../utils/i18n";
 
 vi.mock("../../../../../src/hooks/useAuth", () => ({ useAuth: vi.fn() }));
 vi.mock("../../../../../src/services/questions/questions-api", () => ({
-  questionsApi: { listQuestions: vi.fn() },
+  questionsApi: { listQuestions: vi.fn(), listQuestionBank: vi.fn() },
+}));
+vi.mock("../../../../../src/services/groups/groups-api", () => ({
+  groupsApi: { listGroups: vi.fn(), importMembers: vi.fn() },
 }));
 vi.mock("../../../../../src/services/quizzes/quizzes-api", () => ({
   quizzesApi: {
@@ -58,9 +62,12 @@ describe("useQuizzesPage", () => {
     shuffleQuestions: false,
     revealAnswersAfterClose: false,
     publishedAt: null,
+    audienceScope: "all",
     totalQuestions: 1,
     totalPoints: 2,
     questions: [quizQuestion],
+    assignedGroupIds: [],
+    assignedGroups: [],
     createdByUserId: 1,
     updatedByUserId: 1,
     version: 1,
@@ -111,9 +118,10 @@ describe("useQuizzesPage", () => {
         operation("token"),
     );
     vi.mocked(quizzesApi.listQuizzes).mockResolvedValue({ quizzes: [quiz] });
-    vi.mocked(questionsApi.listQuestions).mockResolvedValue({
+    vi.mocked(questionsApi.listQuestionBank).mockResolvedValue({
       questions: [question],
     });
+    vi.mocked(groupsApi.listGroups).mockResolvedValue({ groups: [] });
     vi.mocked(quizzesApi.createQuiz).mockResolvedValue({
       quiz: buildQuiz({ quizId: "quiz-2", title: "Quiz 2" }),
     });
@@ -226,5 +234,108 @@ describe("useQuizzesPage", () => {
       message: "translated-error",
     });
     expect(getErrorMessage).toHaveBeenCalled();
+  });
+
+  it("handles cancel, clipboard and unpublish branches", async () => {
+    const t = createT();
+    const confirmMock = vi.fn(() => false);
+    vi.stubGlobal("confirm", confirmMock);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: vi.fn(async () => {
+          throw new Error("boom");
+        }),
+      },
+    });
+
+    const { result } = renderHook(() => useQuizzesPage({ t }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.copyAccessLink(quiz);
+    });
+    expect(result.current.feedback).toEqual({
+      severity: "error",
+      message: "errors.generic",
+    });
+
+    await act(async () => {
+      await result.current.deleteQuiz(quiz);
+    });
+    expect(confirmMock).toHaveBeenCalled();
+    expect(quizzesApi.deleteQuiz).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.openCreateDialog();
+    });
+    await waitFor(() => expect(result.current.editorOpen).toBe(true));
+    act(() => {
+      result.current.closeEditor();
+    });
+    expect(result.current.editorOpen).toBe(false);
+
+    await act(async () => {
+      await result.current.togglePublishStatus(
+        buildQuiz({ status: "published", canEdit: false }),
+      );
+    });
+    expect(quizzesApi.unpublishQuiz).toHaveBeenCalledWith("token", "quiz-1");
+  });
+
+  it("stores translated errors when auxiliary loaders and mutations fail", async () => {
+    const t = createT();
+    const { result } = renderHook(() => useQuizzesPage({ t }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    vi.mocked(questionsApi.listQuestionBank).mockRejectedValueOnce(
+      new Error("boom-bank"),
+    );
+    vi.mocked(groupsApi.listGroups).mockRejectedValueOnce(
+      new Error("boom-groups"),
+    );
+    act(() => {
+      result.current.openCreateDialog();
+    });
+    await waitFor(() =>
+      expect(result.current.feedback).toEqual({
+        severity: "error",
+        message: "translated-error",
+      }),
+    );
+
+    vi.mocked(quizzesApi.createQuiz).mockRejectedValueOnce(
+      new Error("boom-create"),
+    );
+    await act(async () => {
+      await result.current.submitEditor({
+        title: "Quiz 2",
+        description: null,
+        accessCode: null,
+        requiresAccessCode: false,
+        attemptsAllowed: 1,
+        startAt: null,
+        endAt: null,
+        timeLimitMinutes: null,
+        shuffleQuestions: false,
+        revealAnswersAfterClose: false,
+        questions: [{ questionId: "q-1", points: 2 }],
+      });
+    });
+    expect(result.current.feedback).toEqual({
+      severity: "error",
+      message: "translated-error",
+    });
+
+    vi.mocked(quizzesApi.publishQuiz).mockRejectedValueOnce(
+      new Error("boom-publish"),
+    );
+    await act(async () => {
+      await result.current.togglePublishStatus(quiz);
+    });
+    expect(result.current.feedback).toEqual({
+      severity: "error",
+      message: "translated-error",
+    });
   });
 });

@@ -16,6 +16,7 @@ type QuizEditorSubmitInput = {
   shuffleQuestions: boolean;
   revealAnswersAfterClose: boolean;
   selectedQuestions: SelectedQuestionState[];
+  selectedGroupIds: string[];
   hasUnsupportedSelectedQuestion: boolean;
   validationMessage: string | null;
   fields: QuizEditorDialogProps["fields"];
@@ -37,6 +38,7 @@ export function buildQuizEditorPayload({
   shuffleQuestions,
   revealAnswersAfterClose,
   selectedQuestions,
+  selectedGroupIds = [],
   hasUnsupportedSelectedQuestion,
   validationMessage,
   fields,
@@ -112,6 +114,7 @@ export function buildQuizEditorPayload({
           : null,
       shuffleQuestions,
       revealAnswersAfterClose,
+      assignedGroupIds: [...selectedGroupIds],
       questions: selectedQuestions.map((question) => {
         const toleranceText = question.toleranceOverride?.trim() ?? "";
         return {

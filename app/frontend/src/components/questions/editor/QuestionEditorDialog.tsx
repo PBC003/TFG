@@ -1,5 +1,6 @@
 import { Dialog, DialogTitle } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../../hooks/useAuth";
 import type {
   CreateQuestionInput,
   QuestionItem,
@@ -33,7 +34,9 @@ function QuestionEditorDialogBody({
   onSubmit,
 }: QuestionEditorDialogProps) {
   const { t } = useTranslation();
+  const auth = useAuth();
   const editor = useQuestionEditorDialog({ question, onSubmit, t });
+  const canManageParametricQuestions = auth.user?.role === "ADMIN";
 
   return (
     <Dialog
@@ -63,6 +66,7 @@ function QuestionEditorDialogBody({
         onAddMultipleChoiceOption={editor.addMultipleChoiceOption}
         onRemoveSingleChoiceOption={editor.removeSingleChoiceOption}
         onRemoveMultipleChoiceOption={editor.removeMultipleChoiceOption}
+        canManageParametricQuestions={canManageParametricQuestions}
       />
 
       <QuestionEditorDialogActions

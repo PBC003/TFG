@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import type { GroupItem } from "../../../types/group";
 import type { QuestionItem } from "../../../types/question";
 import type {
   CreateQuizInput,
@@ -25,12 +26,14 @@ import { buildQuizEditorPayload } from "../utils/quiz-editor-submit.utils";
 export function useQuizEditorDialog({
   quiz,
   questionBank,
+  groupOptions = [],
   validationMessage,
   fields,
   onSubmit,
 }: {
   quiz: QuizItem | null;
   questionBank: QuestionItem[];
+  groupOptions: GroupItem[];
   validationMessage: string | null;
   fields: QuizEditorDialogProps["fields"];
   onSubmit: (payload: CreateQuizInput | UpdateQuizInput) => Promise<void>;
@@ -55,6 +58,9 @@ export function useQuizEditorDialog({
   );
   const [revealAnswersAfterClose, setRevealAnswersAfterClose] = useState(
     initialState.revealAnswersAfterClose,
+  );
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(
+    initialState.selectedGroupIds,
   );
   const [search, setSearch] = useState("");
   const [selectedQuestions, setSelectedQuestions] = useState<
@@ -84,6 +90,12 @@ export function useQuizEditorDialog({
         questionRowsPerPage,
       ),
     [orderedQuestions, questionPage, questionRowsPerPage],
+  );
+
+  const selectedGroups = useMemo(
+    () =>
+      groupOptions.filter((group) => selectedGroupIds.includes(group.groupId)),
+    [groupOptions, selectedGroupIds],
   );
 
   const toggleQuestion = useCallback((question: QuestionItem) => {
@@ -124,6 +136,10 @@ export function useQuizEditorDialog({
     [],
   );
 
+  const updateSelectedGroups = useCallback((groups: GroupItem[]) => {
+    setSelectedGroupIds(groups.map((group) => group.groupId));
+  }, []);
+
   const hasUnsupportedSelectedQuestion = hasUnsupportedQuizEditorQuestionType();
 
   const submit = useCallback(async () => {
@@ -139,6 +155,7 @@ export function useQuizEditorDialog({
         shuffleQuestions,
         revealAnswersAfterClose,
         selectedQuestions,
+        selectedGroupIds,
         hasUnsupportedSelectedQuestion,
         validationMessage,
         fields,
@@ -161,6 +178,7 @@ export function useQuizEditorDialog({
     quizDescription,
     quizTitle,
     revealAnswersAfterClose,
+    selectedGroupIds,
     selectedQuestions,
     shuffleQuestions,
     startAt,
@@ -178,6 +196,7 @@ export function useQuizEditorDialog({
     timeLimitMinutes,
     shuffleQuestions,
     revealAnswersAfterClose,
+    selectedGroups,
     search,
     selectedQuestions,
     selectedQuestionMap,
@@ -202,6 +221,7 @@ export function useQuizEditorDialog({
     updateQuestionPoints,
     updateQuestionQuantity,
     updateQuestionToleranceOverride,
+    updateSelectedGroups,
     submit,
   };
 }

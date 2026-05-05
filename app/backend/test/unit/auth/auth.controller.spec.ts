@@ -4,6 +4,7 @@ import type { Request, Response } from 'express';
 import { Role } from '../../../src/users/enums/role.enum';
 import { AuthController } from '../../../src/auth/auth.controller';
 import { AuthService, PublicUser } from '../../../src/auth/auth.service';
+import { loadModuleWithoutReflect } from '../helpers/load-without-reflect';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -187,6 +188,16 @@ describe('AuthController', () => {
     expect(response.clearCookie).toHaveBeenCalledWith(
       'refresh_token',
       expect.objectContaining({ httpOnly: true }),
+    );
+  });
+
+  it('loads the module without Reflect decorator helpers', () => {
+    const { AuthController: ReloadedController } = loadModuleWithoutReflect<
+      typeof import('../../../src/auth/auth.controller')
+    >('../../../src/auth/auth.controller', __filename);
+
+    expect(new ReloadedController({} as never)).toBeInstanceOf(
+      ReloadedController,
     );
   });
 });

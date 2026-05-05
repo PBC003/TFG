@@ -42,9 +42,12 @@ describe("quizzes page and editor utils", () => {
     shuffleQuestions: true,
     revealAnswersAfterClose: false,
     publishedAt: null,
+    audienceScope: "all",
     totalQuestions: 1,
     totalPoints: 2,
     questions: [{ questionId: "q-1", points: 2 }],
+    assignedGroupIds: [],
+    assignedGroups: [],
     createdByUserId: 1,
     updatedByUserId: 1,
     version: 1,
@@ -108,19 +111,21 @@ describe("quizzes page and editor utils", () => {
         quizTitle: "Quiz Cálculo",
         quizDescription: "Integrales",
         attemptsAllowed: "2",
-        startAt: "2026-04-12T12:00",
-        endAt: "2026-04-12T13:00",
+        startAt: toLocalDateTimeValue("2026-04-12T10:00:00.000Z"),
+        endAt: toLocalDateTimeValue("2026-04-12T11:00:00.000Z"),
         timeLimitMinutes: "15",
         shuffleQuestions: true,
         revealAnswersAfterClose: false,
         accessCode: "ABCD",
+        selectedGroupIds: [],
         selectedQuestions: [
-          expect.objectContaining({
+          {
             questionId: "q-1",
             points: 2,
             quantity: 1,
             toleranceOverride: "",
-          }),
+            type: undefined,
+          },
         ],
       }),
     );
@@ -178,6 +183,7 @@ describe("quizzes page and editor utils", () => {
         shuffleQuestions: false,
         revealAnswersAfterClose: false,
         selectedQuestions: [{ questionId: "q-1", points: 1 }],
+        selectedGroupIds: [],
         hasUnsupportedSelectedQuestion: false,
         validationMessage: "invalid",
         fields: {
@@ -198,6 +204,7 @@ describe("quizzes page and editor utils", () => {
         shuffleQuestions: true,
         revealAnswersAfterClose: true,
         selectedQuestions: [{ questionId: "q-1", points: 2 }],
+        selectedGroupIds: [],
         hasUnsupportedSelectedQuestion: false,
         validationMessage: "invalid",
         fields: {
@@ -218,6 +225,7 @@ describe("quizzes page and editor utils", () => {
         shuffleQuestions: true,
         revealAnswersAfterClose: true,
         selectedQuestions: [{ questionId: "q-1", points: 2 }],
+        selectedGroupIds: [],
         hasUnsupportedSelectedQuestion: false,
         validationMessage: "invalid",
         fields: {
@@ -237,7 +245,15 @@ describe("quizzes page and editor utils", () => {
       timeLimitMinutes: "20",
       shuffleQuestions: true,
       revealAnswersAfterClose: true,
-      selectedQuestions: [{ questionId: "q-1", points: 2 }],
+      selectedQuestions: [
+        {
+          questionId: "q-1",
+          points: 2,
+          quantity: 1,
+          toleranceOverride: undefined,
+        },
+      ],
+      selectedGroupIds: [],
       hasUnsupportedSelectedQuestion: false,
       validationMessage: "invalid",
       fields: {
@@ -259,6 +275,7 @@ describe("quizzes page and editor utils", () => {
           timeLimitMinutes: 20,
           shuffleQuestions: true,
           revealAnswersAfterClose: true,
+          assignedGroupIds: [],
           questions: [
             expect.objectContaining({
               questionId: "q-1",
@@ -270,6 +287,121 @@ describe("quizzes page and editor utils", () => {
         }),
       }),
     );
+    vi.useRealTimers();
+  });
+
+  it("rejects invalid quiz-editor payload combinations and keeps optional fields nullable", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-12T10:00:00.000Z"));
+
+    const futureEndAt = toLocalDateTimeValue("2026-04-12T11:30:00.000Z");
+
+    const baseInput = {
+      quizTitle: "Quiz válido",
+      quizDescription: "   ",
+      accessCode: "   ",
+      attemptsAllowed: "2",
+      startAt: "",
+      endAt: futureEndAt,
+      timeLimitMinutes: "   ",
+      shuffleQuestions: false,
+      revealAnswersAfterClose: false,
+      selectedQuestions: [{ questionId: "q-1", points: 1 }],
+      selectedGroupIds: ["g-1"],
+      hasUnsupportedSelectedQuestion: false,
+      validationMessage: "invalid",
+      fields: {
+        invalidDateRange: "range",
+        invalidEndDateInPast: "past",
+      } as never,
+    };
+
+    expect(
+      buildQuizEditorPayload({
+        ...baseInput,
+        attemptsAllowed: "0",
+      }),
+    ).toEqual({ payload: null, validationMessage: "invalid" });
+
+    expect(
+      buildQuizEditorPayload({
+        ...baseInput,
+        selectedQuestions: [],
+      }),
+    ).toEqual({ payload: null, validationMessage: "invalid" });
+
+    expect(
+      buildQuizEditorPayload({
+        ...baseInput,
+        hasUnsupportedSelectedQuestion: true,
+      }),
+    ).toEqual({ payload: null, validationMessage: "invalid" });
+
+    expect(
+      buildQuizEditorPayload({
+        ...baseInput,
+        selectedQuestions: [{ questionId: "q-1", points: 0 }],
+      }),
+    ).toEqual({ payload: null, validationMessage: "invalid" });
+
+    expect(
+      buildQuizEditorPayload({
+        ...baseInput,
+        selectedQuestions: [
+          {
+            questionId: "q-2",
+            type: "parametric",
+            points: 1,
+            quantity: 0,
+            toleranceOverride: "0.1",
+          },
+        ],
+      }),
+    ).toEqual({ payload: null, validationMessage: "invalid" });
+
+    expect(
+      buildQuizEditorPayload({
+        ...baseInput,
+        selectedQuestions: [
+          {
+            questionId: "q-2",
+            type: "parametric",
+            points: 1,
+            quantity: 1,
+            toleranceOverride: "-0.1",
+          },
+        ],
+      }),
+    ).toEqual({ payload: null, validationMessage: "invalid" });
+
+    expect(
+      buildQuizEditorPayload({
+        ...baseInput,
+        selectedQuestions: [
+          {
+            questionId: "q-2",
+            type: "parametric",
+            points: 1,
+            quantity: 1,
+            toleranceOverride: "abc",
+          },
+        ],
+      }),
+    ).toEqual({ payload: null, validationMessage: "invalid" });
+
+    expect(buildQuizEditorPayload(baseInput)).toEqual(
+      expect.objectContaining({
+        validationMessage: null,
+        payload: expect.objectContaining({
+          description: null,
+          accessCode: null,
+          requiresAccessCode: false,
+          timeLimitMinutes: null,
+          assignedGroupIds: ["g-1"],
+        }),
+      }),
+    );
+
     vi.useRealTimers();
   });
 });

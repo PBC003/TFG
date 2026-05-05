@@ -1,8 +1,10 @@
 import type { TFunction } from "i18next";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../../hooks/useAuth";
+import { groupsApi } from "../../../services/groups/groups-api";
 import { questionsApi } from "../../../services/questions/questions-api";
 import { quizzesApi } from "../../../services/quizzes/quizzes-api";
+import type { GroupItem } from "../../../types/group";
 import type { QuestionItem } from "../../../types/question";
 import type {
   CreateQuizInput,
@@ -26,8 +28,10 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
   const auth = useAuth();
   const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
   const [questionBank, setQuestionBank] = useState<QuestionItem[]>([]);
+  const [groups, setGroups] = useState<GroupItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [questionBankLoading, setQuestionBankLoading] = useState(false);
+  const [groupsLoading, setGroupsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] =
     useState<UseQuizzesPageResult["feedback"]>(null);
@@ -72,7 +76,7 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
 
     try {
       const response = await auth.executeWithSession((token) =>
-        questionsApi.listQuestions(token),
+        questionsApi.listQuestionBank(token),
       );
       setQuestionBank(response.questions);
     } catch (error) {
@@ -81,6 +85,25 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
       setQuestionBankLoading(false);
     }
   }, [auth, questionBank.length, questionBankLoading, t]);
+
+  const ensureGroupsLoaded = useCallback(async () => {
+    if (groups.length > 0 || groupsLoading) {
+      return;
+    }
+
+    setGroupsLoading(true);
+
+    try {
+      const response = await auth.executeWithSession((token) =>
+        groupsApi.listGroups(token),
+      );
+      setGroups(response.groups);
+    } catch (error) {
+      setFeedback({ severity: "error", message: getErrorMessage(t, error) });
+    } finally {
+      setGroupsLoading(false);
+    }
+  }, [auth, groups.length, groupsLoading, t]);
 
   useEffect(() => {
     void refreshQuizzes();
@@ -120,8 +143,8 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
   const openCreateDialog = useCallback(() => {
     setEditingQuiz(null);
     setEditorOpen(true);
-    void ensureQuestionBankLoaded();
-  }, [ensureQuestionBankLoaded]);
+    void Promise.all([ensureQuestionBankLoaded(), ensureGroupsLoaded()]);
+  }, [ensureGroupsLoaded, ensureQuestionBankLoaded]);
 
   const openEditDialog = useCallback(
     (quiz: QuizItem) => {
@@ -132,9 +155,9 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
 
       setEditingQuiz(quiz);
       setEditorOpen(true);
-      void ensureQuestionBankLoaded();
+      void Promise.all([ensureQuestionBankLoaded(), ensureGroupsLoaded()]);
     },
-    [ensureQuestionBankLoaded, t],
+    [ensureGroupsLoaded, ensureQuestionBankLoaded, t],
   );
 
   const closeEditor = useCallback(() => {
@@ -261,17 +284,17 @@ export function useQuizzesPage({ t }: { t: TFunction }): UseQuizzesPageResult {
     [auth, t],
   );
 
-  const clearFeedback = useCallback(() => {
-    setFeedback(null);
-  }, []);
+  const clearFeedback = useCallback(() => setFeedback(null), []);
 
   return {
     quizzes,
     visibleQuizzes,
     paginatedQuizzes,
     questionBank,
+    groups,
     loading,
     questionBankLoading,
+    groupsLoading,
     submitting,
     feedback,
     search,

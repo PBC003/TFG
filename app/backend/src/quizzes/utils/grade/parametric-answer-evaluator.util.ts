@@ -1,3 +1,21 @@
+const MAX_PARAMETRIC_EXPRESSION_LENGTH = 120;
+const ALLOWED_CHARACTERS_REGEX = /^[0-9+\-*/^().,\sA-Za-zπ]+$/u;
+const IDENTIFIER_REGEX = /[A-Za-zπ]+/gu;
+const SUPPORTED_IDENTIFIERS = new Set(['pi', 'sqrt', 'π']);
+
+export type ParametricAnswerValidationResult = {
+  isValid: boolean;
+  normalizedValue: string;
+  reason:
+    | 'empty'
+    | 'too_long'
+    | 'invalid_characters'
+    | 'unsupported_identifier'
+    | 'unbalanced_parentheses'
+    | 'invalid_expression'
+    | null;
+};
+
 class Parser {
   private index = 0;
 
@@ -129,7 +147,7 @@ class Parser {
 
     while (this.index < this.source.length) {
       const current = this.source[this.index];
-      const isLetter = /[A-Za-zπ]/.test(current);
+      const isLetter = /[A-Za-zπ]/u.test(current);
 
       if (!isLetter) {
         break;
@@ -153,7 +171,7 @@ class Parser {
     while (this.index < this.source.length) {
       const current = this.source[this.index];
 
-      if (/[0-9]/.test(current)) {
+      if (/[0-9]/u.test(current)) {
         this.index += 1;
         continue;
       }
@@ -184,7 +202,7 @@ class Parser {
   private skipWhitespace(): void {
     while (
       this.index < this.source.length &&
-      /\s/.test(this.source[this.index])
+      /\s/u.test(this.source[this.index])
     ) {
       this.index += 1;
     }
@@ -200,17 +218,118 @@ class Parser {
   }
 }
 
-export function evaluateParametricAnswerExpression(
+function hasBalancedParentheses(value: string): boolean {
+  let balance = 0;
+
+  for (const character of value) {
+    if (character === '(') {
+      balance += 1;
+      continue;
+    }
+
+    if (character !== ')') {
+      continue;
+    }
+
+    balance -= 1;
+
+    if (balance < 0) {
+      return false;
+    }
+  }
+
+  return balance === 0;
+}
+
+function hasOnlySupportedIdentifiers(value: string): boolean {
+  const identifiers: string[] = value.match(IDENTIFIER_REGEX) ?? [];
+
+  return identifiers.every((identifier) =>
+    SUPPORTED_IDENTIFIERS.has(identifier.toLowerCase()),
+  );
+}
+
+export function validateParametricAnswerExpression(
   value: string,
-): number | null {
+): ParametricAnswerValidationResult {
   const normalizedValue = value.trim();
 
   if (!normalizedValue) {
-    return null;
+    return {
+      isValid: false,
+      normalizedValue,
+      reason: 'empty',
+    };
+  }
+
+  if (normalizedValue.length > MAX_PARAMETRIC_EXPRESSION_LENGTH) {
+    return {
+      isValid: false,
+      normalizedValue,
+      reason: 'too_long',
+    };
+  }
+
+  if (!ALLOWED_CHARACTERS_REGEX.test(normalizedValue)) {
+    return {
+      isValid: false,
+      normalizedValue,
+      reason: 'invalid_characters',
+    };
+  }
+
+  if (!hasOnlySupportedIdentifiers(normalizedValue)) {
+    return {
+      isValid: false,
+      normalizedValue,
+      reason: 'unsupported_identifier',
+    };
+  }
+
+  if (!hasBalancedParentheses(normalizedValue)) {
+    return {
+      isValid: false,
+      normalizedValue,
+      reason: 'unbalanced_parentheses',
+    };
   }
 
   try {
     const parsedValue = new Parser(normalizedValue).parse();
+
+    if (!Number.isFinite(parsedValue)) {
+      return {
+        isValid: false,
+        normalizedValue,
+        reason: 'invalid_expression',
+      };
+    }
+
+    return {
+      isValid: true,
+      normalizedValue,
+      reason: null,
+    };
+  } catch {
+    return {
+      isValid: false,
+      normalizedValue,
+      reason: 'invalid_expression',
+    };
+  }
+}
+
+export function evaluateParametricAnswerExpression(
+  value: string,
+): number | null {
+  const validation = validateParametricAnswerExpression(value);
+
+  if (!validation.isValid) {
+    return null;
+  }
+
+  try {
+    const parsedValue = new Parser(validation.normalizedValue).parse();
 
     return Number.isFinite(parsedValue) ? parsedValue : null;
   } catch {

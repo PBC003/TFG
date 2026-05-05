@@ -8,12 +8,9 @@ import {
   Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import {
-  AdminToolbar,
-  type StatusFilter,
-} from "../../../components/admin/AdminToolbar";
-import { AdminUserCards } from "../../../components/admin/AdminUserCards";
-import { AdminUsersTable } from "../../../components/admin/AdminUsersTable";
+import { AdminToolbar, type StatusFilter } from "./AdminToolbar";
+import { AdminUserCards } from "./AdminUserCards";
+import { AdminUsersTable } from "./AdminUsersTable";
 import type { AdminUser } from "../../../types/auth";
 
 type AdminUsersSectionProps = {

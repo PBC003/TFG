@@ -1,3 +1,9 @@
+import {
+  lazy,
+  Suspense,
+  type ComponentType,
+  type LazyExoticComponent,
+} from "react";
 import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
 import { RequireAuth } from "../components/auth/RequireAuth";
@@ -10,10 +16,33 @@ import NotFoundPage from "../pages/NotFoundPage";
 import ProfilePage from "../pages/profile/ProfilePage";
 import RegisterPage from "../pages/RegisterPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
-import AdminPage from "../pages/admin/AdminPage";
-import QuestionsPage from "../pages/questions/QuestionsPage";
-import QuizzesPage from "../pages/quizzes/QuizzesPage";
-import QuizAccessPage from "../pages/quiz-access/QuizAccessPage";
+
+const AdminPage = lazy(() => import("../pages/admin/AdminPage"));
+const QuestionsPage = lazy(() => import("../pages/questions/QuestionsPage"));
+const QuizzesPage = lazy(() => import("../pages/quizzes/QuizzesPage"));
+const QuizAccessPage = lazy(
+  () => import("../pages/quiz-access/QuizAccessPage"),
+);
+const QuizHistoryPage = lazy(
+  () => import("../pages/quiz-history/QuizHistoryPage"),
+);
+const QuizAnalyticsPage = lazy(
+  () => import("../pages/quizzes/QuizAnalyticsPage"),
+);
+const QuizSimulationPage = lazy(
+  () => import("../pages/quizzes/QuizSimulationPage"),
+);
+const GroupsPage = lazy(() => import("../pages/groups/GroupsPage"));
+
+type LazyPageComponent = LazyExoticComponent<ComponentType>;
+
+function renderLazyPage(PageComponent: LazyPageComponent) {
+  return (
+    <Suspense fallback={null}>
+      <PageComponent />
+    </Suspense>
+  );
+}
 
 export const router = createBrowserRouter([
   {
@@ -33,11 +62,11 @@ export const router = createBrowserRouter([
         children: [
           {
             path: "quiz-access",
-            element: <QuizAccessPage />,
+            element: renderLazyPage(QuizAccessPage),
           },
           {
             path: "quiz-access/:quizId",
-            element: <QuizAccessPage />,
+            element: renderLazyPage(QuizAccessPage),
           },
         ],
       },
@@ -61,6 +90,10 @@ export const router = createBrowserRouter([
             path: "profile",
             element: <ProfilePage />,
           },
+          {
+            path: "quiz-history",
+            element: renderLazyPage(QuizHistoryPage),
+          },
         ],
       },
       {
@@ -68,7 +101,7 @@ export const router = createBrowserRouter([
         children: [
           {
             path: "admin",
-            element: <AdminPage />,
+            element: renderLazyPage(AdminPage),
           },
         ],
       },
@@ -77,11 +110,23 @@ export const router = createBrowserRouter([
         children: [
           {
             path: "questions",
-            element: <QuestionsPage />,
+            element: renderLazyPage(QuestionsPage),
+          },
+          {
+            path: "groups",
+            element: renderLazyPage(GroupsPage),
           },
           {
             path: "quizzes",
-            element: <QuizzesPage />,
+            element: renderLazyPage(QuizzesPage),
+          },
+          {
+            path: "quizzes/:quizId/simulate",
+            element: renderLazyPage(QuizSimulationPage),
+          },
+          {
+            path: "quizzes/:quizId/analytics",
+            element: renderLazyPage(QuizAnalyticsPage),
           },
         ],
       },

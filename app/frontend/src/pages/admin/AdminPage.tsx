@@ -1,9 +1,9 @@
 import { Alert, Stack, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
-import { UserConfirmDialog } from "../../components/admin/dialogs/UserConfirmDialog";
-import { UserEditDialog } from "../../components/admin/dialogs/UserEditDialog";
-import { UserPasswordDialog } from "../../components/admin/dialogs/UserPasswordDialog";
+import { UserConfirmDialog } from "./components/dialogs/UserConfirmDialog";
+import { UserEditDialog } from "./components/dialogs/UserEditDialog";
+import { UserPasswordDialog } from "./components/dialogs/UserPasswordDialog";
 import { useAuth } from "../../hooks/useAuth";
 import { AdminPageHeader } from "./components/AdminPageHeader";
 import { AdminUsersSection } from "./components/AdminUsersSection";

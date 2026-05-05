@@ -34,6 +34,7 @@ export function toPublicQuizCatalogItem(
     endAt: quiz.endAt,
     timeLimitMinutes: quiz.timeLimitMinutes,
     publishedAt: quiz.publishedAt,
+    audienceScope: (quiz.assignedGroupIds?.length ?? 0) > 0 ? 'groups' : 'all',
     isAvailableNow,
     canStart:
       isAvailableNow && (attemptsRemaining === null || attemptsRemaining > 0),

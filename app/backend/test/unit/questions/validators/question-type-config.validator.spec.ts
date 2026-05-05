@@ -59,4 +59,12 @@ describe('isValidQuestionTypeConfig', () => {
       }),
     ).toBe(false);
   });
+
+  it('rejects unsupported question types', () => {
+    expect(
+      isValidQuestionTypeConfig('unsupported' as QuestionType, {
+        any: 'value',
+      }),
+    ).toBe(false);
+  });
 });

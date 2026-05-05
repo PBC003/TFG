@@ -3,7 +3,7 @@ import {
   isValidMultipleChoiceConfig,
   isValidSingleChoiceConfig,
 } from './question-choice-config.validator';
-import { isValidParametricConfig } from './question-parametric-config.validator';
+import { isValidParametricConfig } from '../parametric/validators/question-parametric-config.validator';
 import { isValidTrueFalseConfig } from './question-true-false-config.validator';
 
 export function isValidQuestionTypeConfig(

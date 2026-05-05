@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 import { QuestionEditorDialogContent } from "../../../../../src/components/questions/editor/QuestionEditorDialogContent";
 import type {
@@ -7,6 +7,7 @@ import type {
   FormState,
   PreviewState,
 } from "../../../../../src/components/questions/editor/question-editor.types";
+import { buildCanonicalParametricStatement } from "../../../../../src/utils/parametric-question.utils";
 
 vi.mock(
   "../../../../../src/components/questions/editor/QuestionMathField",
@@ -119,6 +120,21 @@ vi.mock(
   }),
 );
 
+const t = ((key: string) => key) as never;
+
+function createCommonHandlerMocks() {
+  return {
+    onTogglePreviewField: vi.fn(),
+    onAddTag: vi.fn(),
+    onUpdateSingleChoiceOption: vi.fn(),
+    onUpdateMultipleChoiceOption: vi.fn(),
+    onAddSingleChoiceOption: vi.fn(),
+    onAddMultipleChoiceOption: vi.fn(),
+    onRemoveSingleChoiceOption: vi.fn(),
+    onRemoveMultipleChoiceOption: vi.fn(),
+  };
+}
+
 const form: FormState = {
   title: "Pregunta",
   type: "true_false",
@@ -126,6 +142,10 @@ const form: FormState = {
   explanation: "Feedback",
   tags: ["tag-1", "tag-2"],
   newTag: "",
+  parametric: {
+    templateId: "" as never,
+    sampleSeed: 0,
+  },
   trueFalse: {
     correctAnswer: true,
     feedbackForTrue: "",
@@ -155,7 +175,6 @@ const previewFields: PreviewState = {
 
 describe("QuestionEditorDialogContent", () => {
   it("renders the form shell and wires all editor callbacks", async () => {
-    const user = userEvent.setup();
     let currentForm: FormState = structuredClone(form);
     const onUpdateForm = vi.fn((updater: (current: FormState) => FormState) => {
       currentForm = updater(currentForm);
@@ -168,14 +187,14 @@ describe("QuestionEditorDialogContent", () => {
     const onAddMultipleChoiceOption = vi.fn();
     const onRemoveSingleChoiceOption = vi.fn();
     const onRemoveMultipleChoiceOption = vi.fn();
-    const t = (key: string) => key;
 
     render(
       <QuestionEditorDialogContent
         form={form}
         formError="error-form"
         previewFields={previewFields}
-        t={t as never}
+        t={t}
+        canManageParametricQuestions={true}
         onUpdateForm={onUpdateForm}
         onTogglePreviewField={onTogglePreviewField}
         onAddTag={onAddTag}
@@ -199,11 +218,13 @@ describe("QuestionEditorDialogContent", () => {
         target: { value: "Nueva pregunta" },
       },
     );
-    await user.click(
+    fireEvent.mouseDown(
       screen.getByRole("combobox", { name: "questions.fields.type" }),
     );
-    await user.click(
-      screen.getByRole("option", { name: "questions.types.single_choice" }),
+    fireEvent.click(
+      await screen.findByRole("option", {
+        name: "questions.types.single_choice",
+      }),
     );
 
     fireEvent.click(screen.getByRole("button", { name: "toggle-statement" }));
@@ -247,5 +268,101 @@ describe("QuestionEditorDialogContent", () => {
     expect(onAddMultipleChoiceOption).toHaveBeenCalled();
     expect(onRemoveSingleChoiceOption).toHaveBeenCalledWith(0);
     expect(onRemoveMultipleChoiceOption).toHaveBeenCalledWith(1);
+  }, 10000);
+
+  it("replaces the statement with the canonical parametric one when switching to parametric", async () => {
+    let currentForm: FormState = {
+      ...structuredClone(form),
+      parametric: {
+        ...form.parametric,
+        templateId: "series_geometric" as never,
+      },
+    };
+
+    const onUpdateForm = vi.fn((updater: (current: FormState) => FormState) => {
+      currentForm = updater(currentForm);
+    });
+    const handlers = createCommonHandlerMocks();
+
+    render(
+      <QuestionEditorDialogContent
+        form={currentForm}
+        formError={null}
+        previewFields={previewFields}
+        t={t}
+        canManageParametricQuestions={true}
+        onUpdateForm={onUpdateForm}
+        onTogglePreviewField={handlers.onTogglePreviewField}
+        onAddTag={handlers.onAddTag}
+        onUpdateSingleChoiceOption={handlers.onUpdateSingleChoiceOption}
+        onUpdateMultipleChoiceOption={handlers.onUpdateMultipleChoiceOption}
+        onAddSingleChoiceOption={handlers.onAddSingleChoiceOption}
+        onAddMultipleChoiceOption={handlers.onAddMultipleChoiceOption}
+        onRemoveSingleChoiceOption={handlers.onRemoveSingleChoiceOption}
+        onRemoveMultipleChoiceOption={handlers.onRemoveMultipleChoiceOption}
+      />,
+    );
+
+    fireEvent.mouseDown(
+      screen.getByRole("combobox", { name: "questions.fields.type" }),
+    );
+    fireEvent.click(
+      await screen.findByRole("option", {
+        name: "questions.types.parametric",
+      }),
+    );
+
+    expect(currentForm.type).toBe("parametric");
+    expect(currentForm.statement).toContain("\\sum_{n=2}^{\\infty}");
+  });
+
+  it("clears the canonical parametric statement when switching away from parametric", async () => {
+    const canonicalStatement =
+      buildCanonicalParametricStatement("series_geometric");
+    let currentForm: FormState = {
+      ...structuredClone(form),
+      type: "parametric",
+      statement: canonicalStatement,
+      parametric: {
+        ...form.parametric,
+        templateId: "series_geometric" as never,
+      },
+    };
+
+    const onUpdateForm = vi.fn((updater: (current: FormState) => FormState) => {
+      currentForm = updater(currentForm);
+    });
+    const handlers = createCommonHandlerMocks();
+
+    render(
+      <QuestionEditorDialogContent
+        form={currentForm}
+        formError={null}
+        previewFields={previewFields}
+        t={t}
+        canManageParametricQuestions={true}
+        onUpdateForm={onUpdateForm}
+        onTogglePreviewField={handlers.onTogglePreviewField}
+        onAddTag={handlers.onAddTag}
+        onUpdateSingleChoiceOption={handlers.onUpdateSingleChoiceOption}
+        onUpdateMultipleChoiceOption={handlers.onUpdateMultipleChoiceOption}
+        onAddSingleChoiceOption={handlers.onAddSingleChoiceOption}
+        onAddMultipleChoiceOption={handlers.onAddMultipleChoiceOption}
+        onRemoveSingleChoiceOption={handlers.onRemoveSingleChoiceOption}
+        onRemoveMultipleChoiceOption={handlers.onRemoveMultipleChoiceOption}
+      />,
+    );
+
+    fireEvent.mouseDown(
+      screen.getByRole("combobox", { name: "questions.fields.type" }),
+    );
+    fireEvent.click(
+      await screen.findByRole("option", {
+        name: "questions.types.true_false",
+      }),
+    );
+
+    expect(currentForm.type).toBe("true_false");
+    expect(currentForm.statement).toBe("");
   });
 });

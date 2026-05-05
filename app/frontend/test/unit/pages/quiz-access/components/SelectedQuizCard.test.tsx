@@ -16,6 +16,7 @@ const quiz: PublicQuizCatalogItem = {
   title: "Quiz 1",
   description: "Desc",
   teacherName: "Teacher",
+  audienceScope: "PUBLIC" as PublicQuizCatalogItem["audienceScope"],
   requiresAccessCode: true,
   attemptsAllowed: 2,
   attemptsRemaining: 1,
@@ -98,5 +99,44 @@ describe("SelectedQuizCard", () => {
         name: "quizAccess.actions.viewBestResult",
       }),
     ).not.toBeInTheDocument();
+  });
+
+  it("renders fallback description, no-time-limit chip and disabled actions", () => {
+    renderWithProviders(
+      <SelectedQuizCard
+        quiz={{
+          ...quiz,
+          description: "",
+          attemptsRemaining: null,
+          timeLimitMinutes: null,
+          requiresAccessCode: false,
+        }}
+        accessCode=""
+        startDisabled
+        loading
+        reviewLoading
+        canRequestBestResult
+        language="en"
+        onAccessCodeChange={vi.fn()}
+        onStart={vi.fn()}
+        onLoadBestResult={vi.fn()}
+        onResetLookup={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByText("quizAccess.catalog.noDescription"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText("quizAccess.catalog.noTimeLimit").length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getByRole("button", {
+        name: "quizAccess.actions.startSelectedQuiz",
+      }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "quizAccess.actions.viewBestResult" }),
+    ).toBeDisabled();
   });
 });

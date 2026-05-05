@@ -1,5 +1,6 @@
 import type {
   CreateQuizInput,
+  QuizAttemptItem,
   QuizItem,
   UpdateQuizInput,
 } from "../../types/quiz";
@@ -42,5 +43,14 @@ export const quizzesApi = {
       method: "DELETE",
       accessToken,
     });
+  },
+  startPreview(accessToken: string, quizId: string) {
+    return request<{ attempt: QuizAttemptItem }>(
+      `/quizzes/${quizId}/preview/start`,
+      {
+        method: "POST",
+        accessToken,
+      },
+    );
   },
 };

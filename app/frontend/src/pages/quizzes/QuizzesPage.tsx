@@ -1,5 +1,7 @@
 import { Alert, Box, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { getQuizSimulationRoute } from "../../constants/routes";
 import { QuizEditorDialog } from "./components/QuizEditorDialog";
 import { QuizzesFiltersCard } from "./components/QuizzesFiltersCard";
 import { QuizzesPageHeaderCard } from "./components/QuizzesPageHeaderCard";
@@ -8,11 +10,15 @@ import { useQuizzesPage } from "./hooks/useQuizzesPage";
 
 export default function QuizzesPage() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const {
     visibleQuizzes,
     paginatedQuizzes,
     questionBank,
+    groups,
     loading,
+    questionBankLoading,
+    groupsLoading,
     submitting,
     feedback,
     search,
@@ -74,6 +80,12 @@ export default function QuizzesPage() {
           onCopyLink={copyAccessLink}
           onTogglePublishStatus={togglePublishStatus}
           onDelete={deleteQuiz}
+          onOpenAnalytics={(quiz) =>
+            navigate(`/quizzes/${quiz.quizId}/analytics`)
+          }
+          onStartSimulation={(quiz) =>
+            navigate(getQuizSimulationRoute(quiz.quizId))
+          }
         />
 
         {editorOpen ? (
@@ -82,6 +94,8 @@ export default function QuizzesPage() {
             open={editorOpen}
             quiz={editingQuiz}
             questionBank={questionBank}
+            groupOptions={groups}
+            questionBankLoading={questionBankLoading || groupsLoading}
             submitting={submitting}
             title={
               editingQuiz
@@ -109,6 +123,8 @@ export default function QuizzesPage() {
               revealAnswersAfterClose: t(
                 "quizzes.fields.revealAnswersAfterClose",
               ),
+              assignedGroups: t("quizzes.fields.assignedGroups"),
+              assignedGroupsHelper: t("quizzes.fields.assignedGroupsHelper"),
               accessCodeOptional: t("quizzes.fields.accessCodeOptional"),
               accessCodeHelp: t("quizzes.fields.accessCodeHelp"),
               accessCodeAuto: t("quizzes.fields.accessCodeAuto"),

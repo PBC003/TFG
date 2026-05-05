@@ -34,7 +34,6 @@ export const QuizQuestionRefSchema =
 export class Quiz {
   @Prop({
     required: true,
-    unique: true,
     trim: true,
     default: () => randomUUID(),
   })
@@ -48,7 +47,6 @@ export class Quiz {
 
   @Prop({
     required: true,
-    unique: true,
     trim: true,
     uppercase: true,
     maxlength: 16,
@@ -83,6 +81,9 @@ export class Quiz {
   @Prop({ type: [QuizQuestionRefSchema], default: [] })
   questions!: QuizQuestionRef[];
 
+  @Prop({ type: [String], default: [] })
+  assignedGroupIds!: string[];
+
   @Prop({ type: Number, required: true, index: true })
   createdByUserId!: number;
 
@@ -103,3 +104,4 @@ export const QuizSchema = SchemaFactory.createForClass(Quiz);
 
 QuizSchema.index({ createdByUserId: 1, status: 1 });
 QuizSchema.index({ status: 1, accessCode: 1 });
+QuizSchema.index({ status: 1, assignedGroupIds: 1 });

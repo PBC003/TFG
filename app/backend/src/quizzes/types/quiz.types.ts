@@ -20,6 +20,11 @@ export type QuizQuestionItem = {
   toleranceOverride?: number | null;
 };
 
+export type QuizGroupSummary = {
+  groupId: string;
+  name: string;
+};
+
 export type QuizItem = {
   quizId: string;
   title: string;
@@ -37,9 +42,12 @@ export type QuizItem = {
   shuffleQuestions: boolean;
   revealAnswersAfterClose: boolean;
   publishedAt: Date | null;
+  audienceScope: 'all' | 'groups';
   totalQuestions: number;
   totalPoints: number;
   questions: QuizQuestionItem[];
+  assignedGroupIds: string[];
+  assignedGroups: QuizGroupSummary[];
   createdByUserId: number;
   updatedByUserId: number;
   version: number;
@@ -61,6 +69,7 @@ export type PublicQuizCatalogItem = {
   endAt: Date | null;
   timeLimitMinutes: number | null;
   publishedAt: Date | null;
+  audienceScope: 'all' | 'groups';
   isAvailableNow: boolean;
   canStart: boolean;
 };
@@ -97,6 +106,7 @@ export type PublicAttemptQuestion = QuizQuestionItem & {
 };
 
 export type QuizAttemptItem = {
+  isPreview?: boolean;
   attemptId: string;
   quizId: string;
   title: string;
@@ -128,6 +138,7 @@ export type QuizSubmissionQuestionReview = {
 };
 
 export type QuizSubmissionResult = {
+  isPreview?: boolean;
   attemptId: string;
   quizId: string;
   title: string;
@@ -143,6 +154,100 @@ export type QuizSubmissionResult = {
   canRevealFeedback: boolean;
   revealBlockedByEndDate: boolean;
   review: QuizSubmissionQuestionReview[];
+};
+
+export type QuizAnalyticsScoreBucket = {
+  label: string;
+  minScore: number;
+  maxScore: number;
+  count: number;
+};
+
+export type QuizAnalyticsSummary = {
+  totalAttempts: number;
+  completedAttempts: number;
+  submittedAttempts: number;
+  expiredAttempts: number;
+  inProgressAttempts: number;
+  uniqueParticipants: number;
+  averageScoreOverTen: number;
+  bestScoreOverTen: number;
+  worstScoreOverTen: number;
+};
+
+export type QuizAnalyticsAttemptItem = {
+  attemptId: string;
+  quizId: string;
+  participantName: string;
+  participantDisplayName: string;
+  attemptNumber: number;
+  status: QuizAttemptStatus;
+  startedAt: Date;
+  submittedAt: Date | null;
+  expiresAt: Date | null;
+  earnedPoints: number;
+  maxPoints: number;
+  scoreOverTen: number;
+  questionCount: number;
+};
+
+export type QuizAnalyticsQuestionStatsItem = {
+  questionId: string;
+  title: string;
+  type: QuestionType;
+  order: number;
+  maxPoints: number;
+  attempts: number;
+  correctCount: number;
+  incorrectCount: number;
+  unansweredCount: number;
+  averageEarnedPoints: number;
+  correctRate: number;
+};
+
+export type QuizAnalyticsItem = {
+  quizId: string;
+  title: string;
+  description: string | null;
+  status: QuizStatus;
+  hasAttempts: boolean;
+  generatedAt: Date;
+  summary: QuizAnalyticsSummary;
+  scoreDistribution: QuizAnalyticsScoreBucket[];
+  attempts: QuizAnalyticsAttemptItem[];
+  questionStats: QuizAnalyticsQuestionStatsItem[];
+};
+
+export type QuizAttemptReviewDetail = {
+  attemptId: string;
+  quizId: string;
+  title: string;
+  participantName: string;
+  participantDisplayName: string;
+  attemptNumber: number;
+  status: QuizAttemptStatus;
+  startedAt: Date;
+  submittedAt: Date | null;
+  expiresAt: Date | null;
+  earnedPoints: number;
+  maxPoints: number;
+  scoreOverTen: number;
+  review: QuizSubmissionQuestionReview[];
+};
+
+export type QuizHistoryItem = {
+  attemptId: string;
+  quizId: string;
+  quizTitle: string;
+  quizDescription: string | null;
+  status: QuizAttemptStatus;
+  attemptNumber: number;
+  startedAt: Date;
+  submittedAt: Date | null;
+  earnedPoints: number;
+  maxPoints: number;
+  scoreOverTen: number;
+  totalQuestions: number;
 };
 
 export type SupportedQuestionConfig =

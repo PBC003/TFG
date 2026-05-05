@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { QuizzesController } from '../../../src/quizzes/quizzes.controller';
 import { QuizzesService } from '../../../src/quizzes/quizzes.service';
+import { Role } from '../../../src/users/enums/role.enum';
+import { loadModuleWithoutReflect } from '../helpers/load-without-reflect';
 
 describe('QuizzesController', () => {
   let controller: QuizzesController;
@@ -25,6 +27,7 @@ describe('QuizzesController', () => {
   });
 
   it('delegates all quizzes endpoints and wraps responses', async () => {
+    const request = { user: { id: 7, role: Role.TEACHER } } as never;
     quizzesService.createQuiz.mockResolvedValue({ quizId: 'quiz-1' });
     quizzesService.listQuizzes.mockResolvedValue([{ quizId: 'quiz-1' }]);
     quizzesService.findQuizById.mockResolvedValue({ quizId: 'quiz-1' });
@@ -33,38 +36,52 @@ describe('QuizzesController', () => {
     quizzesService.unpublishQuiz.mockResolvedValue({ quizId: 'quiz-1' });
 
     await expect(
-      controller.createQuiz(
-        { title: 'Quiz' } as never,
-        { user: { id: 7 } } as never,
-      ),
+      controller.createQuiz({ title: 'Quiz' } as never, request),
     ).resolves.toEqual({ quiz: { quizId: 'quiz-1' } });
-    await expect(controller.listQuizzes()).resolves.toEqual({
+    await expect(controller.listQuizzes(request)).resolves.toEqual({
       quizzes: [{ quizId: 'quiz-1' }],
     });
-    await expect(controller.findQuiz('quiz-1')).resolves.toEqual({
+    await expect(controller.findQuiz('quiz-1', request)).resolves.toEqual({
       quiz: { quizId: 'quiz-1' },
     });
     await expect(
       controller.updateQuiz(
         'quiz-1',
         { title: 'Updated' } as never,
-        { user: { id: 8 } } as never,
+        { user: { id: 8, role: Role.TEACHER } } as never,
       ),
     ).resolves.toEqual({ quiz: { quizId: 'quiz-1' } });
     await expect(
-      controller.publishQuiz('quiz-1', { user: { id: 9 } } as never),
+      controller.publishQuiz('quiz-1', {
+        user: { id: 9, role: Role.TEACHER },
+      } as never),
     ).resolves.toEqual({
       quiz: { quizId: 'quiz-1' },
     });
     await expect(
-      controller.unpublishQuiz('quiz-1', { user: { id: 9 } } as never),
+      controller.unpublishQuiz('quiz-1', {
+        user: { id: 9, role: Role.TEACHER },
+      } as never),
     ).resolves.toEqual({
       quiz: { quizId: 'quiz-1' },
     });
-    await expect(controller.deleteQuiz('quiz-1')).resolves.toEqual({
+    await expect(controller.deleteQuiz('quiz-1', request)).resolves.toEqual({
       success: true,
     });
 
-    expect(quizzesService.deleteQuiz).toHaveBeenCalledWith('quiz-1');
+    expect(quizzesService.deleteQuiz).toHaveBeenCalledWith('quiz-1', {
+      id: 7,
+      role: Role.TEACHER,
+    });
+  });
+
+  it('loads the module without Reflect decorator helpers', () => {
+    const { QuizzesController: ReloadedController } = loadModuleWithoutReflect<
+      typeof import('../../../src/quizzes/quizzes.controller')
+    >('../../../src/quizzes/quizzes.controller', __filename);
+
+    expect(new ReloadedController({} as never)).toBeInstanceOf(
+      ReloadedController,
+    );
   });
 });

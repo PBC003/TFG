@@ -8,6 +8,7 @@ import {
 } from '../../../src/questions/questions.service';
 import { QuestionType } from '../../../src/questions/enums/question-type.enum';
 import type { PublicUser } from '../../../src/auth/auth.service';
+import { loadModuleWithoutReflect } from '../helpers/load-without-reflect';
 
 describe('QuestionsController', () => {
   let controller: QuestionsController;
@@ -65,10 +66,12 @@ describe('QuestionsController', () => {
     questionsService.listQuestions.mockResolvedValue([question]);
     questionsService.findQuestionById.mockResolvedValue(question);
 
-    await expect(controller.findAll()).resolves.toEqual({
+    const request = { user } as Request & { user: PublicUser };
+
+    await expect(controller.findAll(request)).resolves.toEqual({
       questions: [question],
     });
-    await expect(controller.findOne('question-1')).resolves.toEqual({
+    await expect(controller.findOne('question-1', request)).resolves.toEqual({
       question,
     });
   });
@@ -122,6 +125,17 @@ describe('QuestionsController', () => {
     expect(questionsService.deleteQuestion).toHaveBeenCalledWith(
       'question-1',
       request.user,
+    );
+  });
+
+  it('loads the module without Reflect decorator helpers', () => {
+    const { QuestionsController: ReloadedController } =
+      loadModuleWithoutReflect<
+        typeof import('../../../src/questions/questions.controller')
+      >('../../../src/questions/questions.controller', __filename);
+
+    expect(new ReloadedController({} as never)).toBeInstanceOf(
+      ReloadedController,
     );
   });
 });

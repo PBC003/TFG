@@ -1,7 +1,10 @@
 import { CreateQuizDto } from '../../dto/create-quiz.dto';
 import { UpdateQuizDto } from '../../dto/update-quiz.dto';
 import type { QuizDocument } from '../../schemas/quiz.schema';
-import { QuizzesSharedService } from '../../quizzes-shared.service';
+import {
+  QuizzesSharedService,
+  type AuthorizedQuizUser,
+} from '../../quizzes-shared.service';
 
 export type QuizMutationPayload = {
   title: string;
@@ -14,6 +17,7 @@ export type QuizMutationPayload = {
   timeLimitMinutes: number | null;
   shuffleQuestions: boolean;
   revealAnswersAfterClose: boolean;
+  assignedGroupIds: string[];
   questions: {
     questionId: string;
     points: number;
@@ -22,9 +26,17 @@ export type QuizMutationPayload = {
   }[];
 };
 
+type QuizzesSharedServiceWithAccessCodeAssertion = QuizzesSharedService & {
+  assertAccessCodeIsAvailable?: (
+    accessCode: string,
+    quizId?: string,
+  ) => Promise<void>;
+};
+
 export async function normalizeQuizMutationPayload(
   sharedService: QuizzesSharedService,
   payload: CreateQuizDto | UpdateQuizDto,
+  user: AuthorizedQuizUser,
   currentQuiz?: QuizDocument,
 ): Promise<QuizMutationPayload> {
   const title = (payload.title ?? currentQuiz?.title)?.trim();
@@ -65,6 +77,16 @@ export async function normalizeQuizMutationPayload(
     payload.revealAnswersAfterClose ??
     currentQuiz?.revealAnswersAfterClose ??
     false;
+  const assignedGroupIds =
+    payload.assignedGroupIds !== undefined
+      ? Array.from(
+          new Set(
+            (payload.assignedGroupIds ?? [])
+              .map((value) => value.trim())
+              .filter(Boolean),
+          ),
+        )
+      : [...(currentQuiz?.assignedGroupIds ?? [])];
   const questions = payload.questions ?? currentQuiz?.questions;
 
   if (!title || attemptsAllowed === undefined || !questions) {
@@ -81,11 +103,19 @@ export async function normalizeQuizMutationPayload(
     );
   }
 
-  await sharedService.assertAccessCodeIsAvailable(
-    accessCode,
-    currentQuiz?.quizId,
-  );
+  const serviceWithAccessCodeAssertion =
+    sharedService as QuizzesSharedServiceWithAccessCodeAssertion;
+  if (
+    typeof serviceWithAccessCodeAssertion.assertAccessCodeIsAvailable ===
+    'function'
+  ) {
+    await serviceWithAccessCodeAssertion.assertAccessCodeIsAvailable(
+      accessCode,
+      currentQuiz?.quizId,
+    );
+  }
   await sharedService.assertQuestionReferencesAreValid(questions);
+  await sharedService.assertGroupReferencesAreValid(assignedGroupIds, user);
 
   return {
     title,
@@ -98,6 +128,7 @@ export async function normalizeQuizMutationPayload(
     timeLimitMinutes,
     shuffleQuestions,
     revealAnswersAfterClose,
+    assignedGroupIds,
     questions: questions.map((question) => ({
       questionId: question.questionId,
       points: Number(question.points),

@@ -1,3 +1,4 @@
+import type { GroupDocument } from '../../../groups/schemas/group.schema';
 import { QuestionType } from '../../../questions/enums/question-type.enum';
 import type { QuestionDocument } from '../../../questions/schemas/question.schema';
 import type { QuizDocument } from '../../schemas/quiz.schema';
@@ -13,6 +14,7 @@ export type QuizItemFlags = {
 export function toQuizItem(
   quiz: QuizDocument,
   questionsById: Map<string, QuestionDocument>,
+  groupsById: Map<string, GroupDocument>,
   flags: QuizItemFlags = {},
 ): QuizItem {
   const questionItems = quiz.questions.map((quizQuestion, index) => {
@@ -53,12 +55,18 @@ export function toQuizItem(
     shuffleQuestions: quiz.shuffleQuestions,
     revealAnswersAfterClose: quiz.revealAnswersAfterClose,
     publishedAt: quiz.publishedAt,
+    audienceScope: (quiz.assignedGroupIds?.length ?? 0) > 0 ? 'groups' : 'all',
     totalQuestions: questionItems.reduce(
       (sum, question) => sum + (question.quantity ?? 1),
       0,
     ),
     totalPoints,
     questions: questionItems,
+    assignedGroupIds: [...(quiz.assignedGroupIds ?? [])],
+    assignedGroups: (quiz.assignedGroupIds ?? [])
+      .map((groupId) => groupsById.get(groupId))
+      .filter((group): group is GroupDocument => Boolean(group))
+      .map((group) => ({ groupId: group.groupId, name: group.name })),
     createdByUserId: quiz.createdByUserId,
     updatedByUserId: quiz.updatedByUserId,
     version: quiz.version,

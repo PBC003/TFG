@@ -120,4 +120,68 @@ describe("quiz access utils", () => {
       [],
     );
   });
+
+  it("covers remaining review-formatting branches and expired timers", () => {
+    const now = new Date("2026-04-12T10:00:00.000Z").getTime();
+
+    expect(formatRemainingTime("2026-04-12T09:59:00.000Z", now, t)).toBe(
+      "quizAccess.timerValue",
+    );
+
+    expect(
+      formatQuizReviewAnswerValue(
+        { type: "true_false", availableOptions: null } as never,
+        false,
+        t,
+      ),
+    ).toBe("questions.answers.false");
+    expect(
+      formatQuizReviewAnswerValue(
+        { type: "true_false", availableOptions: null } as never,
+        null,
+        t,
+      ),
+    ).toBe("quizAccess.notAnswered");
+    expect(
+      formatQuizReviewAnswerValue(
+        {
+          type: "multiple_choice",
+          availableOptions: [{ key: "a", text: "A" }],
+        } as never,
+        [],
+        t,
+      ),
+    ).toBe("quizAccess.notAnswered");
+    expect(
+      formatQuizReviewAnswerValue(
+        {
+          type: "multiple_choice",
+          availableOptions: [{ key: "a", text: "A" }],
+        } as never,
+        ["a", 2],
+        t,
+      ),
+    ).toBe("A");
+    expect(
+      formatQuizReviewAnswerValue(
+        { type: "parametric", availableOptions: null } as never,
+        "  x+1  ",
+        t,
+      ),
+    ).toBe("x+1");
+    expect(
+      formatQuizReviewAnswerValue(
+        { type: "parametric", availableOptions: null } as never,
+        "   ",
+        t,
+      ),
+    ).toBe("quizAccess.notAnswered");
+    expect(
+      formatQuizReviewAnswerValue(
+        { type: "unknown", availableOptions: null } as never,
+        "value",
+        t,
+      ),
+    ).toBe("quizAccess.notAnswered");
+  });
 });

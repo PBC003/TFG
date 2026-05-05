@@ -24,3 +24,6 @@ postman/
 *.postman_environment.json
 *.postman_globals.json
 *.postman_test_run.json
+
+# Private bootstrap content
+app/backend/private/

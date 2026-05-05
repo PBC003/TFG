@@ -21,6 +21,7 @@ type QuizAttemptQuestionCardProps = {
   value: QuizAnswerValue;
   disabled: boolean;
   onChange: (nextValue: QuizAnswerValue) => void;
+  parametricValidationMessage?: string | null;
 };
 
 export function QuizAttemptQuestionCard({
@@ -29,6 +30,7 @@ export function QuizAttemptQuestionCard({
   value,
   disabled,
   onChange,
+  parametricValidationMessage,
 }: QuizAttemptQuestionCardProps) {
   const { t } = useTranslation();
 
@@ -63,6 +65,7 @@ export function QuizAttemptQuestionCard({
               value={value}
               disabled={disabled}
               onChange={onChange}
+              parametricValidationMessage={parametricValidationMessage}
             />
           </Stack>
         </Stack>

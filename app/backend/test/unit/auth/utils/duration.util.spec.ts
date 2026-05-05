@@ -30,5 +30,32 @@ describe('duration.util', () => {
         '2026-03-24T10:15:00.000Z',
       );
     });
+
+    it('uses the current date when no base date is provided', () => {
+      const RealDate = Date;
+      const fixedNow = new RealDate('2026-03-24T10:00:00.000Z');
+
+      class MockDate extends RealDate {
+        constructor(...args: ConstructorParameters<DateConstructor>) {
+          if (args.length === 0) {
+            super(fixedNow.toISOString());
+            return;
+          }
+
+          super(...args);
+        }
+
+        static now() {
+          return fixedNow.getTime();
+        }
+      }
+
+      // @ts-expect-error test-only replacement
+      global.Date = MockDate;
+      expect(addDurationToDate('1h').toISOString()).toBe(
+        '2026-03-24T11:00:00.000Z',
+      );
+      global.Date = RealDate;
+    });
   });
 });

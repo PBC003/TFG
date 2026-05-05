@@ -51,4 +51,24 @@ describe('grade-multiple-choice.util', () => {
     expect(unanswered.submittedValue).toEqual([]);
     expect(unanswered.answer.answeredAt).toBeNull();
   });
+
+  it('falls back to explanation and handles empty correct answers in partial mode', () => {
+    const result = gradeMultipleChoiceQuestion(
+      {
+        ...multipleChoiceSnapshot,
+        explanation: 'fallback explanation',
+        questionConfig: {
+          ...multipleChoiceSnapshot.questionConfig,
+          options: [{ key: 'z', text: 'Z' }],
+          correctOptionKeys: [],
+          gradingMode: 'partial_credit',
+        },
+      } as never,
+      ['z'],
+    );
+
+    expect(result.isCorrect).toBe(false);
+    expect(result.earnedPoints).toBe(0);
+    expect(result.feedback).toBe('fallback explanation');
+  });
 });
