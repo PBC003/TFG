@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LANGUAGE_STORAGE_KEY } from "../../../src/constants/app";
+import { en } from "../../../src/i18n/resources/en";
+import { es } from "../../../src/i18n/resources/es";
 
 describe("i18n index", () => {
   beforeEach(() => {
@@ -86,5 +88,27 @@ describe("i18n index", () => {
     triggerLanguageChanged("en");
 
     expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe("en");
+  });
+
+  it("contains the quiz access and groups import keys used by visible screens", () => {
+    expect(es.quizAccess.parametricAnswerValidation.unsupported_identifier).toBe(
+      "Solo se admiten pi, π y sqrt en respuestas paramétricas.",
+    );
+    expect(es.quizAccess.catalog.itemsExhausted).toBe(
+      "No quedan intentos disponibles para este cuestionario.",
+    );
+    expect(es.groups.import.title).toBe("Importar estudiantes");
+    expect(es.groups.import.rawTextLabel).toBe("CSV o texto plano");
+    expect(es.groups.import.helper).toContain("identificadores UO");
+    expect(es.groups.import.uploadAction).toBe("Subir archivo");
+    expect(es.groups.import.importAction).toBe("Importar estudiantes");
+
+    expect(en.quizAccess.parametricAnswerValidation.unsupported_identifier).toBe(
+      "Only pi, π and sqrt are supported in parametric answers.",
+    );
+    expect(en.quizAccess.catalog.itemsExhausted).toBe(
+      "There are no attempts remaining for this quiz.",
+    );
+    expect(en.groups.import.title).toBe("Import students");
   });
 });

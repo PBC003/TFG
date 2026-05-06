@@ -18,11 +18,6 @@ function buildNavItems(
       to: ROUTES.about,
       desktopPlacement: isAuthenticated ? "overflow" : "visible",
     },
-    {
-      label: t("nav.quizAccess"),
-      to: ROUTES.quizAccess,
-      desktopPlacement: "visible",
-    },
   ];
 
   if (!isAuthenticated) {
@@ -38,6 +33,12 @@ function buildNavItems(
     });
     return items;
   }
+
+  items.push({
+    label: t("nav.quizAccess"),
+    to: ROUTES.quizAccess,
+    desktopPlacement: "visible",
+  });
 
   items.push({
     label: t("nav.profile"),

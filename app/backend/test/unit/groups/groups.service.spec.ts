@@ -298,7 +298,7 @@ describe('QuizAnalyticsService', () => {
       id: 7,
       role: 'TEACHER',
     } as never);
-    expect(csv).toContain('quizId;quizTitle;participantName');
+    expect(csv).toContain('quizId;quizTitle;participantID;participantName');
     expect(csv).toContain('Pregunta 1');
     expect(csv).toContain('Ada Lovelace');
 

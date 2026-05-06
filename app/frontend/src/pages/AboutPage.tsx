@@ -14,9 +14,17 @@ import {
 import { Link as RouterLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ROUTES } from "../constants/routes";
+import { useAuth } from "../hooks/useAuth";
 
 export default function AboutPage() {
   const { t } = useTranslation();
+  const auth = useAuth();
+  const primaryActionRoute = auth.isAuthenticated
+    ? ROUTES.quizAccess
+    : ROUTES.login;
+  const primaryActionLabel = auth.isAuthenticated
+    ? t("nav.quizAccess")
+    : t("home.ctaLogin");
 
   const cards = [
     {
@@ -43,17 +51,21 @@ export default function AboutPage() {
           <Typography component="h1" variant="h3" fontWeight={800}>
             {t("about.hero.title")}
           </Typography>
-          <Typography color="text.secondary" variant="body1">
+          <Typography
+            color="text.secondary"
+            variant="body1"
+            sx={{ textAlign: "justify" }}
+          >
             {t("about.hero.description")}
           </Typography>
           <Box>
             <Button
               component={RouterLink}
-              to={ROUTES.quizAccess}
+              to={primaryActionRoute}
               variant="contained"
               endIcon={<ArrowOutwardRoundedIcon />}
             >
-              {t("nav.quizAccess")}
+              {primaryActionLabel}
             </Button>
           </Box>
         </Stack>
@@ -86,7 +98,11 @@ export default function AboutPage() {
                     <Icon color="inherit" />
                   </Box>
                   <Typography variant="h6">{card.title}</Typography>
-                  <Typography color="text.secondary" variant="body2">
+                  <Typography
+                    color="text.secondary"
+                    variant="body2"
+                    sx={{ textAlign: "justify" }}
+                  >
                     {card.description}
                   </Typography>
                 </Stack>
@@ -101,10 +117,18 @@ export default function AboutPage() {
           <Typography variant="h6" fontWeight={700}>
             {t("about.tech.title")}
           </Typography>
-          <Typography color="text.secondary" variant="body2">
+          <Typography
+            color="text.secondary"
+            variant="body2"
+            sx={{ textAlign: "justify" }}
+          >
             {t("about.tech.p1")}
           </Typography>
-          <Typography color="text.secondary" variant="body2">
+          <Typography
+            color="text.secondary"
+            variant="body2"
+            sx={{ textAlign: "justify" }}
+          >
             {t("about.tech.p2")}
           </Typography>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
@@ -113,10 +137,10 @@ export default function AboutPage() {
             </Button>
             <Button
               component={RouterLink}
-              to={ROUTES.quizAccess}
+              to={primaryActionRoute}
               variant="contained"
             >
-              {t("nav.quizAccess")}
+              {primaryActionLabel}
             </Button>
           </Stack>
         </Stack>

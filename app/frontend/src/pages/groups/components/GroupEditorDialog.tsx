@@ -1,4 +1,5 @@
 import {
+  Alert,
   Autocomplete,
   Button,
   Dialog,
@@ -18,6 +19,10 @@ type GroupEditorDialogProps = {
   duplicateNameExists: boolean;
   editingGroup: GroupItem | null;
   editorOpen: boolean;
+  feedback: {
+    severity: "error" | "success" | "info";
+    message: string;
+  } | null;
   handleImportFile: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   importFileKey: number;
   importMembersFromRawText: (rawText: string) => Promise<void>;
@@ -27,6 +32,7 @@ type GroupEditorDialogProps = {
   normalizedName: string;
   onClose: () => void;
   onDescriptionChange: (value: string) => void;
+  onFeedbackClose: () => void;
   onImportRawTextChange: (value: string) => void;
   onNameChange: (value: string) => void;
   onSelectedStudentsChange: (value: GroupStudentOption[]) => void;
@@ -42,6 +48,7 @@ export function GroupEditorDialog({
   duplicateNameExists,
   editingGroup,
   editorOpen,
+  feedback,
   handleImportFile,
   importFileKey,
   importMembersFromRawText,
@@ -51,6 +58,7 @@ export function GroupEditorDialog({
   normalizedName,
   onClose,
   onDescriptionChange,
+  onFeedbackClose,
   onImportRawTextChange,
   onNameChange,
   onSelectedStudentsChange,
@@ -69,6 +77,11 @@ export function GroupEditorDialog({
       </DialogTitle>
       <DialogContent dividers>
         <Stack spacing={2.5}>
+          {feedback ? (
+            <Alert severity={feedback.severity} onClose={onFeedbackClose}>
+              {feedback.message}
+            </Alert>
+          ) : null}
           <TextField
             label={t("groups.fields.name")}
             value={name}

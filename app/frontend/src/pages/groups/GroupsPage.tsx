@@ -14,6 +14,7 @@ export default function GroupsPage() {
     duplicateNameExists,
     editorOpen,
     editingGroup,
+    editorFeedback,
     feedback,
     filteredGroups,
     handleImportFile,
@@ -34,6 +35,7 @@ export default function GroupsPage() {
     search,
     selectedStudents,
     setDescription,
+    setEditorFeedback,
     setFeedback,
     setImportRawText,
     setName,
@@ -96,6 +98,7 @@ export default function GroupsPage() {
         description={description}
         duplicateNameExists={duplicateNameExists}
         editingGroup={editingGroup}
+        feedback={editorFeedback}
         editorOpen={editorOpen}
         handleImportFile={handleImportFile}
         importFileKey={importFileKey}
@@ -106,6 +109,7 @@ export default function GroupsPage() {
         normalizedName={normalizedName}
         onClose={closeEditor}
         onDescriptionChange={setDescription}
+        onFeedbackClose={() => setEditorFeedback(null)}
         onImportRawTextChange={setImportRawText}
         onNameChange={setName}
         onSelectedStudentsChange={setSelectedStudents}

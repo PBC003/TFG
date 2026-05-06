@@ -69,6 +69,7 @@ export function HomeHero({
               variant="h6"
               sx={(theme) => ({
                 color: alpha(theme.palette.common.white, 0.78),
+                textAlign: isAuthenticated ? "left" : "justify",
               })}
             >
               {isAuthenticated
@@ -135,6 +136,7 @@ export function HomeHero({
             variant="body2"
             sx={(theme) => ({
               color: alpha(theme.palette.common.white, 0.64),
+              textAlign: isAuthenticated ? "left" : "justify",
             })}
           >
             {isAuthenticated

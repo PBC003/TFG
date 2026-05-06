@@ -1,4 +1,4 @@
-import { Paper, Stack, Typography } from "@mui/material";
+import { Box, Paper, Stack, Typography } from "@mui/material";
 
 type SummaryItem = {
   label: string;
@@ -7,11 +7,15 @@ type SummaryItem = {
 
 export function QuizAnalyticsSummaryGrid({ items }: { items: SummaryItem[] }) {
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         display: "grid",
-        gap: "16px",
-        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+        gap: 2,
+        gridTemplateColumns: {
+          xs: "1fr",
+          sm: "repeat(2, minmax(0, 1fr))",
+          md: "repeat(3, minmax(0, 1fr))",
+        },
       }}
     >
       {items.map((item) => (
@@ -30,6 +34,6 @@ export function QuizAnalyticsSummaryGrid({ items }: { items: SummaryItem[] }) {
           </Stack>
         </Paper>
       ))}
-    </div>
+    </Box>
   );
 }

@@ -147,7 +147,7 @@ export function HomeAuthenticatedSection() {
                   </Box>
                   <Stack spacing={0.75} sx={{ flex: 1 }}>
                     <Typography variant="h6">{action.title}</Typography>
-                    <Typography color="text.secondary">
+                    <Typography color="text.secondary" sx={{ textAlign: "justify" }}>
                       {action.description}
                     </Typography>
                   </Stack>

@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   Chip,
   Paper,
@@ -38,6 +39,8 @@ export function SelectedQuizCard({
   onResetLookup,
 }: SelectedQuizCardProps) {
   const { t } = useTranslation();
+  const attemptsRemaining = quiz.attemptsRemaining ?? quiz.attemptsAllowed;
+  const attemptsExhausted = attemptsRemaining <= 0;
 
   return (
     <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 3 }}>
@@ -108,7 +111,11 @@ export function SelectedQuizCard({
           </Typography>
         </Stack>
 
-        {quiz.requiresAccessCode ? (
+        {attemptsExhausted ? (
+          <Alert severity="info">{t("quizAccess.catalog.itemsExhausted")}</Alert>
+        ) : null}
+
+        {quiz.requiresAccessCode && !attemptsExhausted ? (
           <TextField
             label={t("quizAccess.fields.accessCode")}
             value={accessCode}
@@ -123,7 +130,7 @@ export function SelectedQuizCard({
           <Button
             variant="contained"
             onClick={onStart}
-            disabled={startDisabled || loading}
+            disabled={startDisabled || loading || attemptsExhausted}
           >
             {t("quizAccess.actions.startSelectedQuiz")}
           </Button>

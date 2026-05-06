@@ -55,7 +55,7 @@ export function HomePublicSection() {
                 </Box>
 
                 <Typography variant="h6">{t(item.titleKey)}</Typography>
-                <Typography color="text.secondary">
+                <Typography color="text.secondary" sx={{ textAlign: "justify" }}>
                   {t(item.bodyKey)}
                 </Typography>
               </Stack>

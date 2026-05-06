@@ -27,6 +27,8 @@ export function useGroupsPage() {
   const [studentLoading, setStudentLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<GroupsPageFeedback | null>(null);
+  const [editorFeedback, setEditorFeedback] =
+    useState<GroupsPageFeedback | null>(null);
 
   const refreshGroups = useCallback(
     async (successMessage?: string) => {
@@ -114,9 +116,9 @@ export function useGroupsPage() {
       return response.result;
     },
     mergeSelectedStudents,
-    onFeedback: setFeedback,
+    onFeedback: setEditorFeedback,
     onReadError: (message) => {
-      setFeedback({ severity: "error", message });
+      setEditorFeedback({ severity: "error", message });
     },
     t,
   });
@@ -125,17 +127,20 @@ export function useGroupsPage() {
     editor.closeEditor(submitting || groupImport.importingMembers);
     if (!(submitting || groupImport.importingMembers)) {
       groupImport.resetImportedContent();
+      setEditorFeedback(null);
     }
   }, [editor, groupImport, submitting]);
 
   const openCreate = useCallback(() => {
     groupImport.resetImportedContent();
+    setEditorFeedback(null);
     editor.openCreate();
   }, [editor, groupImport]);
 
   const openEdit = useCallback(
     (group: GroupItem) => {
       groupImport.resetImportedContent();
+      setEditorFeedback(null);
       editor.openEdit(group);
     },
     [editor, groupImport],
@@ -149,12 +154,15 @@ export function useGroupsPage() {
     };
 
     if (!payload.name) {
-      setFeedback({ severity: "info", message: t("groups.validation.name") });
+      setEditorFeedback({
+        severity: "info",
+        message: t("groups.validation.name"),
+      });
       return;
     }
 
     if (payload.name.length < 3) {
-      setFeedback({
+      setEditorFeedback({
         severity: "info",
         message: t("groups.validation.nameLength"),
       });
@@ -162,7 +170,7 @@ export function useGroupsPage() {
     }
 
     if (editor.duplicateNameExists) {
-      setFeedback({
+      setEditorFeedback({
         severity: "info",
         message: t("errors.codes.group.name_already_exists"),
       });
@@ -200,8 +208,12 @@ export function useGroupsPage() {
       editor.setEditorOpen(false);
       editor.resetEditor();
       groupImport.resetImportedContent();
+      setEditorFeedback(null);
     } catch (error) {
-      setFeedback({ severity: "error", message: getErrorMessage(t, error) });
+      setEditorFeedback({
+        severity: "error",
+        message: getErrorMessage(t, error),
+      });
     } finally {
       setSubmitting(false);
     }
@@ -246,6 +258,7 @@ export function useGroupsPage() {
     duplicateNameExists: editor.duplicateNameExists,
     editorOpen: editor.editorOpen,
     editingGroup: editor.editingGroup,
+    editorFeedback,
     feedback,
     filteredGroups: filters.filteredGroups,
     handleImportFile: groupImport.handleImportFile,
@@ -266,6 +279,7 @@ export function useGroupsPage() {
     search: filters.search,
     selectedStudents: editor.selectedStudents,
     setDescription: editor.setDescription,
+    setEditorFeedback,
     setFeedback,
     setImportRawText: groupImport.setImportRawText,
     setName: editor.setName,

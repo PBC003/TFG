@@ -465,6 +465,14 @@ export const es = {
     parametricAnswerLabel: 'Respuesta numérica o expresión equivalente',
     parametricAnswerHelper:
       'Se acepta un error absoluto de hasta ±{{tolerance}}. Puedes escribir valores como 1/2, pi/4 o 0.7854.',
+    parametricAnswerValidation: {
+      summary: 'Revisa las respuestas paramétricas marcadas antes de enviar.',
+      too_long: 'La respuesta es demasiado larga.',
+      invalid_characters: 'Usa solo números, operadores, paréntesis, decimales, pi, sqrt y espacios.',
+      unsupported_identifier: 'Solo se admiten pi, π y sqrt en respuestas paramétricas.',
+      unbalanced_parentheses: 'Revisa los paréntesis de la expresión.',
+      invalid_expression: 'La expresión no se puede evaluar como una respuesta numérica válida.',
+    },
     catalog: {
       title: 'Cuestionarios publicados disponibles',
       subtitleWithParticipant: 'Se muestran tus intentos restantes estimados para tu cuenta en cada cuestionario.',
@@ -486,6 +494,7 @@ export const es = {
       startAt: 'Inicio: {{value}}',
       endAt: 'Fin: {{value}}',
       remainingAttemptsText: 'Intentos restantes: {{value}}',
+      itemsExhausted: 'No quedan intentos disponibles para este cuestionario.',
       startButton: 'Acceder / intentar',
       paginationLabel: 'Cuestionarios por página',
     },
@@ -593,6 +602,21 @@ export const es = {
     empty: 'No hay grupos que cumplan el filtro actual.',
     confirmArchive: '¿Seguro que quieres archivar el grupo "{{title}}"?',
     membersOverflow: '+{{count}} más',
+    import: {
+      title: 'Importar estudiantes',
+      rawTextLabel: 'CSV o texto plano',
+      helper: 'Pega correos institucionales o identificadores UO, separados por comas, punto y coma, espacios o saltos de línea.',
+      uploadAction: 'Subir archivo',
+      importAction: 'Importar estudiantes',
+      success: '{{matchedCount}} estudiantes importados correctamente.',
+      partialSuccess:
+        'Se importaron {{matchedCount}} estudiantes. {{missingCount}} identificadores no se encontraron.',
+      noMatches: 'No se encontró ningún estudiante entre los {{importedCount}} identificadores importados.',
+      fileReadError: 'No se pudo leer el archivo seleccionado.',
+      validation: {
+        required: 'Pega o sube al menos un correo institucional o identificador UO.',
+      },
+    },
     validation: {
       name: 'Debes indicar un nombre para el grupo.',
       nameLength: 'El nombre del grupo debe tener al menos 3 caracteres.',
@@ -651,6 +675,8 @@ export const es = {
       },
       group: {
         name_already_exists: 'Ya existe un grupo con ese nombre.',
+        import_requires_identifiers:
+          'Se necesita una lista CSV u hoja de cálculo con al menos un correo institucional o identificador UO.',
       },
       quiz: {
         access_code_already_exists: 'Ya existe otro cuestionario con ese código de acceso.',

@@ -200,8 +200,8 @@ export class QuizAnalyticsService {
     const headers: CsvCell[] = [
       'quizId',
       'quizTitle',
+      'participantID',
       'participantName',
-      'participantDisplayName',
       'attemptNumber',
       'status',
       'startedAt',

@@ -262,6 +262,9 @@ export const en = {
         'You can write plain text and mathematical expressions with LaTeX in this field.',
       perFieldPreviewHelper:
         'Each LaTeX-capable field has its own preview button so you can inspect a formula without blocking the rest of the form.',
+      previewField: 'Preview',
+      editField: 'Back to editing',
+      previewEmpty: 'There is no content to preview yet.',
       feedbackRuleHelper:
         'This feedback acts as the general fallback. If a selected answer has specific feedback, that text should take priority.',
       tagPlaceholder: 'Example: derivatives',
@@ -462,6 +465,14 @@ export const en = {
     parametricAnswerLabel: 'Numeric answer or equivalent expression',
     parametricAnswerHelper:
       'An absolute error up to ±{{tolerance}} is accepted. You can write values such as 1/2, pi/4 or 0.7854.',
+    parametricAnswerValidation: {
+      summary: 'Review the highlighted parametric answers before submitting.',
+      too_long: 'The answer is too long.',
+      invalid_characters: 'Use only numbers, operators, parentheses, decimals, pi, sqrt and spaces.',
+      unsupported_identifier: 'Only pi, π and sqrt are supported in parametric answers.',
+      unbalanced_parentheses: 'Review the parentheses in the expression.',
+      invalid_expression: 'The expression cannot be evaluated as a valid numeric answer.',
+    },
     catalog: {
       title: 'Available published quizzes',
       subtitleWithParticipant: 'Your estimated remaining attempts for your account are shown for each quiz.',
@@ -483,6 +494,7 @@ export const en = {
       startAt: 'Start: {{value}}',
       endAt: 'End: {{value}}',
       remainingAttemptsText: 'Remaining attempts: {{value}}',
+      itemsExhausted: 'There are no attempts remaining for this quiz.',
       startButton: 'Access / attempt',
       paginationLabel: 'Quizzes per page',
     },
@@ -590,6 +602,21 @@ export const en = {
     empty: 'No groups match the current filter.',
     confirmArchive: 'Are you sure you want to archive the group "{{title}}"?',
     membersOverflow: '+{{count}} more',
+    import: {
+      title: 'Import students',
+      rawTextLabel: 'CSV or plain text',
+      helper: 'Paste institutional emails or UO identifiers, separated by commas, semicolons, spaces or line breaks.',
+      uploadAction: 'Upload file',
+      importAction: 'Import students',
+      success: '{{matchedCount}} students imported successfully.',
+      partialSuccess:
+        '{{matchedCount}} students were imported. {{missingCount}} identifiers were not found.',
+      noMatches: 'No students were found among the {{importedCount}} imported identifiers.',
+      fileReadError: 'The selected file could not be read.',
+      validation: {
+        required: 'Paste or upload at least one institutional email or UO identifier.',
+      },
+    },
     validation: {
       name: 'You must provide a group name.',
       nameLength: 'The group name must contain at least 3 characters.',
@@ -648,6 +675,8 @@ export const en = {
       },
       group: {
         name_already_exists: 'A group with that name already exists.',
+        import_requires_identifiers:
+          'A CSV or spreadsheet list with at least one institutional email or UO identifier is required.',
       },
       quiz: {
         access_code_already_exists: 'Another quiz already uses that access code.',
