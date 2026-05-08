@@ -173,6 +173,7 @@ export type QuizAnalyticsSummary = {
   averageScoreOverTen: number;
   bestScoreOverTen: number;
   worstScoreOverTen: number;
+  averageCompletionMinutes: number;
 };
 
 export type QuizAnalyticsAttemptItem = {
@@ -194,6 +195,7 @@ export type QuizAnalyticsAttemptItem = {
 export type QuizAnalyticsQuestionStatsItem = {
   questionId: string;
   title: string;
+  statement: string;
   type: QuestionType;
   order: number;
   maxPoints: number;
@@ -203,6 +205,14 @@ export type QuizAnalyticsQuestionStatsItem = {
   unansweredCount: number;
   averageEarnedPoints: number;
   correctRate: number;
+  answerDistribution: QuizAnalyticsAnswerDistributionItem[];
+};
+
+export type QuizAnalyticsAnswerDistributionItem = {
+  key: string;
+  label: string;
+  count: number;
+  isCorrect: boolean | null;
 };
 
 export type QuizAnalyticsItem = {

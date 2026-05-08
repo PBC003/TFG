@@ -1,11 +1,18 @@
 import { Box, Paper, Stack, Typography } from "@mui/material";
+import { formatNumber } from "../../../../utils/number";
 
 type SummaryItem = {
   label: string;
   value: number;
 };
 
-export function QuizAnalyticsSummaryGrid({ items }: { items: SummaryItem[] }) {
+export function QuizAnalyticsSummaryGrid({
+  items,
+  language,
+}: {
+  items: SummaryItem[];
+  language: string;
+}) {
   return (
     <Box
       sx={{
@@ -22,14 +29,18 @@ export function QuizAnalyticsSummaryGrid({ items }: { items: SummaryItem[] }) {
         <Paper
           key={item.label}
           variant="outlined"
-          sx={{ p: 2.5, borderRadius: 3 }}
+          sx={{ p: 2.5, borderRadius: 2, textAlign: "center" }}
         >
-          <Stack spacing={0.75}>
-            <Typography variant="body2" color="text.secondary">
+          <Stack spacing={0.75} alignItems="center" justifyContent="center">
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              textAlign="center"
+            >
               {item.label}
             </Typography>
-            <Typography variant="h5" fontWeight={800}>
-              {item.value}
+            <Typography variant="h5" fontWeight={800} textAlign="center">
+              {formatNumber(item.value, language)}
             </Typography>
           </Stack>
         </Paper>

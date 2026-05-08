@@ -1,3 +1,4 @@
+import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import {
@@ -18,10 +19,8 @@ import {
 } from "@mui/material";
 import type { QuizAnalyticsAttemptItem } from "../../../../types/quiz";
 import { formatDateTime } from "../../../../utils/date";
-import {
-  ATTEMPTS_ROWS_PER_PAGE_OPTIONS,
-  formatRawScore,
-} from "../utils/quiz-analytics.utils";
+import { formatRawScore } from "../../../../utils/number";
+import { ATTEMPTS_ROWS_PER_PAGE_OPTIONS } from "../utils/quiz-analytics.utils";
 
 type QuizAnalyticsAttemptsCardProps = {
   loading: boolean;
@@ -33,9 +32,11 @@ type QuizAnalyticsAttemptsCardProps = {
   attemptsPage: number;
   attemptsRowsPerPage: number;
   language: string;
+  exportDisabled: boolean;
   labels: {
     title: string;
     subtitle: string;
+    exportCsv: string;
     searchPlaceholder: string;
     empty: string;
     searchEmpty: string;
@@ -53,6 +54,7 @@ type QuizAnalyticsAttemptsCardProps = {
   onPageChange: (page: number) => void;
   onRowsPerPageChange: (rowsPerPage: number) => void;
   onOpenDetail: (attemptId: string) => void;
+  onExport: () => void;
   getStatusLabel: (status: string) => string;
 };
 
@@ -66,11 +68,13 @@ export function QuizAnalyticsAttemptsCard({
   attemptsPage,
   attemptsRowsPerPage,
   language,
+  exportDisabled,
   labels,
   onSearchChange,
   onPageChange,
   onRowsPerPageChange,
   onOpenDetail,
+  onExport,
   getStatusLabel,
 }: QuizAnalyticsAttemptsCardProps) {
   return (
@@ -91,20 +95,35 @@ export function QuizAnalyticsAttemptsCard({
                 {labels.subtitle}
               </Typography>
             </Stack>
-            <TextField
-              size="small"
-              value={attemptSearch}
-              onChange={(event) => onSearchChange(event.target.value)}
-              placeholder={labels.searchPlaceholder}
-              sx={{ width: { xs: "100%", md: 320 } }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRoundedIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              }}
-            />
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1.25}
+              sx={{ width: { xs: "100%", md: "auto" } }}
+            >
+              <TextField
+                size="small"
+                value={attemptSearch}
+                onChange={(event) => onSearchChange(event.target.value)}
+                placeholder={labels.searchPlaceholder}
+                sx={{ width: { xs: "100%", md: 320 } }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchRoundedIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <Button
+                variant="contained"
+                startIcon={<DownloadRoundedIcon />}
+                onClick={onExport}
+                disabled={exportDisabled}
+                sx={{ whiteSpace: "nowrap" }}
+              >
+                {labels.exportCsv}
+              </Button>
+            </Stack>
           </Stack>
           {loading ? null : allAttemptsCount === 0 ? (
             <Box sx={{ px: 3, pb: 3 }}>
@@ -151,6 +170,7 @@ export function QuizAnalyticsAttemptsCard({
                           {formatRawScore(
                             attempt.earnedPoints,
                             attempt.maxPoints,
+                            language,
                           )}
                         </TableCell>
                         <TableCell align="right">

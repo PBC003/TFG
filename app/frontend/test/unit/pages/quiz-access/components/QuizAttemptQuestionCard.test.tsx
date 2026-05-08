@@ -51,6 +51,7 @@ describe("QuizAttemptQuestionCard", () => {
         index={1}
         value={null}
         disabled={false}
+        language="es"
         onChange={onChange}
       />,
     );

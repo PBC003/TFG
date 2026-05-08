@@ -198,6 +198,7 @@ describe('QuizAnalyticsService', () => {
           averageScoreOverTen: 2.5,
           bestScoreOverTen: 5,
           worstScoreOverTen: 0,
+          averageCompletionMinutes: 5,
         }),
         scoreDistribution: [
           { label: '0 - 4.99', minScore: 0, maxScore: 4.99, count: 1 },
@@ -386,6 +387,7 @@ describe('QuizAnalyticsService', () => {
         averageScoreOverTen: 0,
         bestScoreOverTen: 0,
         worstScoreOverTen: 0,
+        averageCompletionMinutes: 0,
       }),
     );
     expect(

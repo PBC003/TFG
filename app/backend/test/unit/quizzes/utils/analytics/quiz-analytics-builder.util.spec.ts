@@ -26,18 +26,24 @@ describe('quiz-analytics-builder.util', () => {
       {
         participantName: 'user:1',
         status: QuizAttemptStatus.SUBMITTED,
+        startedAt: new Date('2026-04-12T10:00:00.000Z'),
+        submittedAt: new Date('2026-04-12T10:05:00.000Z'),
         earnedPoints: 2,
         maxPoints: 2,
       },
       {
         participantName: 'user:2',
         status: QuizAttemptStatus.EXPIRED,
+        startedAt: new Date('2026-04-12T11:00:00.000Z'),
+        submittedAt: new Date('2026-04-12T11:10:00.000Z'),
         earnedPoints: 0,
         maxPoints: 2,
       },
       {
         participantName: 'user:2',
         status: QuizAttemptStatus.IN_PROGRESS,
+        startedAt: new Date('2026-04-12T12:00:00.000Z'),
+        submittedAt: null,
         earnedPoints: 0,
         maxPoints: 2,
       },
@@ -54,6 +60,7 @@ describe('quiz-analytics-builder.util', () => {
         averageScoreOverTen: 5,
         bestScoreOverTen: 10,
         worstScoreOverTen: 0,
+        averageCompletionMinutes: 7.5,
       }),
     );
 

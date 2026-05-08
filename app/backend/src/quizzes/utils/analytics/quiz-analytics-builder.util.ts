@@ -1,11 +1,23 @@
 import { QuizAttemptStatus } from '../../enums/quiz-attempt-status.enum';
 import type {
+  MultipleChoiceQuestionConfig,
+  QuestionOption,
+  SingleChoiceQuestionConfig,
+  TrueFalseQuestionConfig,
+} from '../../../questions/types/question-type-config.type';
+import { QuestionType } from '../../../questions/enums/question-type.enum';
+import type {
+  QuizAnalyticsAnswerDistributionItem,
   QuizAnalyticsAttemptItem,
   QuizAnalyticsItem,
   QuizAnalyticsQuestionStatsItem,
   QuizAnalyticsScoreBucket,
 } from '../../types/quiz.types';
-import type { QuizAttemptDocument } from '../../schemas/quiz-attempt.schema';
+import type {
+  QuizAttemptAnswer,
+  QuizAttemptDocument,
+  QuizAttemptQuestionSnapshot,
+} from '../../schemas/quiz-attempt.schema';
 import {
   computeScoreOverTen,
   isEmptyAnswer,
@@ -26,11 +38,32 @@ export function buildAnalyticsSummary(
   const scores = completedAttempts.map((attempt) =>
     computeScoreOverTen(attempt.earnedPoints, attempt.maxPoints),
   );
+  const completionMinutes = completedAttempts
+    .map((attempt) => {
+      if (!attempt.submittedAt) {
+        return null;
+      }
+
+      return (
+        (attempt.submittedAt.getTime() - attempt.startedAt.getTime()) / 60_000
+      );
+    })
+    .filter(
+      (duration): duration is number =>
+        duration !== null && Number.isFinite(duration) && duration >= 0,
+    );
 
   const averageScoreOverTen =
     scores.length > 0
       ? roundToTwo(
           scores.reduce((total, score) => total + score, 0) / scores.length,
+        )
+      : 0;
+  const averageCompletionMinutes =
+    completionMinutes.length > 0
+      ? roundToTwo(
+          completionMinutes.reduce((total, minutes) => total + minutes, 0) /
+            completionMinutes.length,
         )
       : 0;
 
@@ -52,6 +85,7 @@ export function buildAnalyticsSummary(
     averageScoreOverTen,
     bestScoreOverTen: scores.length > 0 ? Math.max(...scores) : 0,
     worstScoreOverTen: scores.length > 0 ? Math.min(...scores) : 0,
+    averageCompletionMinutes,
   };
 }
 
@@ -85,7 +119,13 @@ export function buildAnalyticsQuestionStats(
 ): QuizAnalyticsQuestionStatsItem[] {
   const statsByQuestionId = new Map<
     string,
-    QuizAnalyticsQuestionStatsItem & { totalEarnedPoints: number }
+    QuizAnalyticsQuestionStatsItem & {
+      answerCounts: Map<
+        string,
+        QuizAnalyticsAnswerDistributionItem & { firstSeenIndex: number }
+      >;
+      totalEarnedPoints: number;
+    }
   >();
 
   for (const attempt of attempts) {
@@ -99,6 +139,7 @@ export function buildAnalyticsQuestionStats(
       const stat = statsByQuestionId.get(question.questionId) ?? {
         questionId: question.questionId,
         title: question.title,
+        statement: question.statement,
         type: question.type,
         order: question.order,
         maxPoints: question.points,
@@ -108,6 +149,8 @@ export function buildAnalyticsQuestionStats(
         unansweredCount: 0,
         averageEarnedPoints: 0,
         correctRate: 0,
+        answerDistribution: [],
+        answerCounts: initializeAnswerCounts(question),
         totalEarnedPoints: 0,
       };
       const answer = answerMap.get(question.questionId);
@@ -125,6 +168,7 @@ export function buildAnalyticsQuestionStats(
       }
 
       stat.totalEarnedPoints += answer?.earnedPoints ?? 0;
+      recordAnswerDistribution(stat.answerCounts, question, answer);
       statsByQuestionId.set(question.questionId, stat);
     }
   }
@@ -133,6 +177,7 @@ export function buildAnalyticsQuestionStats(
     .map((stat) => ({
       questionId: stat.questionId,
       title: stat.title,
+      statement: stat.statement,
       type: stat.type,
       order: stat.order,
       maxPoints: stat.maxPoints,
@@ -148,8 +193,134 @@ export function buildAnalyticsQuestionStats(
         stat.attempts > 0
           ? roundToTwo((stat.correctCount / stat.attempts) * 100)
           : 0,
+      answerDistribution: [...stat.answerCounts.values()]
+        .sort((left, right) => left.firstSeenIndex - right.firstSeenIndex)
+        .map(({ firstSeenIndex: _firstSeenIndex, ...item }) => item),
     }))
     .sort((left, right) => left.order - right.order);
+}
+
+function initializeAnswerCounts(
+  question: QuizAttemptQuestionSnapshot,
+): Map<string, QuizAnalyticsAnswerDistributionItem & { firstSeenIndex: number }> {
+  const counts = new Map<
+    string,
+    QuizAnalyticsAnswerDistributionItem & { firstSeenIndex: number }
+  >();
+
+  const addOption = (
+    key: string,
+    label: string,
+    isCorrect: boolean | null,
+  ) => {
+    counts.set(key, {
+      key,
+      label,
+      count: 0,
+      isCorrect,
+      firstSeenIndex: counts.size,
+    });
+  };
+
+  if (question.type === QuestionType.TRUE_FALSE) {
+    const config = question.questionConfig as TrueFalseQuestionConfig;
+    addOption('true', 'true', config.correctAnswer === true);
+    addOption('false', 'false', config.correctAnswer === false);
+  }
+
+  if (question.type === QuestionType.SINGLE_CHOICE) {
+    const config = question.questionConfig as SingleChoiceQuestionConfig;
+    for (const option of config.options) {
+      addOption(option.key, option.text, option.key === config.correctOptionKey);
+    }
+  }
+
+  if (question.type === QuestionType.MULTIPLE_CHOICE) {
+    const config = question.questionConfig as MultipleChoiceQuestionConfig;
+    const correctKeys = new Set(config.correctOptionKeys);
+    for (const option of config.options) {
+      addOption(option.key, option.text, correctKeys.has(option.key));
+    }
+  }
+
+  return counts;
+}
+
+function recordAnswerDistribution(
+  counts: Map<
+    string,
+    QuizAnalyticsAnswerDistributionItem & { firstSeenIndex: number }
+  >,
+  question: QuizAttemptQuestionSnapshot,
+  answer: QuizAttemptAnswer | undefined,
+) {
+  if (!answer || isEmptyAnswer(answer.value)) {
+    incrementAnswerCount(counts, '__unanswered__', '__unanswered__', null);
+    return;
+  }
+
+  if (question.type === QuestionType.MULTIPLE_CHOICE) {
+    const selectedKeys = Array.isArray(answer.value) ? answer.value : [];
+    for (const selectedKey of selectedKeys) {
+      const option = findQuestionOption(question, selectedKey);
+      incrementAnswerCount(
+        counts,
+        selectedKey,
+        option?.text ?? selectedKey,
+        answer.isCorrect,
+      );
+    }
+    return;
+  }
+
+  const key = serializeAnswerKey(answer.value);
+  const option = findQuestionOption(question, key);
+  incrementAnswerCount(counts, key, option?.text ?? key, answer.isCorrect);
+}
+
+function incrementAnswerCount(
+  counts: Map<
+    string,
+    QuizAnalyticsAnswerDistributionItem & { firstSeenIndex: number }
+  >,
+  key: string,
+  label: string,
+  isCorrect: boolean | null,
+) {
+  const current = counts.get(key);
+
+  if (current) {
+    current.count += 1;
+    return;
+  }
+
+  counts.set(key, {
+    key,
+    label,
+    count: 1,
+    isCorrect,
+    firstSeenIndex: counts.size,
+  });
+}
+
+function findQuestionOption(
+  question: QuizAttemptQuestionSnapshot,
+  key: string,
+): QuestionOption | undefined {
+  const config = question.questionConfig as { options?: QuestionOption[] };
+  return config.options?.find((option) => option.key === key);
+}
+
+function serializeAnswerKey(value: unknown): string {
+  if (typeof value === 'boolean') {
+    return String(value);
+  }
+
+  if (typeof value === 'string') {
+    return value.trim() || '__empty__';
+  }
+
+  return JSON.stringify(value);
 }
 
 export function toAnalyticsAttemptItem(

@@ -4,7 +4,6 @@ import {
   DEFAULT_ATTEMPTS_ROWS_PER_PAGE,
   downloadCsvFile,
   filterAttemptsByParticipant,
-  formatRawScore,
   normalizeSearchText,
   paginateItems,
 } from "../../../../../../src/pages/quizzes/analytics/utils/quiz-analytics.utils";
@@ -51,7 +50,6 @@ describe("quiz-analytics.utils", () => {
   it("exports constants and formats helper values", () => {
     expect(ATTEMPTS_ROWS_PER_PAGE_OPTIONS).toEqual([5, 10, 25]);
     expect(DEFAULT_ATTEMPTS_ROWS_PER_PAGE).toBe(5);
-    expect(formatRawScore(3, 5)).toBe("3 / 5");
     expect(normalizeSearchText("  ÁlVARO  ")).toBe("alvaro");
   });
 

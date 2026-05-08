@@ -64,8 +64,8 @@ export default function QuizAnalyticsPage() {
               value: analytics.summary.bestScoreOverTen,
             },
             {
-              label: t("quizAnalytics.summary.worstScore"),
-              value: analytics.summary.worstScoreOverTen,
+              label: t("quizAnalytics.summary.averageCompletionMinutes"),
+              value: analytics.summary.averageCompletionMinutes,
             },
             {
               label: t("quizAnalytics.summary.submittedAttempts"),
@@ -82,11 +82,10 @@ export default function QuizAnalyticsPage() {
         <QuizAnalyticsHeaderCard
           title={analytics?.title ?? t("quizAnalytics.title")}
           description={analytics?.description ?? t("quizAnalytics.subtitle")}
-          exportDisabled={!analytics || exporting}
           onBack={() => navigate("/quizzes")}
-          onExport={() => void handleExport()}
+          onExportStats={() => window.print()}
           backLabel={t("quizAnalytics.backToQuizzes")}
-          exportLabel={t("quizAnalytics.exportCsv")}
+          exportStatsLabel={t("quizAnalytics.exportStats")}
         />
 
         {feedback ? (
@@ -107,53 +106,70 @@ export default function QuizAnalyticsPage() {
 
         {!loading && analytics ? (
           <>
-            <QuizAnalyticsSummaryGrid items={summaryItems} />
+            <QuizAnalyticsSummaryGrid
+              items={summaryItems}
+              language={i18n.language}
+            />
 
             <QuizAnalyticsDistributionCard
               title={t("quizAnalytics.distributionTitle")}
               labels={distributionLabels}
+              outcomeLabels={{
+                passed: t("quizAnalytics.distributionOutcomes.passed"),
+                failed: t("quizAnalytics.distributionOutcomes.failed"),
+                completed: t("quizAnalytics.distributionOutcomes.completed"),
+              }}
               analytics={analytics}
+              language={i18n.language}
             />
 
-            <QuizAnalyticsAttemptsCard
-              loading={loading}
-              detailLoading={detailLoading}
-              allAttemptsCount={analytics.attempts.length}
-              filteredAttemptsCount={filteredAttempts.length}
-              attempts={paginatedAttempts}
-              attemptSearch={attemptSearch}
-              attemptsPage={attemptsPage}
-              attemptsRowsPerPage={attemptsRowsPerPage}
-              language={i18n.language}
-              labels={{
-                title: t("quizAnalytics.attemptsTitle"),
-                subtitle: t("quizAnalytics.attemptsSubtitle"),
-                searchPlaceholder: t("quizAnalytics.searchPlaceholder"),
-                empty: t("quizAnalytics.empty"),
-                searchEmpty: t("quizAnalytics.searchEmpty"),
-                participant: t("quizAnalytics.table.participant"),
-                attempt: t("quizAnalytics.table.attempt"),
-                status: t("quizAnalytics.table.status"),
-                startedAt: t("quizAnalytics.table.startedAt"),
-                submittedAt: t("quizAnalytics.table.submittedAt"),
-                score: t("quizAnalytics.table.score"),
-                viewDetail: t("quizAnalytics.viewDetail"),
-                rowsPerPage: t("quizAnalytics.pagination.rowsPerPage"),
-                actions: t("common.actions"),
-              }}
-              onSearchChange={setAttemptSearch}
-              onPageChange={setAttemptsPage}
-              onRowsPerPageChange={(value) => {
-                setAttemptsRowsPerPage(value);
-                setAttemptsPage(0);
-              }}
-              onOpenDetail={(attemptId) => void handleOpenDetail(attemptId)}
-              getStatusLabel={(status) => t(`quizAnalytics.status.${status}`)}
-            />
+            <Box className="analytics-print-hidden">
+              <QuizAnalyticsAttemptsCard
+                loading={loading}
+                detailLoading={detailLoading}
+                allAttemptsCount={analytics.attempts.length}
+                filteredAttemptsCount={filteredAttempts.length}
+                attempts={paginatedAttempts}
+                attemptSearch={attemptSearch}
+                attemptsPage={attemptsPage}
+                attemptsRowsPerPage={attemptsRowsPerPage}
+                language={i18n.language}
+                exportDisabled={!analytics || exporting}
+                labels={{
+                  title: t("quizAnalytics.attemptsTitle"),
+                  subtitle: t("quizAnalytics.attemptsSubtitle"),
+                  exportCsv: t("quizAnalytics.exportCsv"),
+                  searchPlaceholder: t("quizAnalytics.searchPlaceholder"),
+                  empty: t("quizAnalytics.empty"),
+                  searchEmpty: t("quizAnalytics.searchEmpty"),
+                  participant: t("quizAnalytics.table.participant"),
+                  attempt: t("quizAnalytics.table.attempt"),
+                  status: t("quizAnalytics.table.status"),
+                  startedAt: t("quizAnalytics.table.startedAt"),
+                  submittedAt: t("quizAnalytics.table.submittedAt"),
+                  score: t("quizAnalytics.table.score"),
+                  viewDetail: t("quizAnalytics.viewDetail"),
+                  rowsPerPage: t("quizAnalytics.pagination.rowsPerPage"),
+                  actions: t("common.actions"),
+                }}
+                onSearchChange={setAttemptSearch}
+                onPageChange={setAttemptsPage}
+                onRowsPerPageChange={(value) => {
+                  setAttemptsRowsPerPage(value);
+                  setAttemptsPage(0);
+                }}
+                onOpenDetail={(attemptId) => void handleOpenDetail(attemptId)}
+                onExport={() => void handleExport()}
+                getStatusLabel={(status) =>
+                  t(`quizAnalytics.status.${status}`)
+                }
+              />
+            </Box>
 
             <QuizAnalyticsQuestionStatsCard
               title={t("quizAnalytics.questionStatsTitle")}
               stats={analytics.questionStats}
+              language={i18n.language}
               labels={{
                 question: t("quizAnalytics.questionStats.question"),
                 attempts: t("quizAnalytics.questionStats.attempts"),
@@ -162,7 +178,20 @@ export default function QuizAnalyticsPage() {
                 unanswered: t("quizAnalytics.questionStats.unanswered"),
                 correctRate: t("quizAnalytics.questionStats.correctRate"),
                 averagePoints: t("quizAnalytics.questionStats.averagePoints"),
+                answerDistribution: t(
+                  "quizAnalytics.questionStats.answerDistribution",
+                ),
+                responses: t("quizAnalytics.questionStats.responses"),
+                otherAnswers: t("quizAnalytics.questionStats.otherAnswers"),
                 getTypeLabel: (type) => t(`questions.types.${type}`),
+                getAnswerLabel: (answer) =>
+                  answer.key === "__unanswered__"
+                    ? t("quizAnalytics.questionStats.unanswered")
+                    : answer.key === "__other__"
+                      ? t("quizAnalytics.questionStats.otherAnswers")
+                    : answer.key === "true" || answer.key === "false"
+                      ? t(`quizAnalytics.questionStats.boolean.${answer.key}`)
+                      : answer.label,
               }}
             />
           </>

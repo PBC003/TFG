@@ -199,6 +199,7 @@ export interface QuizAnalyticsSummary {
   averageScoreOverTen: number;
   bestScoreOverTen: number;
   worstScoreOverTen: number;
+  averageCompletionMinutes: number;
 }
 
 export interface QuizAnalyticsAttemptItem {
@@ -220,6 +221,7 @@ export interface QuizAnalyticsAttemptItem {
 export interface QuizAnalyticsQuestionStatsItem {
   questionId: string;
   title: string;
+  statement: string;
   type: QuestionType;
   order: number;
   maxPoints: number;
@@ -229,6 +231,14 @@ export interface QuizAnalyticsQuestionStatsItem {
   unansweredCount: number;
   averageEarnedPoints: number;
   correctRate: number;
+  answerDistribution: QuizAnalyticsAnswerDistributionItem[];
+}
+
+export interface QuizAnalyticsAnswerDistributionItem {
+  key: string;
+  label: string;
+  count: number;
+  isCorrect: boolean | null;
 }
 
 export interface QuizAnalyticsItem {

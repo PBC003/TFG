@@ -20,6 +20,7 @@ const analytics: QuizAnalyticsItem = {
     averageScoreOverTen: 7,
     bestScoreOverTen: 9,
     worstScoreOverTen: 4,
+    averageCompletionMinutes: 5,
   },
   scoreDistribution: [
     { label: "0 - 4.99", minScore: 0, maxScore: 4.99, count: 1 },
@@ -30,21 +31,43 @@ const analytics: QuizAnalyticsItem = {
   questionStats: [],
 };
 
+const outcomeLabels = {
+  passed: "Passed",
+  failed: "Failed",
+  completed: "Completed",
+};
+
 describe("QuizAnalyticsDistributionCard", () => {
-  it("renders buckets with fallback and translated labels", () => {
+  it("renders donut legend and bucket bars with translated labels", () => {
     render(
       <QuizAnalyticsDistributionCard
         title="Distribution"
         labels={["Failed", "Pass"]}
+        outcomeLabels={outcomeLabels}
         analytics={analytics}
+        language="es"
       />,
     );
 
     expect(screen.getByText("Distribution")).toBeInTheDocument();
-    expect(screen.getByText("Failed")).toBeInTheDocument();
+    expect(screen.getAllByText("Failed")).toHaveLength(1);
     expect(screen.getByText("Pass")).toBeInTheDocument();
+    expect(screen.getByText("Completed")).toBeInTheDocument();
+    expect(screen.getByText("Passed: 3")).toBeInTheDocument();
+    expect(screen.getByText("Failed: 1")).toBeInTheDocument();
+    expect(screen.getByRole("img")).toHaveAccessibleName(
+      "Passed: 3; Failed: 1",
+    );
     expect(screen.getByText("7 - 8.99")).toBeInTheDocument();
-    expect(screen.getByText("5 - 6.99 · 2")).toBeInTheDocument();
+    expect(screen.getByText("[5, 7)")).toBeInTheDocument();
+    expect(
+      screen.getByText((_, element) => element?.textContent === "2 · 50%"),
+    ).toBeInTheDocument();
+
+    const progressBars = screen.getAllByRole("progressbar");
+    expect(progressBars[0]).toHaveAttribute("aria-valuenow", "25");
+    expect(progressBars[1]).toHaveAttribute("aria-valuenow", "50");
+    expect(progressBars[2]).toHaveAttribute("aria-valuenow", "25");
   });
 
   it("renders zero-width buckets when every bucket count is zero", () => {
@@ -52,6 +75,8 @@ describe("QuizAnalyticsDistributionCard", () => {
       <QuizAnalyticsDistributionCard
         title="Zero"
         labels={[]}
+        outcomeLabels={outcomeLabels}
+        language="en"
         analytics={{
           ...analytics,
           scoreDistribution: [

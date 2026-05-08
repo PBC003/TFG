@@ -48,6 +48,7 @@ const analytics: QuizAnalyticsItem = {
     averageScoreOverTen: 7,
     bestScoreOverTen: 9,
     worstScoreOverTen: 4,
+    averageCompletionMinutes: 7.5,
   },
   scoreDistribution: [],
   attempts: [

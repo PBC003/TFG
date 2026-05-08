@@ -2,6 +2,7 @@ import { Alert, Button, Chip, Paper, Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import type { QuizSubmissionResult } from "../../../types/quiz";
 import { formatDateTime } from "../../../utils/date";
+import { formatNumber } from "../../../utils/number";
 import { QuizReviewCard } from "./QuizReviewCard";
 
 type QuizResultSectionProps = {
@@ -41,14 +42,14 @@ export function QuizResultSection({
           >
             <Chip
               label={t("quizAccess.scoreRaw", {
-                earned: result.earnedPoints,
-                max: result.maxPoints,
+                earned: formatNumber(result.earnedPoints, language),
+                max: formatNumber(result.maxPoints, language),
               })}
               color="primary"
             />
             <Chip
               label={t("quizAccess.scoreOverTen", {
-                value: result.scoreOverTen,
+                value: formatNumber(result.scoreOverTen, language),
               })}
               color="secondary"
             />
@@ -74,6 +75,7 @@ export function QuizResultSection({
               key={review.questionId}
               review={review}
               index={index}
+              language={language}
             />
           ))}
         </Stack>

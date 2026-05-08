@@ -13,10 +13,6 @@ export function downloadCsvFile(filename: string, content: string) {
   URL.revokeObjectURL(url);
 }
 
-export function formatRawScore(earnedPoints: number, maxPoints: number) {
-  return `${earnedPoints} / ${maxPoints}`;
-}
-
 export function normalizeSearchText(value: string) {
   return value
     .normalize("NFD")

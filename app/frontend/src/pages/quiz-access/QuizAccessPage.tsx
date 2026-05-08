@@ -155,6 +155,7 @@ export default function QuizAccessPage() {
             attempt={activeAttempt}
             answers={answers}
             submitting={submitting}
+            language={i18n.language}
             onAnswerChange={updateAnswer}
             onSubmit={() => void handleSubmitAttempt()}
           />

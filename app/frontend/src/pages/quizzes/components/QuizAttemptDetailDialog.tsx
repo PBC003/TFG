@@ -18,6 +18,7 @@ import type {
   QuizSubmissionQuestionReview,
 } from "../../../types/quiz";
 import { formatDateTime } from "../../../utils/date";
+import { formatNumber } from "../../../utils/number";
 import { formatQuizReviewAnswerValue } from "../../quiz-access/utils/quiz-access.utils";
 
 type QuizAttemptDetailDialogProps = {
@@ -119,8 +120,8 @@ export function QuizAttemptDetailDialog({
                 </Typography>
                 <Typography fontWeight={700}>
                   {t("quizAnalytics.rawScoreValue", {
-                    earned: detail.earnedPoints,
-                    max: detail.maxPoints,
+                    earned: formatNumber(detail.earnedPoints, language),
+                    max: formatNumber(detail.maxPoints, language),
                   })}
                 </Typography>
               </Stack>
@@ -175,8 +176,8 @@ export function QuizAttemptDetailDialog({
                       </Stack>
                       <Typography>
                         {t("quizAnalytics.pointsPerQuestionValue", {
-                          earned: review.earnedPoints,
-                          max: review.points,
+                          earned: formatNumber(review.earnedPoints, language),
+                          max: formatNumber(review.points, language),
                         })}
                       </Typography>
                       {review.feedback ? (

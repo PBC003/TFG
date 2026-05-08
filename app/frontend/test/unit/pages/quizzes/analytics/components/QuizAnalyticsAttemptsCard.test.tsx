@@ -22,6 +22,7 @@ const attempt: QuizAnalyticsAttemptItem = {
 const labels = {
   title: "Attempts",
   subtitle: "Subtitle",
+  exportCsv: "Export CSV",
   searchPlaceholder: "Search",
   empty: "Empty",
   searchEmpty: "No matches",
@@ -49,11 +50,13 @@ describe("QuizAnalyticsAttemptsCard", () => {
         attemptsPage={0}
         attemptsRowsPerPage={5}
         language="es"
+        exportDisabled={false}
         labels={labels}
         onSearchChange={() => undefined}
         onPageChange={() => undefined}
         onRowsPerPageChange={() => undefined}
         onOpenDetail={() => undefined}
+        onExport={() => undefined}
         getStatusLabel={(status) => status}
       />,
     );
@@ -71,11 +74,13 @@ describe("QuizAnalyticsAttemptsCard", () => {
         attemptsPage={0}
         attemptsRowsPerPage={5}
         language="es"
+        exportDisabled={false}
         labels={labels}
         onSearchChange={() => undefined}
         onPageChange={() => undefined}
         onRowsPerPageChange={() => undefined}
         onOpenDetail={() => undefined}
+        onExport={() => undefined}
         getStatusLabel={(status) => status}
       />,
     );
@@ -88,6 +93,7 @@ describe("QuizAnalyticsAttemptsCard", () => {
     const onPageChange = vi.fn();
     const onRowsPerPageChange = vi.fn();
     const onOpenDetail = vi.fn();
+    const onExport = vi.fn();
 
     render(
       <QuizAnalyticsAttemptsCard
@@ -100,11 +106,13 @@ describe("QuizAnalyticsAttemptsCard", () => {
         attemptsPage={0}
         attemptsRowsPerPage={5}
         language="es"
+        exportDisabled={false}
         labels={labels}
         onSearchChange={onSearchChange}
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
         onOpenDetail={onOpenDetail}
+        onExport={onExport}
         getStatusLabel={(status) => `status:${status}`}
       />,
     );
@@ -116,11 +124,39 @@ describe("QuizAnalyticsAttemptsCard", () => {
     fireEvent.change(screen.getByPlaceholderText("Search"), {
       target: { value: "Ada" },
     });
+    fireEvent.click(screen.getByRole("button", { name: "Export CSV" }));
     fireEvent.click(screen.getByRole("button", { name: "View" }));
     fireEvent.click(screen.getByLabelText("Go to next page"));
 
     expect(onSearchChange).toHaveBeenCalledWith("Ada");
+    expect(onExport).toHaveBeenCalledTimes(1);
     expect(onOpenDetail).toHaveBeenCalledWith("attempt-1");
     expect(onPageChange).toHaveBeenCalledWith(1);
+  });
+
+  it("disables the export button when requested", () => {
+    render(
+      <QuizAnalyticsAttemptsCard
+        loading={false}
+        detailLoading={false}
+        allAttemptsCount={1}
+        filteredAttemptsCount={1}
+        attempts={[attempt]}
+        attemptSearch=""
+        attemptsPage={0}
+        attemptsRowsPerPage={5}
+        language="es"
+        exportDisabled
+        labels={labels}
+        onSearchChange={() => undefined}
+        onPageChange={() => undefined}
+        onRowsPerPageChange={() => undefined}
+        onOpenDetail={() => undefined}
+        onExport={() => undefined}
+        getStatusLabel={(status) => status}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Export CSV" })).toBeDisabled();
   });
 });

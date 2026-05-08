@@ -69,6 +69,7 @@ describe("QuizAttemptSection", () => {
         attempt={attempt}
         answers={{}}
         submitting={false}
+        language="es"
         onAnswerChange={onAnswerChange}
         onSubmit={onSubmit}
       />,
@@ -113,6 +114,7 @@ describe("QuizAttemptSection", () => {
         }}
         answers={{ "q-param": "sin(2)" }}
         submitting={false}
+        language="es"
         onAnswerChange={onAnswerChange}
         onSubmit={onSubmit}
       />,

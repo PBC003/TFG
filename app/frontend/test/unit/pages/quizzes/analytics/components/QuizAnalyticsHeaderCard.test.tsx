@@ -3,19 +3,18 @@ import { describe, expect, it, vi } from "vitest";
 import { QuizAnalyticsHeaderCard } from "../../../../../../src/pages/quizzes/analytics/components/QuizAnalyticsHeaderCard";
 
 describe("QuizAnalyticsHeaderCard", () => {
-  it("renders metadata and delegates back/export actions", () => {
+  it("renders metadata and delegates back/export stats actions", () => {
     const onBack = vi.fn();
-    const onExport = vi.fn();
+    const onExportStats = vi.fn();
 
     render(
       <QuizAnalyticsHeaderCard
         title="Quiz analytics"
         description="Summary"
-        exportDisabled={false}
         onBack={onBack}
-        onExport={onExport}
+        onExportStats={onExportStats}
         backLabel="Back"
-        exportLabel="Export"
+        exportStatsLabel="Export stats"
       />,
     );
 
@@ -23,25 +22,9 @@ describe("QuizAnalyticsHeaderCard", () => {
     expect(screen.getByText("Summary")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
-    fireEvent.click(screen.getByRole("button", { name: "Export" }));
+    fireEvent.click(screen.getByRole("button", { name: "Export stats" }));
 
     expect(onBack).toHaveBeenCalledTimes(1);
-    expect(onExport).toHaveBeenCalledTimes(1);
-  });
-
-  it("disables export when requested", () => {
-    render(
-      <QuizAnalyticsHeaderCard
-        title="Quiz analytics"
-        description="Summary"
-        exportDisabled
-        onBack={() => undefined}
-        onExport={() => undefined}
-        backLabel="Back"
-        exportLabel="Export"
-      />,
-    );
-
-    expect(screen.getByRole("button", { name: "Export" })).toBeDisabled();
+    expect(onExportStats).toHaveBeenCalledTimes(1);
   });
 });

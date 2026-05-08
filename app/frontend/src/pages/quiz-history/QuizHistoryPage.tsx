@@ -21,6 +21,7 @@ import { quizHistoryApi } from "../../services/quizzes/quiz-history-api";
 import type { QuizHistoryItem } from "../../types/quiz";
 import { formatDateTime } from "../../utils/date";
 import { getErrorMessage } from "../../utils/error-code";
+import { formatNumber } from "../../utils/number";
 
 export default function QuizHistoryPage() {
   const { t, i18n } = useTranslation();
@@ -128,8 +129,14 @@ export default function QuizHistoryPage() {
                         </TableCell>
                         <TableCell>
                           {t("quizHistory.rawScoreValue", {
-                            earned: attempt.earnedPoints,
-                            max: attempt.maxPoints,
+                            earned: formatNumber(
+                              attempt.earnedPoints,
+                              i18n.language,
+                            ),
+                            max: formatNumber(
+                              attempt.maxPoints,
+                              i18n.language,
+                            ),
                           })}
                         </TableCell>
                         <TableCell align="right">

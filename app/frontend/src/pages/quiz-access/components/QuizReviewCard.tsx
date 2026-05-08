@@ -10,14 +10,16 @@ import {
 import { useTranslation } from "react-i18next";
 import { MathText } from "../../../components/math/MathText";
 import type { QuizSubmissionQuestionReview } from "../../../types/quiz";
+import { formatNumber } from "../../../utils/number";
 import { formatQuizReviewAnswerValue } from "../utils/quiz-access.utils";
 
 type QuizReviewCardProps = {
   review: QuizSubmissionQuestionReview;
   index: number;
+  language: string;
 };
 
-export function QuizReviewCard({ review, index }: QuizReviewCardProps) {
+export function QuizReviewCard({ review, index, language }: QuizReviewCardProps) {
   const { t } = useTranslation();
 
   return (
@@ -48,8 +50,8 @@ export function QuizReviewCard({ review, index }: QuizReviewCardProps) {
               />
               <Chip
                 label={t("quizAccess.pointsReviewValue", {
-                  earned: review.earnedPoints,
-                  max: review.points,
+                  earned: formatNumber(review.earnedPoints, language),
+                  max: formatNumber(review.points, language),
                 })}
               />
             </Stack>

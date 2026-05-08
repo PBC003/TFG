@@ -177,6 +177,7 @@ export default function QuizSimulationPage() {
             attempt={attempt}
             answers={answers}
             submitting={submitting}
+            language={i18n.language}
             onAnswerChange={updateAnswer}
             onSubmit={() => void handleSubmit()}
           />

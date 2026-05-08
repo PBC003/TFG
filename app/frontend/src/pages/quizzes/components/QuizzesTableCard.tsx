@@ -22,6 +22,7 @@ import {
 import { useTranslation } from "react-i18next";
 import type { QuizItem } from "../../../types/quiz";
 import { formatDateTime } from "../../../utils/date";
+import { formatNumber } from "../../../utils/number";
 
 type QuizzesTableCardProps = {
   loading: boolean;
@@ -162,7 +163,7 @@ export function QuizzesTableCard({
                         <Typography variant="body2">
                           {t("quizzes.questionSummary", {
                             count: quiz.totalQuestions,
-                            points: quiz.totalPoints,
+                            points: formatNumber(quiz.totalPoints, language),
                           })}
                         </Typography>
                       </TableCell>

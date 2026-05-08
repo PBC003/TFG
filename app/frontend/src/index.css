@@ -22,3 +22,18 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  .analytics-print-hidden,
+  .MuiDialog-root {
+    display: none !important;
+  }
+
+  #root {
+    min-height: auto;
+  }
+}

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   QuizAnalyticsItem,
   QuizAttemptReviewDetail,
@@ -10,6 +10,7 @@ import { useQuizAnalyticsPage } from "../../../../src/pages/quizzes/analytics/ho
 
 const mockNavigate = vi.fn();
 const mockUseParams = vi.fn(() => ({ quizId: "quiz-1" }));
+const mockPrint = vi.fn();
 
 vi.mock("react-router-dom", async () => {
   const actual =
@@ -37,15 +38,14 @@ vi.mock(
       title: string;
       description: string;
       onBack: () => void;
-      onExport: () => void;
-      exportDisabled: boolean;
+      onExportStats: () => void;
       backLabel: string;
-      exportLabel: string;
+      exportStatsLabel: string;
     }) => (
       <div data-testid="header-card">
-        <div>{`${props.title}|${props.description}|${props.exportDisabled}`}</div>
+        <div>{`${props.title}|${props.description}`}</div>
         <button onClick={props.onBack}>{props.backLabel}</button>
-        <button onClick={props.onExport}>{props.exportLabel}</button>
+        <button onClick={props.onExportStats}>{props.exportStatsLabel}</button>
       </div>
     ),
   }),
@@ -72,11 +72,15 @@ vi.mock(
     QuizAnalyticsDistributionCard: ({
       title,
       labels,
+      outcomeLabels,
     }: {
       title: string;
       labels: string[];
+      outcomeLabels: { passed: string; failed: string; completed: string };
     }) => (
-      <div data-testid="distribution-card">{`${title}|${labels.join(",")}`}</div>
+      <div data-testid="distribution-card">
+        {`${title}|${labels.join(",")}|${outcomeLabels.passed}|${outcomeLabels.failed}|${outcomeLabels.completed}`}
+      </div>
     ),
   }),
 );
@@ -88,6 +92,7 @@ vi.mock(
       allAttemptsCount: number;
       filteredAttemptsCount: number;
       labels: { title: string };
+      onExport: () => void;
       getStatusLabel: (status: string) => string;
       onSearchChange: (value: string) => void;
       onPageChange: (value: number) => void;
@@ -102,6 +107,7 @@ vi.mock(
         <button onClick={() => props.onPageChange(2)}>page</button>
         <button onClick={() => props.onRowsPerPageChange(10)}>rows</button>
         <button onClick={() => props.onOpenDetail("attempt-1")}>detail</button>
+        <button onClick={props.onExport}>quizAnalytics.exportCsv</button>
       </div>
     ),
   }),
@@ -161,6 +167,7 @@ const analytics: QuizAnalyticsItem = {
     averageScoreOverTen: 7,
     bestScoreOverTen: 10,
     worstScoreOverTen: 5,
+    averageCompletionMinutes: 6.5,
   },
   scoreDistribution: [],
   attempts: [
@@ -184,6 +191,7 @@ const analytics: QuizAnalyticsItem = {
     {
       questionId: "q-1",
       title: "Question 1",
+      statement: "Statement",
       type: "true_false",
       order: 0,
       maxPoints: 2,
@@ -193,6 +201,10 @@ const analytics: QuizAnalyticsItem = {
       unansweredCount: 0,
       averageEarnedPoints: 1.5,
       correctRate: 75,
+      answerDistribution: [
+        { key: "true", label: "true", count: 3, isCorrect: true },
+        { key: "false", label: "false", count: 1, isCorrect: false },
+      ],
     },
   ],
 };
@@ -243,6 +255,14 @@ function buildHookResult(
 }
 
 describe("QuizAnalyticsPage", () => {
+  beforeEach(() => {
+    mockPrint.mockClear();
+    Object.defineProperty(window, "print", {
+      configurable: true,
+      value: mockPrint,
+    });
+  });
+
   it("renders loading state when analytics are not ready", () => {
     vi.mocked(useQuizAnalyticsPage).mockReturnValue(
       buildHookResult({ analytics: null, detail: null, loading: true }),
@@ -272,7 +292,16 @@ describe("QuizAnalyticsPage", () => {
     expect(screen.getByTestId("header-card")).toBeInTheDocument();
     expect(screen.getByText("ok")).toBeInTheDocument();
     expect(screen.getByTestId("summary-grid")).toBeInTheDocument();
+    expect(screen.getByTestId("summary-grid")).toHaveTextContent(
+      "quizAnalytics.summary.averageCompletionMinutes:6.5",
+    );
+    expect(screen.getByTestId("summary-grid")).not.toHaveTextContent(
+      "quizAnalytics.summary.worstScore",
+    );
     expect(screen.getByTestId("distribution-card")).toBeInTheDocument();
+    expect(screen.getByTestId("distribution-card")).toHaveTextContent(
+      "quizAnalytics.distributionOutcomes.passed",
+    );
     expect(screen.getByTestId("attempts-card")).toHaveTextContent(
       "quizAnalytics.status.submitted",
     );
@@ -285,6 +314,9 @@ describe("QuizAnalyticsPage", () => {
       screen.getByRole("button", { name: "quizAnalytics.backToQuizzes" }),
     );
     fireEvent.click(
+      screen.getByRole("button", { name: "quizAnalytics.exportStats" }),
+    );
+    fireEvent.click(
       screen.getByRole("button", { name: "quizAnalytics.exportCsv" }),
     );
     fireEvent.click(screen.getByText("search"));
@@ -294,6 +326,7 @@ describe("QuizAnalyticsPage", () => {
     fireEvent.click(screen.getByText("close-detail"));
 
     expect(mockNavigate).toHaveBeenCalledWith("/quizzes");
+    expect(mockPrint).toHaveBeenCalledTimes(1);
     expect(hook.handleExport).toHaveBeenCalledTimes(1);
     expect(hook.setAttemptSearch).toHaveBeenCalledWith("Ada");
     expect(hook.setAttemptsPage).toHaveBeenNthCalledWith(1, 2);

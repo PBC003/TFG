@@ -13,6 +13,7 @@ import type {
   PublicAttemptQuestion,
   QuizAnswerValue,
 } from "../../../types/quiz";
+import { formatNumber } from "../../../utils/number";
 import { QuizQuestionInput } from "./QuizQuestionInput";
 
 type QuizAttemptQuestionCardProps = {
@@ -20,6 +21,7 @@ type QuizAttemptQuestionCardProps = {
   index: number;
   value: QuizAnswerValue;
   disabled: boolean;
+  language: string;
   onChange: (nextValue: QuizAnswerValue) => void;
   parametricValidationMessage?: string | null;
 };
@@ -29,6 +31,7 @@ export function QuizAttemptQuestionCard({
   index,
   value,
   disabled,
+  language,
   onChange,
   parametricValidationMessage,
 }: QuizAttemptQuestionCardProps) {
@@ -50,7 +53,9 @@ export function QuizAttemptQuestionCard({
                 {t("quizAccess.questionTitle", { index: index + 1 })}
               </Typography>
               <Chip
-                label={t("quizAccess.pointsLabel", { value: question.points })}
+                label={t("quizAccess.pointsLabel", {
+                  value: formatNumber(question.points, language),
+                })}
               />
             </Stack>
             <MathText value={question.statement} emptyText="—" />

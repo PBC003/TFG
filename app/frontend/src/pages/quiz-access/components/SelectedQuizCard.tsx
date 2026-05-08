@@ -10,6 +10,7 @@ import {
 import { useTranslation } from "react-i18next";
 import type { PublicQuizCatalogItem } from "../../../types/quiz";
 import { formatDateTime } from "../../../utils/date";
+import { formatNumber } from "../../../utils/number";
 
 type SelectedQuizCardProps = {
   quiz: PublicQuizCatalogItem;
@@ -71,6 +72,7 @@ export function SelectedQuizCard({
           <Chip
             label={t("quizAccess.catalog.totalPoints", {
               count: quiz.totalPoints,
+              value: formatNumber(quiz.totalPoints, language),
             })}
           />
           <Chip

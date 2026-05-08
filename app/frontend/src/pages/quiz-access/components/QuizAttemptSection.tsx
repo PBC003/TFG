@@ -8,6 +8,7 @@ type QuizAttemptSectionProps = {
   attempt: QuizAttemptItem;
   answers: Record<string, QuizAnswerValue>;
   submitting: boolean;
+  language: string;
   onAnswerChange: (questionId: string, value: QuizAnswerValue) => void;
   onSubmit: () => void;
 };
@@ -16,6 +17,7 @@ export function QuizAttemptSection({
   attempt,
   answers,
   submitting,
+  language,
   onAnswerChange,
   onSubmit,
 }: QuizAttemptSectionProps) {
@@ -48,6 +50,7 @@ export function QuizAttemptSection({
           index={index}
           value={answers[question.questionId] ?? null}
           disabled={submitting}
+          language={language}
           onChange={(nextValue) =>
             onAnswerChange(question.questionId, nextValue)
           }

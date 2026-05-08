@@ -34,7 +34,9 @@ const review: QuizSubmissionQuestionReview = {
 
 describe("QuizReviewCard", () => {
   it("renders incorrect answer review with feedback and explanation", () => {
-    renderWithProviders(<QuizReviewCard review={review} index={0} />);
+    renderWithProviders(
+      <QuizReviewCard review={review} index={0} language="es" />,
+    );
 
     expect(screen.getByText("quizAccess.reviewTitle")).toBeInTheDocument();
     expect(screen.getByText("Pregunta")).toBeInTheDocument();
@@ -56,6 +58,7 @@ describe("QuizReviewCard", () => {
           explanation: null,
         }}
         index={1}
+        language="en"
       />,
     );
 

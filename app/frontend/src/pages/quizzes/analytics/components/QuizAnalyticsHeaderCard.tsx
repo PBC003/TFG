@@ -1,25 +1,23 @@
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
-import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
+import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
 import { Button, Paper, Stack, Typography } from "@mui/material";
 
 type QuizAnalyticsHeaderCardProps = {
   title: string;
   description: string;
-  exportDisabled: boolean;
   onBack: () => void;
-  onExport: () => void;
+  onExportStats: () => void;
   backLabel: string;
-  exportLabel: string;
+  exportStatsLabel: string;
 };
 
 export function QuizAnalyticsHeaderCard({
   title,
   description,
-  exportDisabled,
   onBack,
-  onExport,
+  onExportStats,
   backLabel,
-  exportLabel,
+  exportStatsLabel,
 }: QuizAnalyticsHeaderCardProps) {
   return (
     <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 3 }}>
@@ -34,7 +32,11 @@ export function QuizAnalyticsHeaderCard({
           </Typography>
           <Typography color="text.secondary">{description}</Typography>
         </Stack>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
+        <Stack
+          className="analytics-print-hidden"
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1.25}
+        >
           <Button
             variant="outlined"
             startIcon={<ArrowBackRoundedIcon />}
@@ -44,11 +46,10 @@ export function QuizAnalyticsHeaderCard({
           </Button>
           <Button
             variant="contained"
-            startIcon={<DownloadRoundedIcon />}
-            onClick={onExport}
-            disabled={exportDisabled}
+            startIcon={<PrintRoundedIcon />}
+            onClick={onExportStats}
           >
-            {exportLabel}
+            {exportStatsLabel}
           </Button>
         </Stack>
       </Stack>
