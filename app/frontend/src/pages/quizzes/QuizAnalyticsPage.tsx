@@ -16,6 +16,7 @@ import { QuizAnalyticsHeaderCard } from "./analytics/components/QuizAnalyticsHea
 import { QuizAnalyticsQuestionStatsCard } from "./analytics/components/QuizAnalyticsQuestionStatsCard";
 import { QuizAnalyticsSummaryGrid } from "./analytics/components/QuizAnalyticsSummaryGrid";
 import { useQuizAnalyticsPage } from "./analytics/hooks/useQuizAnalyticsPage";
+import { formatDurationFromMinutes } from "../../utils/duration";
 
 export default function QuizAnalyticsPage() {
   const { t, i18n } = useTranslation();
@@ -65,7 +66,17 @@ export default function QuizAnalyticsPage() {
             },
             {
               label: t("quizAnalytics.summary.averageCompletionMinutes"),
-              value: analytics.summary.averageCompletionMinutes,
+              value: formatDurationFromMinutes(
+                analytics.summary.averageCompletionMinutes,
+                {
+                  hour: t("quizAnalytics.duration.hour"),
+                  hours: t("quizAnalytics.duration.hours"),
+                  minute: t("quizAnalytics.duration.minute"),
+                  minutes: t("quizAnalytics.duration.minutes"),
+                  second: t("quizAnalytics.duration.second"),
+                  seconds: t("quizAnalytics.duration.seconds"),
+                },
+              ),
             },
             {
               label: t("quizAnalytics.summary.submittedAttempts"),

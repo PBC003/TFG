@@ -9,7 +9,7 @@ describe("QuizAnalyticsSummaryGrid", () => {
         language="es"
         items={[
           { label: "Attempts", value: 4 },
-          { label: "Average", value: 8.5 },
+          { label: "Average", value: "5 minutos 30 segundos" },
         ]}
       />,
     );
@@ -17,6 +17,6 @@ describe("QuizAnalyticsSummaryGrid", () => {
     expect(screen.getByText("Attempts")).toBeInTheDocument();
     expect(screen.getByText("4")).toBeInTheDocument();
     expect(screen.getByText("Average")).toBeInTheDocument();
-    expect(screen.getByText("8,5")).toBeInTheDocument();
+    expect(screen.getByText("5 minutos 30 segundos")).toBeInTheDocument();
   });
 });

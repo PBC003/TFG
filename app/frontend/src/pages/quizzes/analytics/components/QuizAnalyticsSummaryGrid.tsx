@@ -3,7 +3,7 @@ import { formatNumber } from "../../../../utils/number";
 
 type SummaryItem = {
   label: string;
-  value: number;
+  value: number | string;
 };
 
 export function QuizAnalyticsSummaryGrid({
@@ -40,7 +40,9 @@ export function QuizAnalyticsSummaryGrid({
               {item.label}
             </Typography>
             <Typography variant="h5" fontWeight={800} textAlign="center">
-              {formatNumber(item.value, language)}
+              {typeof item.value === "number"
+                ? formatNumber(item.value, language)
+                : item.value}
             </Typography>
           </Stack>
         </Paper>

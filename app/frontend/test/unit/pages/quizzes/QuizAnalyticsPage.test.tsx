@@ -57,7 +57,7 @@ vi.mock(
     QuizAnalyticsSummaryGrid: ({
       items,
     }: {
-      items: Array<{ label: string; value: number }>;
+      items: Array<{ label: string; value: number | string }>;
     }) => (
       <div data-testid="summary-grid">
         {items.map((item) => `${item.label}:${item.value}`).join(",")}
@@ -293,7 +293,7 @@ describe("QuizAnalyticsPage", () => {
     expect(screen.getByText("ok")).toBeInTheDocument();
     expect(screen.getByTestId("summary-grid")).toBeInTheDocument();
     expect(screen.getByTestId("summary-grid")).toHaveTextContent(
-      "quizAnalytics.summary.averageCompletionMinutes:6.5",
+      "quizAnalytics.summary.averageCompletionMinutes:6 quizAnalytics.duration.minutes 30 quizAnalytics.duration.seconds",
     );
     expect(screen.getByTestId("summary-grid")).not.toHaveTextContent(
       "quizAnalytics.summary.worstScore",
