@@ -195,24 +195,23 @@ export function buildAnalyticsQuestionStats(
           : 0,
       answerDistribution: [...stat.answerCounts.values()]
         .sort((left, right) => left.firstSeenIndex - right.firstSeenIndex)
-        .map(({ firstSeenIndex: _firstSeenIndex, ...item }) => item),
+        .map(toAnswerDistributionItem),
     }))
     .sort((left, right) => left.order - right.order);
 }
 
 function initializeAnswerCounts(
   question: QuizAttemptQuestionSnapshot,
-): Map<string, QuizAnalyticsAnswerDistributionItem & { firstSeenIndex: number }> {
+): Map<
+  string,
+  QuizAnalyticsAnswerDistributionItem & { firstSeenIndex: number }
+> {
   const counts = new Map<
     string,
     QuizAnalyticsAnswerDistributionItem & { firstSeenIndex: number }
   >();
 
-  const addOption = (
-    key: string,
-    label: string,
-    isCorrect: boolean | null,
-  ) => {
+  const addOption = (key: string, label: string, isCorrect: boolean | null) => {
     counts.set(key, {
       key,
       label,
@@ -231,7 +230,11 @@ function initializeAnswerCounts(
   if (question.type === QuestionType.SINGLE_CHOICE) {
     const config = question.questionConfig as SingleChoiceQuestionConfig;
     for (const option of config.options) {
-      addOption(option.key, option.text, option.key === config.correctOptionKey);
+      addOption(
+        option.key,
+        option.text,
+        option.key === config.correctOptionKey,
+      );
     }
   }
 
@@ -260,7 +263,7 @@ function recordAnswerDistribution(
   }
 
   if (question.type === QuestionType.MULTIPLE_CHOICE) {
-    const selectedKeys = Array.isArray(answer.value) ? answer.value : [];
+    const selectedKeys = toStringArray(answer.value);
     for (const selectedKey of selectedKeys) {
       const option = findQuestionOption(question, selectedKey);
       incrementAnswerCount(
@@ -276,6 +279,17 @@ function recordAnswerDistribution(
   const key = serializeAnswerKey(answer.value);
   const option = findQuestionOption(question, key);
   incrementAnswerCount(counts, key, option?.text ?? key, answer.isCorrect);
+}
+
+function toAnswerDistributionItem(
+  item: QuizAnalyticsAnswerDistributionItem & { firstSeenIndex: number },
+): QuizAnalyticsAnswerDistributionItem {
+  return {
+    key: item.key,
+    label: item.label,
+    count: item.count,
+    isCorrect: item.isCorrect,
+  };
 }
 
 function incrementAnswerCount(
@@ -309,6 +323,11 @@ function findQuestionOption(
 ): QuestionOption | undefined {
   const config = question.questionConfig as { options?: QuestionOption[] };
   return config.options?.find((option) => option.key === key);
+}
+
+function toStringArray(value: unknown): string[] {
+  const values: unknown[] = Array.isArray(value) ? value : [];
+  return values.filter((item): item is string => typeof item === 'string');
 }
 
 function serializeAnswerKey(value: unknown): string {
