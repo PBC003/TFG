@@ -89,7 +89,6 @@ export const en = {
     foundationBlockValue: 'Functional baseline ready for expansion',
   },
   about: {
-    title: 'About the project',
     body:
       'This prototype is part of a bachelor thesis focused on a web platform for creating and taking quizzes, with future support for mathematical notation and basic analytics.',
     hero: {
@@ -148,7 +147,6 @@ export const en = {
   },
   profile: {
     title: 'Profile',
-    subtitle: 'Current data for the authenticated account.',
     accountData: 'Account data',
     accountDataDescription: 'Basic information and key metadata for the authenticated user.',
     securityHint:
@@ -164,8 +162,7 @@ export const en = {
   },
   admin: {
     title: 'Administration panel',
-    subtitle:
-      'Basic user management for the system. Search, pagination and incremental loading are still pending as known technical debt.',
+    subtitle: 'Manage system users, roles, and account status.',
     totalUsers: 'Visible users',
     searchPlaceholder: 'Search by name, surname, email or UO',
     stateFilter: 'Filter by status',
@@ -476,7 +473,6 @@ export const en = {
     catalog: {
       title: 'Available published quizzes',
       subtitleWithParticipant: 'Your estimated remaining attempts for your account are shown for each quiz.',
-      subtitleWithoutParticipant: 'Sign in to browse and complete published quizzes.',
       searchLabel: 'Search published quizzes',
       empty: 'There are no published quizzes matching the current filter.',
       noDescription: 'No additional public description.',

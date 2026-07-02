@@ -89,7 +89,6 @@ export const es = {
     foundationBlockValue: 'Base funcional lista para ampliación',
   },
   about: {
-    title: 'Acerca del proyecto',
     body:
       'Este prototipo forma parte de un TFG orientado a una plataforma web para crear y resolver cuestionarios con soporte posterior para notación matemática y analítica básica.',
     hero: {
@@ -148,7 +147,6 @@ export const es = {
   },
   profile: {
     title: 'Perfil',
-    subtitle: 'Datos actuales de la cuenta autenticada.',
     accountData: 'Datos de la cuenta',
     accountDataDescription: 'Información básica y metadatos principales del usuario autenticado.',
     securityHint:
@@ -164,8 +162,7 @@ export const es = {
   },
   admin: {
     title: 'Panel de administración',
-    subtitle:
-      'Gestión básica de usuarios del sistema. La búsqueda, paginación y carga incremental siguen pendientes como deuda técnica conocida.',
+    subtitle: 'Gestión de usuarios, roles y estado de las cuentas del sistema.',
     totalUsers: 'Usuarios visibles',
     searchPlaceholder: 'Buscar por nombre, apellidos, correo o UO',
     stateFilter: 'Filtrar por estado',
@@ -476,7 +473,6 @@ export const es = {
     catalog: {
       title: 'Cuestionarios publicados disponibles',
       subtitleWithParticipant: 'Se muestran tus intentos restantes estimados para tu cuenta en cada cuestionario.',
-      subtitleWithoutParticipant: 'Inicia sesión para consultar y realizar cuestionarios publicados.',
       searchLabel: 'Buscar cuestionarios publicados',
       empty: 'No hay cuestionarios publicados que coincidan con el filtro actual.',
       noDescription: 'Sin descripción pública adicional.',
